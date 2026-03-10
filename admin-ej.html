@@ -37,16 +37,22 @@
 <body>
 
     <div class="header">
-        <h2 style="color: var(--gold)">EJ ADMIN</h2>
-        <div style="font-size: 9px; font-weight: 800; background: var(--glass); padding: 5px 10px; border-radius: 8px;">AUTO-CLEAN (90D)</div>
+        <div>
+            <h2 style="color: var(--gold)">EJ ADMIN</h2>
+            <div id="runningClock" style="font-size: 11px; font-weight: 800; color: var(--safe); margin-top: 2px;">00:00:00</div>
+        </div>
+        <div style="font-size: 9px; font-weight: 800; background: var(--glass); padding: 5px 10px; border-radius: 8px; text-align: right;">
+            AUTO-DATE SYNC<br>
+            <span id="currentDay" style="color: var(--gold);">-- --- ----</span>
+        </div>
     </div>
 
-    <input type="date" id="datePicker" onchange="changeDate()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; font-weight: 800; margin-bottom:15px;">
+    <input type="date" id="datePicker" onchange="changeDate()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; font-weight: 800; margin-bottom:15px; width: 100%; cursor: pointer;">
 
     <div class="report-grid">
         <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa (Total)</span><b id="countProses">0</b></div>
-        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
-        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal</span><b id="countGagal">0</b></div>
+        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses Hari Ini</span><b id="countSukses">0</b></div>
+        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal Hari Ini</span><b id="countGagal">0</b></div>
     </div>
 
     <div class="report-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
@@ -55,7 +61,7 @@
     </div>
 
     <div class="glass-card">
-        <input type="text" id="noPesanan" placeholder="No Pesanan">
+        <input type="text" id="noPesanan" placeholder="No Pesanan (#001)">
         <input type="text" id="pembeli" placeholder="Nama Pembeli">
         <input type="text" id="nohp" placeholder="WhatsApp">
         <textarea id="alamat" placeholder="Alamat Lengkap"></textarea>
@@ -66,7 +72,7 @@
     </div>
 
     <div class="glass-card">
-        <input type="number" id="jumlahSetoran" placeholder="Input Setoran Masuk (Rp)">
+        <input type="number" id="jumlahSetoran" placeholder="Input Setoran (Rp)">
         <button class="btn-main" style="background:var(--safe); color:white" onclick="setor()">TERIMA SETORAN</button>
     </div>
 
@@ -87,18 +93,35 @@
         const firebaseConfig = { apiKey: "AIzaSyAVQGysGRlYJ2b4PekM3vaXKtx6UFvNlCk", databaseURL: "https://ej-tobacco-express-default-rtdb.asia-southeast1.firebasedatabase.app" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let targetDate = new Date();
-        document.getElementById('datePicker').valueAsDate = targetDate;
+        
         let allOrders = [], totalSetoranGlobal = 0, currentFilter = "Semua", lastOrder = null;
 
+        // Inisialisasi awal
+        document.getElementById('datePicker').valueAsDate = new Date();
+
         function getFormattedDate(date) { return date.toLocaleDateString('id-ID'); }
-        function changeDate() { targetDate = new Date(document.getElementById('datePicker').value); updateAll(); }
+        function changeDate() { updateAll(); }
         
         function setFilter(f) {
             currentFilter = f;
             document.querySelectorAll('.report-box').forEach(el => el.classList.remove('active'));
             document.getElementById('f-' + f).classList.add('active');
             renderList();
+        }
+
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                const jam = now.getHours().toString().padStart(2, '0');
+                const menit = now.getMinutes().toString().padStart(2, '0');
+                const detik = now.getSeconds().toString().padStart(2, '0');
+                document.getElementById('runningClock').innerText = `${jam}:${menit}:${detik}`;
+                
+                const opsi = { day: 'numeric', month: 'short', year: 'numeric' };
+                document.getElementById('currentDay').innerText = now.toLocaleDateString('id-ID', opsi).toUpperCase();
+                
+                if(jam === "00" && menit === "00" && detik === "01") location.reload();
+            }, 1000);
         }
 
         db.ref('pesanan').on('value', snap => {
@@ -111,12 +134,11 @@
                 if (o.tanggal) {
                     const parts = o.tanggal.split('/');
                     const tglPesanan = new Date(parts[2], parts[1] - 1, parts[0]);
-                    const selisihHari = Math.floor((hariIni - tglPesanan) / (1000 * 60 * 60 * 24));
+                    const selisihHari = Math.ceil((hariIni - tglPesanan) / (1000 * 60 * 60 * 24));
                     if (selisihHari > 90) db.ref('pesanan/' + o.id).remove();
                 }
             });
 
-            // Ambil semua setoran untuk hitung saldo akumulasi
             db.ref('setoran').on('value', sSnap => {
                 const sVal = sSnap.val() || {};
                 totalSetoranGlobal = Object.values(sVal).reduce((a, b) => a + b, 0);
@@ -125,53 +147,35 @@
         });
 
         function updateAll() {
-            const dateStr = getFormattedDate(targetDate);
+            const pickerDate = new Date(document.getElementById('datePicker').value);
+            const dateStr = getFormattedDate(pickerDate);
             updateDashboard(dateStr);
             renderList(dateStr);
         }
 
         function updateDashboard(dateStr) {
             let s = 0, g = 0, p = 0, totalCodSuksesGlobal = 0;
-            
             allOrders.forEach(o => {
-                // Statistik Per Hari Terpilih (untuk Sukses & Gagal)
                 if (o.tanggal === dateStr) {
                     if (o.status === 'Terkirim') s++;
                     else if (o.status === 'Gagal') g++;
                 }
-
-                // Hitung SISA PESANAN (Semua yang belum beres, tidak peduli tanggal)
                 if (o.status !== 'Terkirim' && o.status !== 'Gagal') p++;
-
-                // Hitung SEMUA COD SUKSES (Akumulasi untuk Saldo Kurir)
-                if (o.status === 'Terkirim' && o.metode === 'COD') {
-                    totalCodSuksesGlobal += Number(o.total || 0);
-                }
+                if (o.status === 'Terkirim' && o.metode === 'COD') totalCodSuksesGlobal += Number(o.total || 0);
             });
-
             document.getElementById('countSukses').innerText = s;
             document.getElementById('countGagal').innerText = g;
-            document.getElementById('countProses').innerText = p; // Menampilkan total hutang paket
-            
-            // Saldo = Total Semua COD Sukses - Total Semua Setoran yang pernah diterima
+            document.getElementById('countProses').innerText = p;
             const saldoKurir = totalCodSuksesGlobal - totalSetoranGlobal;
             document.getElementById('dailyTunai').innerText = "Rp" + saldoKurir.toLocaleString();
         }
 
-        function renderList(dateStr = getFormattedDate(targetDate)) {
+        function renderList(dateStr) {
             const keyword = document.getElementById('searchBar').value.toLowerCase();
             let html = "";
             const filtered = allOrders.filter(o => {
                 const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword) || (o.noPesanan || "").toLowerCase().includes(keyword);
-                
-                // Jika Filter "Sisa", tampilkan semua paket yang belum beres (tanpa pandang tanggal)
-                // Jika Filter lain, tampilkan berdasarkan tanggal terpilih
-                let matchStatus;
-                if (currentFilter === "Semua") {
-                    matchStatus = (o.status !== 'Terkirim' && o.status !== 'Gagal');
-                } else {
-                    matchStatus = (o.status === currentFilter && o.tanggal === dateStr);
-                }
+                let matchStatus = (currentFilter === "Semua") ? (o.status !== 'Terkirim' && o.status !== 'Gagal') : (o.status === currentFilter && o.tanggal === dateStr);
                 return matchSearch && matchStatus;
             });
 
@@ -197,35 +201,26 @@
         function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
 
         function tambah() {
-            const dateStr = getFormattedDate(new Date());
-            const d = { noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), namaPembeli: document.getElementById('pembeli').value, nohp: document.getElementById('nohp').value, alamat: document.getElementById('alamat').value, mapLink: document.getElementById('mapLink').value, total: document.getElementById('total').value || 0, metode: document.getElementById('metodeBayar').value, status: 'Menunggu', tanggal: dateStr, waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) };
+            const d = { noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), namaPembeli: document.getElementById('pembeli').value, nohp: document.getElementById('nohp').value, alamat: document.getElementById('alamat').value, mapLink: document.getElementById('mapLink').value, total: document.getElementById('total').value || 0, metode: document.getElementById('metodeBayar').value, status: 'Menunggu', tanggal: getFormattedDate(new Date()), waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) };
             if(!d.namaPembeli) return alert("Nama wajib!");
             db.ref('pesanan').push(d).then(() => { lastOrder = d; cetak(); document.querySelectorAll('input, textarea').forEach(i => i.value = ""); });
         }
 
         function setor() { 
-            const dateStr = getFormattedDate(new Date()); // Simpan setoran dengan tanggal hari ini
-            const dayKey = dateStr.replace(/\/| /g, '-');
+            const dayKey = getFormattedDate(new Date()).replace(/\/| /g, '-');
             const j = Number(document.getElementById('jumlahSetoran').value); 
             db.ref('setoran/' + dayKey).transaction(cv => (cv || 0) + j).then(() => { alert("Setoran Diterima!"); document.getElementById('jumlahSetoran').value = ""; }); 
         }
 
         function cetak() {
             if(!lastOrder) return;
-            document.getElementById('receipt-content').innerHTML = `
-                <div style="color:#000; font-family:monospace; padding:10px; border:1px solid #000;">
-                    <center><b>EJ TOBACCO</b><br>Express Delivery</center><br>
-                    ID: ${lastOrder.noPesanan}<br>
-                    TGL: ${lastOrder.tanggal} | ${lastOrder.waktu}<br>
-                    ------------------------------<br>
-                    PELANGGAN: ${lastOrder.namaPembeli}<br>
-                    TOTAL: Rp${Number(lastOrder.total).toLocaleString()}<br>
-                    METODE: ${lastOrder.metode}
-                </div>`;
+            document.getElementById('receipt-content').innerHTML = `<div style="color:#000; font-family:monospace; padding:10px; border:1px solid #000;"><center><b>EJ TOBACCO</b></center><br>ID: ${lastOrder.noPesanan}<br>TGL: ${lastOrder.tanggal}<br>NAMA: ${lastOrder.namaPembeli}<br>TOTAL: Rp${Number(lastOrder.total).toLocaleString()}</div>`;
             setTimeout(() => { window.print(); }, 500);
         }
 
         function hapus(id) { if(confirm("Hapus?")) db.ref('pesanan/' + id).remove(); }
+        
+        startClock();
     </script>
 </body>
 </html>
