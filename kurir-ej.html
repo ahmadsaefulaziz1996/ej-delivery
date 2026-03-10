@@ -31,13 +31,13 @@
     <h2 style="color:var(--gold); text-align:center; margin-bottom:15px; letter-spacing:2px;">KURIR EJ</h2>
 
     <div class="stat-grid">
-        <div class="stat-box active" id="f-Sisa" onclick="setFilter('Sisa')"><span>Sisa</span><b id="countProses">0</b></div>
-        <div class="stat-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
-        <div class="stat-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal</span><b id="countGagal">0</b></div>
+        <div class="stat-box active" id="f-Sisa" onclick="setFilter('Sisa')"><span>Sisa (Total)</span><b id="countProses">0</b></div>
+        <div class="stat-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses Hari Ini</span><b id="countSukses">0</b></div>
+        <div class="stat-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal Hari Ini</span><b id="countGagal">0</b></div>
     </div>
 
     <div class="stat-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
-        <span style="color: var(--safe);">TUNAI DI TANGAN (BELUM SETOR)</span>
+        <span style="color: var(--safe);">TOTAL SALDO DI TANGAN (BELUM SETOR)</span>
         <b id="tunaiTangan" style="font-size: 18px; color: var(--safe);">Rp0</b>
     </div>
 
@@ -54,8 +54,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const todayStr = new Date().toLocaleDateString('id-ID');
-        const dayKey = todayStr.replace(/\/| /g, '-');
-        let allOrders = [], setoran = 0, currentFilter = "Sisa", currentId = null;
+        let allOrders = [], totalSetoranGlobal = 0, currentFilter = "Sisa", currentId = null;
 
         function setFilter(f) {
             currentFilter = f;
@@ -64,32 +63,49 @@
             renderList();
         }
 
+        // Ambil Data Pesanan dan Setoran secara Kumulatif
         db.ref('pesanan').on('value', snap => {
             const val = snap.val();
             allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
-            db.ref('setoran/' + dayKey).on('value', s => { 
-                setoran = s.val() || 0; 
-                renderList(); 
+            
+            db.ref('setoran').on('value', sSnap => {
+                const sVal = sSnap.val() || {};
+                totalSetoranGlobal = Object.values(sVal).reduce((a, b) => a + b, 0);
+                renderList();
             });
         });
 
         function renderList() {
             const keyword = document.getElementById('searchBar').value.toLowerCase();
-            let html = "", s = 0, g = 0, p = 0, codSum = 0;
+            let html = "", s = 0, g = 0, p = 0, totalCodSuksesGlobal = 0;
 
             allOrders.forEach(o => {
                 const isSisa = (o.status !== 'Terkirim' && o.status !== 'Gagal');
                 const isToday = (o.tanggal === todayStr);
 
+                // Hitung Statistik Hari Ini
                 if (isToday) {
-                    if (o.status === 'Terkirim') { s++; if(o.metode==='COD') codSum += Number(o.total); }
+                    if (o.status === 'Terkirim') s++;
                     else if (o.status === 'Gagal') g++;
                 }
+
+                // Hitung Sisa (Hutang Tugas)
                 if (isSisa) p++;
 
+                // Hitung Saldo Uang Kumulatif
+                if (o.status === 'Terkirim' && o.metode === 'COD') {
+                    totalCodSuksesGlobal += Number(o.total || 0);
+                }
+
+                // Filter Tampilan
                 if (isSisa || isToday) {
                     const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword);
-                    let matchStatus = currentFilter === "Sisa" ? isSisa : (o.status === currentFilter && isToday);
+                    let matchStatus;
+                    if (currentFilter === "Sisa") {
+                        matchStatus = isSisa;
+                    } else {
+                        matchStatus = (o.status === currentFilter && isToday);
+                    }
 
                     if (matchSearch && matchStatus) {
                         const wa = String(o.nohp || "").replace(/\D/g, '').replace(/^0/,'62');
@@ -115,10 +131,14 @@
                     }
                 }
             });
+
             document.getElementById('countSukses').innerText = s;
             document.getElementById('countGagal').innerText = g;
             document.getElementById('countProses').innerText = p;
-            document.getElementById('tunaiTangan').innerText = "Rp" + (codSum - setoran).toLocaleString();
+            
+            // Saldo Kumulatif: Total Semua COD Sukses - Total Semua Setoran
+            const saldoUang = totalCodSuksesGlobal - totalSetoranGlobal;
+            document.getElementById('tunaiTangan').innerText = "Rp" + saldoUang.toLocaleString();
             document.getElementById('list').innerHTML = html || "<p style='text-align:center; opacity:0.5; padding:20px;'>Kosong.</p>";
         }
 
@@ -154,7 +174,7 @@
             if(foto) updateData.buktiFoto = foto;
             db.ref('pesanan/' + id).update(updateData).then(() => {
                 alert("Berhasil!");
-            }).catch(err => alert("Gagal update: " + err));
+            });
         }
     </script>
 </body>
