@@ -25,19 +25,43 @@
         .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
         #datePicker { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); font-weight: 800; color: var(--gold); margin-bottom: 15px; text-align: center; }
 
-        /* CSS KHUSUS PRINTER - AGAR TIDAK POLOS */
+/* CSS KHUSUS PRINTER & PDF */
         #receipt-print { display: none; }
+        
         @media print {
-            body * { visibility: hidden; }
-            #receipt-print, #receipt-print * { visibility: visible; }
-            #receipt-print { 
+            /* Sembunyikan semua elemen layar */
+            body * { visibility: hidden; background: none !important; color: #000 !important; }
+            
+            /* Tampilkan area resi */
+            #receipt-print, #receipt-print * { 
+                visibility: visible !important; 
                 display: block !important;
-                position: absolute; left: 0; top: 0; width: 100%; 
-                color: #000 !important; background: #fff !important;
-                font-family: monospace; padding: 20px;
+                color: #000 !important; /* Paksa Hitam */
             }
-            .p-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-            .p-footer { text-align: center; border-top: 1px dashed #000; margin-top: 10px; padding-top: 10px; }
+            
+            #receipt-print { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                background: #fff !important;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .p-header { 
+                text-align: center; 
+                border-bottom: 2px dashed #000 !important; 
+                padding-bottom: 10px; 
+                margin-bottom: 10px; 
+            }
+            
+            .p-footer { 
+                text-align: center; 
+                border-top: 2px dashed #000 !important; 
+                margin-top: 10px; 
+                padding-top: 10px; 
+            }
         }
     </style>
 </head>
@@ -173,23 +197,41 @@
             const j = Number(document.getElementById('jumlahSetoran').value); 
             db.ref('setoran/' + dayKey).transaction(cv => (cv || 0) + j).then(() => { alert("Setoran Diterima!"); document.getElementById('jumlahSetoran').value = ""; }); 
         }
-        function cetak() {
+function cetak() {
             if(!lastOrder) return;
-            document.getElementById('receipt-content').innerHTML = `
-                <div style="font-size:14px; line-height:1.6;">
-                    <b>ID PESANAN: ${lastOrder.noPesanan}</b><br>
-                    TGL: ${lastOrder.tanggal} | ${lastOrder.waktu}<br>
-                    ------------------------------<br>
-                    PELANGGAN: ${lastOrder.namaPembeli}<br>
-                    ALAMAT: ${lastOrder.alamat}<br>
-                    ------------------------------<br>
-                    METODE: ${lastOrder.metode}<br>
-                    <b style="font-size:18px;">TOTAL: Rp${Number(lastOrder.total).toLocaleString()}</b>
+            
+            const areaCetak = document.getElementById('receipt-content');
+            // Gunakan format teks yang sangat sederhana agar PDF mudah membacanya
+            areaCetak.innerHTML = `
+                <div style="color: #000 !important; font-family: monospace; font-size: 14px;">
+                    <div style="text-align:center; font-weight:bold; font-size:18px;">EJ TOBACCO</div>
+                    <div style="text-align:center; margin-bottom:10px;">Delivery Express</div>
+                    <div style="border-bottom:1px dashed #000;"></div>
+                    
+                    <p><b>ID: ${lastOrder.noPesanan}</b></p>
+                    <p>Tgl: ${lastOrder.tanggal} | ${lastOrder.waktu}</p>
+                    <div style="border-bottom:1px dashed #000; margin:10px 0;"></div>
+                    
+                    <p>NAMA: ${lastOrder.namaPembeli}</p>
+                    <p>ALAMAT: ${lastOrder.alamat}</p>
+                    <p>WA: ${lastOrder.nohp}</p>
+                    <div style="border-bottom:1px dashed #000; margin:10px 0;"></div>
+                    
+                    <p>METODE: ${lastOrder.metode}</p>
+                    <p style="font-size:20px; font-weight:bold;">TOTAL: Rp${Number(lastOrder.total).toLocaleString()}</p>
+                    
+                    <div style="border-bottom:1px dashed #000; margin:10px 0;"></div>
+                    <div style="text-align:center; font-size:10px;">Terima Kasih Atas Pesanannya!</div>
                 </div>
             `;
-            setTimeout(() => { window.print(); }, 500);
+
+            // Jeda sedikit agar konten terisi sempurna sebelum jendela print/PDF muncul
+            setTimeout(() => { 
+                window.print(); 
+            }, 700);
         }
         function hapus(id) { if(confirm("Hapus?")) db.ref('pesanan/' + id).remove(); }
     </script>
 </body>
 </html>
+
