@@ -6,18 +6,25 @@
     <title>ADMIN - EJ DELIVERY PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #D4AF37; --gold-gradient: linear-gradient(135deg, #F7E08C, #D4AF37, #B8860B); --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --blue: #2563eb; }
+        :root { --gold: #D4AF37; --gold-gradient: linear-gradient(135deg, #F7E08C, #D4AF37, #B8860B); --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text-main); padding: 15px; padding-bottom: 50px; }
         .glass-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
         input, textarea, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
         .btn-main { background: var(--gold-gradient); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; }
-        .btn-danger { background: var(--danger); color: white; padding: 8px; border-radius: 8px; border: none; font-size: 10px; margin-top: 10px; width: 100%; }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 8px; border-radius: 8px; border: 1px solid var(--danger); font-size: 10px; width: 100%; margin-top: 10px; cursor: pointer; font-weight: 800; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
-        .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 0; }
-        .report-box { background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
-        .report-box span { font-size: 9px; font-weight: 800; color: var(--gold); text-transform: uppercase; }
-        .report-box b { display: block; font-size: 20px; margin-top: 5px; }
+        
+        /* Dashboard Styles */
+        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .report-box { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); padding: 15px; border-radius: 15px; text-align: center; }
+        .report-box span { font-size: 8px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
+        .report-box b { display: block; font-size: 14px; margin-top: 5px; color: #fff; }
+        .report-title { font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 10px; display: block; text-align: left; padding-left: 5px; border-left: 3px solid var(--gold); }
+
+        .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn-small { padding: 10px; border-radius: 8px; border: none; font-weight: 800; font-size: 10px; cursor: pointer; color: white; text-align: center; text-decoration: none; }
         #receipt-print { display: none; }
         @media print { body * { visibility: hidden; } #receipt-print, #receipt-print * { visibility: visible; } #receipt-print { position: absolute; left: 0; top: 0; width: 100%; color: black; font-family: monospace; } }
     </style>
@@ -25,42 +32,57 @@
 <body>
 
     <div class="header">
-        <h2 style="color: var(--gold)">EJ ADMIN PRO</h2>
-        <div id="currentMonthLabel" style="font-size: 11px; font-weight: 800; background: var(--glass); padding: 5px 10px; border-radius: 8px;">MARET 2026</div>
+        <h2 style="color: var(--gold)">EJ ADMIN</h2>
+        <div id="currentDayLabel" style="font-size: 10px; font-weight: 800; background: var(--glass); padding: 5px 10px; border-radius: 8px;">10 MARET 2026</div>
     </div>
 
-    <div class="report-box">
-        <span>Total Paket Terkirim (Bulan Ini)</span>
-        <b id="monthlyPaket">0 Paket</b>
+    <span class="report-title">LAPORAN HARIAN</span>
+    <div class="report-grid">
+        <div class="report-box">
+            <span>Paket Sukses</span>
+            <b id="dailyPaket">0</b>
+        </div>
+        <div class="report-box">
+            <span>Setoran Masuk</span>
+            <b id="dailySetoran">Rp0</b>
+        </div>
     </div>
-    <div class="report-box" style="background: rgba(34, 197, 94, 0.1); border-color: var(--safe);">
-        <span style="color: var(--safe);">Total Omset COD (Bulan Ini)</span>
-        <b id="monthlyCod" style="color: var(--safe);">Rp0</b>
+    <div class="report-box" style="margin-bottom: 25px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05);">
+        <span style="color: var(--safe);">Omset COD (Hari Ini)</span>
+        <b id="dailyCod" style="font-size: 18px; color: var(--safe);">Rp0</b>
+    </div>
+
+    <span class="report-title">REKAP BULANAN</span>
+    <div class="report-box" style="margin-bottom: 25px;">
+        <div style="display:flex; justify-content: space-around;">
+            <div><span>Total Paket</span><b id="monthlyPaket">0</b></div>
+            <div><span>Total Omset</span><b id="monthlyCod">Rp0</b></div>
+        </div>
     </div>
 
     <div class="glass-card">
         <h3 style="margin-bottom:12px; font-size:14px;">Input Pesanan Baru</h3>
-        <input type="text" id="noPesanan" placeholder="No Pesanan">
+        <input type="text" id="noPesanan" placeholder="No Pesanan (#001)">
         <input type="text" id="pembeli" placeholder="Nama Pembeli">
         <input type="text" id="nohp" placeholder="No WhatsApp">
         <textarea id="alamat" placeholder="Alamat Lengkap"></textarea>
         <input type="text" id="mapLink" placeholder="Link Map (Optional)">
         <select id="metodeBayar" onchange="toggleTotal()"><option value="COD">COD</option><option value="Transfer">Transfer</option></select>
         <input type="number" id="total" placeholder="Harga COD (Rp)">
-        <button class="btn-main" onclick="tambah()">SIMPAN DATA</button>
-        <button id="btnPrint" class="btn-main" style="margin-top:10px; background:white; display:none;" onclick="cetak()">📄 CETAK RESI</button>
+        <button class="btn-main" onclick="tambah()">SIMPAN DATA & CETAK</button>
+        <button id="btnPrint" class="btn-main" style="margin-top:10px; background:white; display:none;" onclick="cetak()">📄 ULANGI CETAK</button>
     </div>
 
     <div class="glass-card">
         <button class="btn-main" style="background:var(--blue); color:white; margin-bottom:15px;" onclick="track()">📍 PANTAU POSISI KURIR</button>
-        <h3 style="margin-bottom:10px; font-size:14px; color:var(--safe)">Setoran Tunai</h3>
-        <input type="number" id="jumlahSetoran" placeholder="Jumlah (Rp)">
+        <input type="number" id="jumlahSetoran" placeholder="Input Setoran Tunai (Rp)">
         <button class="btn-main" style="background:var(--safe); color:white" onclick="setor()">CATAT SETORAN</button>
     </div>
 
+    <h3 style="margin: 20px 0 10px; font-size: 14px;">Daftar Pesanan</h3>
     <div id="adminList" class="glass-card">Memuat data...</div>
 
-    <div id="receipt-print"><div style="text-align:center; padding: 20px;"><h3>EJ TOBACCO DELIVERY</h3><p>-------------------------</p><div id="receipt-content" style="text-align:left;"></div><p>-------------------------</p></div></div>
+    <div id="receipt-print"><div style="text-align:center; padding: 20px;"><h3>EJ TOBACCO</h3><p>-------------------------</p><div id="receipt-content" style="text-align:left;"></div><p>-------------------------</p></div></div>
 
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
@@ -71,36 +93,75 @@
         let lastOrder = null;
         const now = new Date();
 
+        document.getElementById('currentDayLabel').innerText = now.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}).toUpperCase();
+
         function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
 
         db.ref('pesanan').on('value', snap => {
             const data = snap.val() || {};
-            let html = ""; let countBulanIni = 0; let codBulanIni = 0;
+            let html = "";
+            let dPaket = 0, dCod = 0, mPaket = 0, mCod = 0;
+            const today = now.toLocaleDateString('id-ID');
+            const currentMonth = now.getMonth() + 1;
+
             Object.keys(data).reverse().forEach(k => {
                 const o = data[k];
-                if (o.status === 'Terkirim' && o.tanggal.includes("/" + now.getFullYear())) {
-                    const dateParts = o.tanggal.split("/");
-                    if (parseInt(dateParts[1]) === (now.getMonth() + 1)) {
-                        countBulanIni++;
-                        if (o.metode === 'COD') codBulanIni += Number(o.total);
+                const dateParts = o.tanggal.split("/"); // format d/m/y
+
+                if (o.status === 'Terkirim') {
+                    // Hitung Harian
+                    if (o.tanggal === today) {
+                        dPaket++;
+                        if (o.metode === 'COD') dCod += Number(o.total);
+                    }
+                    // Hitung Bulanan
+                    if (parseInt(dateParts[1]) === currentMonth && o.tanggal.includes("/" + now.getFullYear())) {
+                        mPaket++;
+                        if (o.metode === 'COD') mCod += Number(o.total);
                     }
                 }
-                html += `<div class="order-item"><span style="font-size:10px; color:var(--gold)">${o.tanggal} | ${o.noPesanan}</span><br><b>${o.namaPembeli}</b><br><small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString()}</small><br><button class="btn-danger" onclick="hapus('${k}')">HAPUS</button></div>`;
+
+                const wa = String(o.nohp).replace(/\D/g, '').replace(/^0/, '62');
+                html += `<div class="order-item">
+                    <span style="font-size:9px; color:var(--gold); font-weight:800;">${o.tanggal} | ${o.noPesanan}</span><br>
+                    <b>${o.namaPembeli}</b> (${o.status})<br>
+                    <small style="opacity:0.7;">${o.metode} | Rp${Number(o.total).toLocaleString()}</small>
+                    <div class="btn-row">
+                        <a href="https://wa.me/${wa}" class="btn-small" style="background:var(--wa)">WA</a>
+                        <a href="${o.mapLink || 'http://googleusercontent.com/maps.google.com/6' + encodeURIComponent(o.alamat)}" class="btn-small" style="background:var(--blue)">MAPS</a>
+                    </div>
+                    <button class="btn-danger" onclick="hapus('${k}')">HAPUS</button>
+                </div>`;
             });
-            document.getElementById('monthlyPaket').innerText = countBulanIni + " Paket";
-            document.getElementById('monthlyCod').innerText = "Rp" + codBulanIni.toLocaleString();
+
+            document.getElementById('dailyPaket').innerText = dPaket;
+            document.getElementById('dailyCod').innerText = "Rp" + dCod.toLocaleString();
+            document.getElementById('monthlyPaket').innerText = mPaket;
+            document.getElementById('monthlyCod').innerText = "Rp" + mCod.toLocaleString();
             document.getElementById('adminList').innerHTML = html || "Kosong";
+        });
+
+        // Ambil data setoran masuk hari ini
+        const dayKey = now.toLocaleDateString('id-ID').replace(/\//g, '-');
+        db.ref('setoran/' + dayKey).on('value', snap => {
+            document.getElementById('dailySetoran').innerText = "Rp" + (snap.val() || 0).toLocaleString();
         });
 
         function tambah() {
             const d = { noPesanan: document.getElementById('noPesanan').value, namaPembeli: document.getElementById('pembeli').value, nohp: document.getElementById('nohp').value, alamat: document.getElementById('alamat').value, mapLink: document.getElementById('mapLink').value, total: document.getElementById('total').value || 0, metode: document.getElementById('metodeBayar').value, status: 'Menunggu', tanggal: now.toLocaleDateString('id-ID'), waktu: now.toLocaleTimeString('id-ID') };
-            db.ref('pesanan').push(d).then(() => { lastOrder = d; document.getElementById('btnPrint').style.display = 'block'; alert('Simpan!'); });
+            if(!d.namaPembeli) return alert("Nama wajib!");
+            db.ref('pesanan').push(d).then(() => { 
+                lastOrder = d; 
+                document.getElementById('btnPrint').style.display = 'block';
+                alert('Simpan!'); cetak();
+                document.querySelectorAll('input, textarea').forEach(i => i.value = "");
+            });
         }
 
-        function cetak() { document.getElementById('receipt-content').innerHTML = `NO: ${lastOrder.noPesanan}<br>NAMA: ${lastOrder.namaPembeli}<br>BAYAR: ${lastOrder.metode}<br>TOTAL: Rp${Number(lastOrder.total).toLocaleString()}`; window.print(); }
+        function cetak() { document.getElementById('receipt-content').innerHTML = `NO: ${lastOrder.noPesanan}<br>NAMA: ${lastOrder.namaPembeli}<br>TOTAL: Rp${Number(lastOrder.total).toLocaleString()}<br>BAYAR: ${lastOrder.metode}`; window.print(); }
         function hapus(id) { if(confirm("Hapus?")) db.ref('pesanan/' + id).remove(); }
-        function setor() { const j = Number(document.getElementById('jumlahSetoran').value); const t = now.toLocaleDateString('id-ID').replace(/\//g, '-'); db.ref('setoran/' + t).transaction(cv => (cv || 0) + j).then(() => alert("Berhasil!")); }
-        function track() { db.ref('tracking/kurir_ej').once('value', s => { if(s.val()) window.location.href=`http://googleusercontent.com/maps.google.com/maps?q=${s.val().lat},${s.val().lng}`; else alert("Offline"); }); }
+        function setor() { const j = Number(document.getElementById('jumlahSetoran').value); db.ref('setoran/' + dayKey).transaction(cv => (cv || 0) + j).then(() => { alert("Setoran OK!"); document.getElementById('jumlahSetoran').value = ""; }); }
+        function track() { db.ref('tracking/kurir_ej').once('value', s => { if(s.val()) window.location.href=`http://googleusercontent.com/maps.google.com/6{s.val().lat},${s.val().lng}`; else alert("Kurir Offline"); }); }
     </script>
 </body>
 </html>
