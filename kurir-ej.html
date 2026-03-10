@@ -27,7 +27,7 @@
 </head>
 <body>
 
-    <h2 style="color:var(--gold); text-align:center; margin-bottom:15px; letter-spacing:2px;">KURIR EJ</h2>
+    <h2 style="color:var(--gold); text-align:center; margin-bottom:15px;">KURIR EJ</h2>
 
     <div class="stat-grid">
         <div class="stat-box active" id="f-Sisa" onclick="setFilter('Sisa')"><span>Sisa (Total)</span><b id="countProses">0</b></div>
@@ -36,7 +36,7 @@
     </div>
 
     <div class="stat-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
-        <span style="color: var(--safe);">TUNAI HARI INI (BELUM SETOR)</span>
+        <span style="color: var(--safe);">TUNAI DI TANGAN (BELUM SETOR)</span>
         <b id="tunaiTangan" style="font-size: 18px; color: var(--safe);">Rp0</b>
     </div>
 
@@ -73,14 +73,12 @@
                 const isSisa = (o.status !== 'Terkirim' && o.status !== 'Gagal');
                 const isToday = (o.tanggal === todayStr);
 
-                // Hitung Statistik
                 if (isToday) {
                     if (o.status === 'Terkirim') { s++; if(o.metode==='COD') codSum += Number(o.total); }
                     else if (o.status === 'Gagal') g++;
                 }
                 if (isSisa) p++;
 
-                // Logika Filter Tampilan
                 if (isSisa || isToday) {
                     const matchSearch = o.namaPembeli.toLowerCase().includes(keyword);
                     let matchStatus = currentFilter === "Sisa" ? isSisa : (o.status === currentFilter && isToday);
@@ -95,13 +93,11 @@
                             <h3>${o.namaPembeli}</h3>
                             <p style="font-size:11px; opacity:0.7; margin-bottom:8px;">📍 ${o.alamat}</p>
                             <p style="color:var(--gold); font-weight:800; font-size:12px;">${o.metode} | Rp${Number(o.total).toLocaleString()}</p>
-                            
                             ${isSisa ? `
                             <div class="btn-group">
                                 <button class="btn" style="background:var(--safe)" onclick="updateStatus('${o.id}','Terkirim')">SUKSES</button>
                                 <button class="btn" style="background:var(--danger)" onclick="updateStatus('${o.id}','Gagal')">GAGAL</button>
                             </div>` : `<p style="color:var(--gold); font-size:10px; margin-top:10px; font-weight:800;">STATUS: ${o.status.toUpperCase()}</p>`}
-
                             <div class="btn-group">
                                 <a href="${mapsUrl}" target="_blank" class="btn" style="background:var(--blue)">MAPS</a>
                                 <a href="https://wa.me/${wa}" class="btn" style="background:var(--wa)">WA</a>
