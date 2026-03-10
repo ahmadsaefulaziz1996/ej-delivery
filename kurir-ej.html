@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KURIR - EJ DELIVERY</title>
+    <title>EJ DELIVERY - KURIR</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
+    <link rel="icon" href="https://api.iconify.design/material-symbols:delivery-dining-rounded.svg?color=%23D4AF37">
+    <link rel="apple-touch-icon" href="https://api.iconify.design/material-symbols:delivery-dining-rounded.svg?color=%23D4AF37">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
@@ -21,7 +23,6 @@
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .btn { border: none; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 10px; cursor: pointer; color: white; text-align: center; text-decoration: none; text-transform: uppercase; }
         input[type="text"] { width: 100%; padding: 12px; border-radius: 12px; background: var(--glass); border: 1px solid var(--gold); color: white; margin-bottom: 15px; outline: none; }
-        /* Style Hidden Camera Input */
         #cameraInput { display: none; }
     </style>
 </head>
@@ -33,6 +34,11 @@
         <div class="stat-box active" id="f-Sisa" onclick="setFilter('Sisa')"><span>Sisa</span><b id="countProses">0</b></div>
         <div class="stat-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
         <div class="stat-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal</span><b id="countGagal">0</b></div>
+    </div>
+
+    <div class="stat-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
+        <span style="color: var(--safe);">TUNAI DI TANGAN (BELUM SETOR)</span>
+        <b id="tunaiTangan" style="font-size: 18px; color: var(--safe);">Rp0</b>
     </div>
 
     <input type="text" id="searchBar" placeholder="🔍 Cari nama pembeli..." oninput="renderList()">
@@ -59,8 +65,12 @@
         }
 
         db.ref('pesanan').on('value', snap => {
-            allOrders = Object.keys(snap.val() || {}).map(k => ({id:k, ...snap.val()[k]})).reverse();
-            db.ref('setoran/' + dayKey).on('value', s => { setoran = s.val() || 0; renderList(); });
+            const val = snap.val();
+            allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
+            db.ref('setoran/' + dayKey).on('value', s => { 
+                setoran = s.val() || 0; 
+                renderList(); 
+            });
         });
 
         function renderList() {
@@ -78,18 +88,18 @@
                 if (isSisa) p++;
 
                 if (isSisa || isToday) {
-                    const matchSearch = o.namaPembeli.toLowerCase().includes(keyword);
+                    const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword);
                     let matchStatus = currentFilter === "Sisa" ? isSisa : (o.status === currentFilter && isToday);
 
                     if (matchSearch && matchStatus) {
-                        const wa = String(o.nohp).replace(/\D/g, '').replace(/^0/,'62');
-                        const mapsUrl = (o.mapLink && o.mapLink.includes('http')) ? o.mapLink : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.alamat)}`;
+                        const wa = String(o.nohp || "").replace(/\D/g, '').replace(/^0/,'62');
+                        const mapsUrl = (o.mapLink && o.mapLink.includes('http')) ? o.mapLink : `http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(o.alamat || "")}`;
                         
                         html += `<div class="order-card">
                             <div class="date-tag">${o.tanggal}</div>
                             <h3>${o.namaPembeli}</h3>
                             <p style="font-size:11px; opacity:0.7;">📍 ${o.alamat}</p>
-                            <p style="color:var(--gold); font-weight:800; font-size:12px; margin-top:5px;">${o.metode} | Rp${Number(o.total).toLocaleString()}</p>
+                            <p style="color:var(--gold); font-weight:800; font-size:12px; margin-top:5px;">${o.metode} | Rp${Number(o.total || 0).toLocaleString()}</p>
                             
                             ${isSisa ? `
                             <div class="btn-group">
@@ -112,13 +122,11 @@
             document.getElementById('list').innerHTML = html || "<p style='text-align:center; opacity:0.5; padding:20px;'>Kosong.</p>";
         }
 
-        // Fungsi Buka Kamera
         function takePhoto(id) {
             currentId = id;
             document.getElementById('cameraInput').click();
         }
 
-        // Tangani File Foto
         document.getElementById('cameraInput').onchange = function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -127,14 +135,13 @@
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
-                    // Kompresi Gambar
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    canvas.width = 400; // Lebar standar
-                    canvas.height = (img.height / img.width) * 400;
+                    const maxW = 400;
+                    canvas.width = maxW;
+                    canvas.height = (img.height / img.width) * maxW;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const base64 = canvas.toDataURL('image/jpeg', 0.6); // Kualitas 60%
-                    
+                    const base64 = canvas.toDataURL('image/jpeg', 0.6);
                     updateStatus(currentId, 'Terkirim', base64);
                 };
                 img.src = event.target.result;
@@ -145,10 +152,9 @@
         function updateStatus(id, status, foto = null) {
             const updateData = { status: status };
             if(foto) updateData.buktiFoto = foto;
-            
             db.ref('pesanan/' + id).update(updateData).then(() => {
-                alert("Status diperbarui!");
-            });
+                alert("Berhasil!");
+            }).catch(err => alert("Gagal update: " + err));
         }
     </script>
 </body>
