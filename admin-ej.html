@@ -42,17 +42,20 @@
             <div id="runningClock" style="font-size: 11px; font-weight: 800; color: var(--safe); margin-top: 2px;">00:00:00</div>
         </div>
         <div style="font-size: 9px; font-weight: 800; background: var(--glass); padding: 5px 10px; border-radius: 8px; text-align: right;">
-            AUTO-DATE SYNC<br>
+            SYSTEM ACTIVE<br>
             <span id="currentDay" style="color: var(--gold);">-- --- ----</span>
         </div>
     </div>
 
-    <input type="date" id="datePicker" onchange="changeDate()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; font-weight: 800; margin-bottom:15px; width: 100%; cursor: pointer;">
+    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+        <input type="date" id="datePicker" onchange="changeDate()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; font-weight: 800; margin-bottom: 0; flex: 1;">
+        <button onclick="goToToday()" style="background: var(--gold); border: none; border-radius: 12px; padding: 0 15px; font-weight: 800; font-size: 10px; color: black; cursor: pointer;">HARI INI</button>
+    </div>
 
     <div class="report-grid">
         <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa (Total)</span><b id="countProses">0</b></div>
-        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses Hari Ini</span><b id="countSukses">0</b></div>
-        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal Hari Ini</span><b id="countGagal">0</b></div>
+        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
+        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal</span><b id="countGagal">0</b></div>
     </div>
 
     <div class="report-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
@@ -95,12 +98,13 @@
         const db = firebase.database();
         
         let allOrders = [], totalSetoranGlobal = 0, currentFilter = "Semua", lastOrder = null;
+        let lastCheckedDate = new Date().toLocaleDateString('id-ID');
 
-        // Inisialisasi awal
         document.getElementById('datePicker').valueAsDate = new Date();
 
         function getFormattedDate(date) { return date.toLocaleDateString('id-ID'); }
         function changeDate() { updateAll(); }
+        function goToToday() { document.getElementById('datePicker').valueAsDate = new Date(); updateAll(); }
         
         function setFilter(f) {
             currentFilter = f;
@@ -120,6 +124,14 @@
                 const opsi = { day: 'numeric', month: 'short', year: 'numeric' };
                 document.getElementById('currentDay').innerText = now.toLocaleDateString('id-ID', opsi).toUpperCase();
                 
+                // AUTO SYNC TANGGAL JIKA GANTI HARI
+                const currentDate = getFormattedDate(now);
+                if (currentDate !== lastCheckedDate) {
+                    lastCheckedDate = currentDate;
+                    document.getElementById('datePicker').valueAsDate = now;
+                    updateAll();
+                }
+
                 if(jam === "00" && menit === "00" && detik === "01") location.reload();
             }, 1000);
         }
@@ -147,7 +159,8 @@
         });
 
         function updateAll() {
-            const pickerDate = new Date(document.getElementById('datePicker').value);
+            const pickerVal = document.getElementById('datePicker').value;
+            const pickerDate = pickerVal ? new Date(pickerVal) : new Date();
             const dateStr = getFormattedDate(pickerDate);
             updateDashboard(dateStr);
             renderList(dateStr);
