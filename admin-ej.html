@@ -132,7 +132,7 @@
             db.ref('pesanan').push(d).then(() => { lastOrder = d; cetak(); document.querySelectorAll('input, textarea').forEach(i => i.value = ""); });
         }
         function setor() { const j = Number(document.getElementById('jumlahSetoran').value); db.ref('setoran/' + dayKey).transaction(cv => (cv || 0) + j).then(() => { alert("Setoran Diterima!"); document.getElementById('jumlahSetoran').value = ""; }); }
-        function track() { db.ref('tracking/kurir_ej').once('value', s => { if(s.val()) window.location.href=`http://maps.google.com/?q=${s.val().lat},${s.val().lng}`; else alert("Kurir Offline"); }); }
+        function track() { db.ref('tracking/kurir_ej').once('value', s => { if(s.val()) window.location.href=`http://google.com/maps?q=${s.val().lat},${s.val().lng}`; else alert("Kurir Offline"); }); }
         function cetak() { document.getElementById('receipt-content').innerHTML = `NO: ${lastOrder.noPesanan}<br>NAMA: ${lastOrder.namaPembeli}<br>TOTAL: Rp${Number(lastOrder.total).toLocaleString()}`; window.print(); }
         function hapus(id) { if(confirm("Hapus?")) db.ref('pesanan/' + id).remove(); }
     </script>
