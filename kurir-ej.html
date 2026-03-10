@@ -6,70 +6,135 @@
     <title>EJ DELIVERY - KURIR</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
-    <link rel="icon" href="logo-ej.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="logo-ej.svg">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
+        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --warning: #FACC15; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--bg); color: var(--text-main); padding: 15px; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .stat-box { text-align: center; padding: 10px; background: var(--glass); border-radius: 12px; border: 1px solid var(--glass-border); cursor: pointer; }
-        .stat-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
-        .stat-box span { font-size: 7px; color: var(--gold); display: block; }
-        .stat-box b { font-size: 14px; }
-        .order-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 18px; margin-bottom: 15px; border-left: 5px solid var(--gold); position: relative; }
-        .date-tag { position: absolute; top: 12px; right: 18px; font-size: 8px; color: var(--gold); opacity: 0.6; font-weight: 800; }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn { border: none; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 10px; cursor: pointer; color: white; text-align: center; text-decoration: none; text-transform: uppercase; }
-        input[type="text"] { width: 100%; padding: 12px; border-radius: 12px; background: var(--glass); border: 1px solid var(--gold); color: white; margin-bottom: 15px; outline: none; }
-        #cameraInput { display: none; }
+        body { background: var(--bg); color: var(--text-main); padding: 15px; padding-bottom: 50px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+        .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 15px; padding: 15px; margin-bottom: 15px; }
+        .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; position: relative; }
+        .btn { border: none; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; color: white; width: 100%; transition: 0.3s; }
+        .btn-success { background: var(--safe); }
+        .btn-warning { background: var(--warning); color: black; }
+        .btn-maps { background: #2563eb; text-decoration: none; text-align: center; display: block; margin-top: 10px; }
+        .status-badge { font-size: 10px; padding: 4px 8px; border-radius: 5px; font-weight: 800; text-transform: uppercase; }
+        .loading { text-align: center; padding: 50px; opacity: 0.5; }
     </style>
 </head>
 <body>
-    <h2 style="color:var(--gold); text-align:center; margin-bottom:15px; letter-spacing:2px;">KURIR EJ</h2>
-    <div class="stat-grid">
-        <div class="stat-box active" id="f-Sisa" onclick="setFilter('Sisa')"><span>Sisa (Total)</span><b id="countProses">0</b></div>
-        <div class="stat-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses Hari Ini</span><b id="countSukses">0</b></div>
-        <div class="stat-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal Hari Ini</span><b id="countGagal">0</b></div>
+
+    <div class="header">
+        <div class="logo-text">EJ DELIVERY <span style="font-weight:400; font-size:12px; color:white;">| KURIR</span></div>
+        <div id="clock" style="font-size: 12px; font-weight: 800; color: var(--gold);">00:00:00</div>
     </div>
-    <div class="stat-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;"><span style="color: var(--safe);">SALDO DI TANGAN (BELUM SETOR)</span><b id="tunaiTangan" style="font-size: 18px; color: var(--safe);">Rp0</b></div>
-    <input type="text" id="searchBar" placeholder="🔍 Cari nama pembeli..." oninput="renderList()">
-    <input type="file" id="cameraInput" accept="image/*" capture="camera">
-    <div id="list">Memuat tugas...</div>
+
+    <div id="orderList">
+        <div class="loading">Memuat data pengiriman...</div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
     <script>
         const firebaseConfig = { apiKey: "AIzaSyAVQGysGRlYJ2b4PekM3vaXKtx6UFvNlCk", databaseURL: "https://ej-tobacco-express-default-rtdb.asia-southeast1.firebasedatabase.app" };
-        firebase.initializeApp(firebaseConfig); const db = firebase.database();
-        function formatTglDB(date) { const d = new Date(date); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
-        const todayStr = formatTglDB(new Date());
-        let allOrders = [], totalSetoranGlobal = 0, currentFilter = "Sisa", currentId = null;
-        function setFilter(f) { currentFilter = f; document.querySelectorAll('.stat-box').forEach(el => el.classList.remove('active')); document.getElementById('f-' + f).classList.add('active'); renderList(); }
-        db.ref('pesanan').on('value', snap => { const val = snap.val(); allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : []; db.ref('setoran').on('value', sSnap => { totalSetoranGlobal = Object.values(sSnap.val() || {}).reduce((a, b) => a + b, 0); renderList(); }); });
-        function renderList() {
-            const key = document.getElementById('searchBar').value.toLowerCase(); let html = "", s = 0, g = 0, p = 0, tot = 0;
-            allOrders.forEach(o => {
-                const isS = (o.status !== 'Terkirim' && o.status !== 'Gagal'); if (o.tanggal === todayStr) { if (o.status === 'Terkirim') s++; else if (o.status === 'Gagal') g++; }
-                if (isS) p++; if (o.status === 'Terkirim' && o.metode === 'COD') tot += Number(o.total || 0);
-                if (isS || o.tanggal === todayStr) {
-                    const mS = (o.namaPembeli || "").toLowerCase().includes(key); const mSt = (currentFilter === "Sisa") ? isS : (o.status === currentFilter && o.tanggal === todayStr);
-                    if (mS && mSt) {
-                        const wa = String(o.nohp || "").replace(/\D/g, '').replace(/^0/,'62');
-                        html += `<div class="order-card"><div class="date-tag">${o.tanggal}</div><h3>${o.namaPembeli}</h3><p style="font-size:11px; opacity:0.7;">📍 ${o.alamat}</p><p style="color:var(--gold); font-weight:800; font-size:12px; margin-top:5px;">${o.metode} | Rp${Number(o.total || 0).toLocaleString()}</p>${isS ? `<div class="btn-group"><button class="btn" style="background:var(--safe)" onclick="takePhoto('${o.id}')">📸 SUKSES</button><button class="btn" style="background:var(--danger)" onclick="pilihanGagal('${o.id}')">⚠️ KENDALA</button></div>` : `<p style="color:var(--gold); font-size:10px; margin-top:10px; font-weight:800;">STATUS: ${o.status.toUpperCase()}</p>`}<div class="btn-group">${o.mapLink ? `<a href="${o.mapLink}" target="_blank" class="btn" style="background:var(--blue)">MAPS</a>` : ''}<a href="https://wa.me/${wa}" class="btn" style="background:var(--wa)" ${!o.mapLink ? 'style="grid-column: span 2;"' : ''}>WA</a></div></div>`;
-                    }
-                }
-            });
-            document.getElementById('countSukses').innerText = s; document.getElementById('countGagal').innerText = g; document.getElementById('countProses').innerText = p;
-            document.getElementById('tunaiTangan').innerText = "Rp" + (tot - totalSetoranGlobal).toLocaleString(); document.getElementById('list').innerHTML = html || "<p style='text-align:center; opacity:0.5; padding:20px;'>Tugas Selesai.</p>";
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID');
         }
-        function pilihanGagal(id) { const opsi = prompt("1. TUNDA (Hujan/Lainnya)\n2. CANCEL (Batal)\n\nKetik 1 atau 2:"); if (opsi === "1") { const al = prompt("Alasan?"); if (al) db.ref('pesanan/' + id).update({ catatan: "TUNDA: " + al }); } else if (opsi === "2") { const al = prompt("Alasan?"); if (al) db.ref('pesanan/' + id).update({ status: 'Gagal', catatan: "CANCEL: " + al, tanggal: formatTglDB(new Date()) }); } }
-        function takePhoto(id) { currentId = id; document.getElementById('cameraInput').click(); }
-        document.getElementById('cameraInput').onchange = function(e) {
-            const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
-            reader.onload = function(ev) { const img = new Image(); img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = 400; canvas.height = (img.height / img.width) * 400; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); updateStatus(currentId, 'Terkirim', canvas.toDataURL('image/jpeg', 0.6)); }; img.src = ev.target.result; }; reader.readAsDataURL(file);
-        };
-        function updateStatus(id, st, f = null) { const n = new Date(); const data = { status: st, catatan: null, tanggal: formatTglDB(n) }; if(f) data.buktiFoto = f; db.ref('pesanan/' + id).update(data).then(() => alert("Berhasil!")); }
+        setInterval(updateClock, 1000);
+
+        // Ambil data pesanan (hanya yang belum terkirim/cancel atau yang hari ini)
+        db.ref('pesanan').on('value', snap => {
+            const orders = snap.val();
+            const listContainer = document.getElementById('orderList');
+            listContainer.innerHTML = "";
+
+            if (!orders) {
+                listContainer.innerHTML = `<div class="loading">Tidak ada pengiriman hari ini.</div>`;
+                return;
+            }
+
+            Object.keys(orders).reverse().forEach(id => {
+                const o = orders[id];
+                
+                // Kurir hanya melihat yang "Menunggu" atau "Tunda"
+                if (o.status === 'Terkirim' || o.status === 'Gagal') return;
+
+                const card = document.createElement('div');
+                card.className = 'glass-card order-item';
+                
+                let alasanHtml = o.alasanTunda ? `<div style="color:var(--warning); font-size:11px; margin-top:5px; font-weight:800;">⚠️ KENDALA: ${o.alasanTunda}</div>` : "";
+
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:10px; color:var(--gold); font-weight:800;">${o.noPesanan}</span>
+                        <span class="status-badge" style="background:rgba(255,255,255,0.1)">${o.status}</span>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <b style="font-size:16px;">${o.namaPembeli}</b><br>
+                        <p style="font-size:12px; margin-top:5px; opacity:0.8;">📍 ${o.alamat}</p>
+                        ${alasanHtml}
+                        <div style="margin-top:10px; font-weight:800; color:var(--safe);">TAGIHAN: Rp${Number(o.total).toLocaleString()} (${o.metode})</div>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
+                        <button class="btn btn-success" onclick="prosesSukses('${id}')">✅ SUKSES</button>
+                        <button class="btn btn-warning" onclick="prosesTunda('${id}')">⚠️ TUNDA</button>
+                    </div>
+                    
+                    ${o.mapLink ? `<a href="${o.mapLink}" class="btn btn-maps" target="_blank">📍 BUKA MAPS</a>` : ''}
+                    
+                    <input type="file" id="file-${id}" accept="image/*" capture="camera" style="display:none;" onchange="uploadFoto('${id}', this)">
+                `;
+                listContainer.appendChild(card);
+            });
+        });
+
+        // 1. FUNGSI SUKSES (Wajib Foto)
+        function prosesSukses(id) {
+            if(confirm("Pastikan uang sudah diterima. Ambil foto bukti?")) {
+                document.getElementById('file-' + id).click();
+            }
+        }
+
+        function uploadFoto(id, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+                
+                // Simpan ke Firebase
+                db.ref('pesanan/' + id).update({
+                    status: 'Terkirim',
+                    buktiFoto: base64Image,
+                    waktuSelesai: new Date().toLocaleTimeString('id-ID'),
+                    alasanTunda: null // Hapus alasan tunda jika sudah sukses
+                }).then(() => {
+                    alert("Data Berhasil Terkirim!");
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 2. FUNGSI TUNDA (Wajib Isi Alasan)
+        function prosesTunda(id) {
+            const alasan = prompt("Kenapa kiriman ditunda?\nContoh: Rumah Kosong / Orang tidak ada");
+            if (alasan != null && alasan != "") {
+                db.ref('pesanan/' + id).update({
+                    status: 'Tunda',
+                    alasanTunda: alasan, // Sesuai dengan yang dibaca Admin
+                    waktuUpdate: new Date().toLocaleTimeString('id-ID')
+                }).then(() => {
+                    alert("Status Tunda Tersimpan.");
+                });
+            }
+        }
     </script>
 </body>
 </html>
