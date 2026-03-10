@@ -15,11 +15,12 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
 
-        /* Card Total Uang COD */
+        /* Card Saldo COD Hari Ini */
         .wallet-card { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--safe); border-radius: 15px; padding: 15px; margin-bottom: 15px; text-align: center; }
         .wallet-card span { font-size: 10px; font-weight: 800; color: var(--safe); text-transform: uppercase; }
         .wallet-card b { display: block; font-size: 22px; color: var(--safe); margin-top: 5px; }
 
+        /* Tab Menu */
         .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .tab-btn { background: var(--glass); border: 1px solid var(--glass-border); padding: 10px 5px; border-radius: 12px; color: white; font-weight: 800; font-size: 10px; text-align: center; cursor: pointer; position: relative; }
         .tab-btn.active { background: rgba(212, 175, 55, 0.2); border-color: var(--gold); color: var(--gold); }
@@ -50,7 +51,7 @@
     </div>
 
     <div class="wallet-card">
-        <span>💰 Total COD di Tangan</span>
+        <span id="labelTgl">💰 Saldo COD Hari Ini</span>
         <b id="totalCOD">Rp0</b>
     </div>
 
@@ -62,7 +63,7 @@
         <div class="tab-btn" id="t-Gagal" onclick="setTab('Gagal')">CANCEL <span class="count-badge" id="c-Gagal">0</span></div>
     </div>
 
-    <div id="orderContainer"><div style="text-align:center; padding:50px; opacity:0.5;">Memuat data...</div></div>
+    <div id="orderContainer"></div>
 
     <div id="modalView" class="modal" onclick="this.style.display='none'"><img id="imgPreview" src=""><p style="color:white; margin-top:10px; font-size:12px;">KLIK UNTUK TUTUP</p></div>
 
@@ -75,6 +76,11 @@
 
         let currentTab = 'Proses';
         let allData = [];
+
+        function getTodayString() {
+            const n = new Date();
+            return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;
+        }
 
         function setTab(tab) {
             currentTab = tab;
@@ -94,40 +100,65 @@
         });
 
         function updateStats() {
+            const today = getTodayString();
             let p = 0, s = 0, g = 0, cod = 0;
+
             allData.forEach(o => {
-                if (o.status !== 'Terkirim' && o.status !== 'Gagal') p++;
-                else if (o.status === 'Terkirim') {
+                const isToday = o.tanggal === today;
+                
+                // 1. PROSES: Semua yang belum beres (lintas hari)
+                if (o.status !== 'Terkirim' && o.status !== 'Gagal') {
+                    p++;
+                } 
+                // 2. SUKSES: Hanya yang sukses hari ini
+                else if (o.status === 'Terkirim' && isToday) {
                     s++;
                     if (o.metode === 'COD') cod += Number(o.total || 0);
+                } 
+                // 3. CANCEL: Hanya yang gagal hari ini
+                else if (o.status === 'Gagal' && isToday) {
+                    g++;
                 }
-                else if (o.status === 'Gagal') g++;
             });
+
             document.getElementById('c-Proses').innerText = p;
             document.getElementById('c-Terkirim').innerText = s;
             document.getElementById('c-Gagal').innerText = g;
             document.getElementById('totalCOD').innerText = "Rp" + cod.toLocaleString();
+            document.getElementById('labelTgl').innerText = "💰 Saldo COD (" + today + ")";
         }
 
         function renderOrders() {
             const container = document.getElementById('orderContainer');
             const search = document.getElementById('searchOrder').value.toLowerCase();
+            const today = getTodayString();
             container.innerHTML = "";
 
             const filtered = allData.filter(o => {
                 const matchSearch = (o.namaPembeli || "").toLowerCase().includes(search);
-                if (currentTab === 'Proses') return matchSearch && (o.status !== 'Terkirim' && o.status !== 'Gagal');
-                return matchSearch && (o.status === currentTab);
+                const isToday = o.tanggal === today;
+
+                if (currentTab === 'Proses') {
+                    // Tampilkan semua yang belum selesai
+                    return matchSearch && (o.status !== 'Terkirim' && o.status !== 'Gagal');
+                } else if (currentTab === 'Terkirim') {
+                    // Tab Sukses: Hanya hari ini
+                    return matchSearch && o.status === 'Terkirim' && isToday;
+                } else if (currentTab === 'Gagal') {
+                    // Tab Cancel: Hanya hari ini
+                    return matchSearch && o.status === 'Gagal' && isToday;
+                }
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.5;">Kosong.</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.5; font-size:13px;">Tidak ada data untuk ditampilkan.</div>`;
                 return;
             }
 
             filtered.forEach(o => {
                 const badgeColor = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
                 let alasanHtml = o.alasanTunda ? `<div style="background:rgba(250,204,21,0.1); color:var(--warning); padding:8px; border-radius:8px; font-size:11px; margin-top:10px; border-left:3px solid var(--warning);"><b>KENDALA:</b> ${o.alasanTunda}</div>` : "";
+                
                 const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
                 const teksWA = encodeURIComponent(`Halo Kak ${o.namaPembeli},\nSaya Kurir *EJ TOBACCO*. Ingin mengantar paket Kakak.\n\nApakah Kakak ada di tempat?`);
                 
