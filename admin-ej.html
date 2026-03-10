@@ -56,7 +56,7 @@
     <div class="report-grid">
         <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa (Total)</span><b id="countProses">0</b></div>
         <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
-        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Gagal</span><b id="countGagal">0</b></div>
+        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Cancel</span><b id="countGagal">0</b></div>
     </div>
 
     <div class="report-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
@@ -85,7 +85,7 @@
 
     <div id="modalFoto" class="modal-foto" onclick="this.style.display='none'">
         <img id="imgBukti" src="">
-        <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">KLIK DIMANA SAJA UNTUK TUTUP</p>
+        <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">KLIK MANA SAJA UNTUK TUTUP</p>
     </div>
 
     <div id="receipt-print"><div id="receipt-content"></div></div>
@@ -100,7 +100,6 @@
         let allOrders = [], totalSetoranGlobal = 0, currentFilter = "Semua", lastOrder = null;
         let lastDateString = new Date().toLocaleDateString('id-ID');
 
-        // Set Awal ke Hari Ini (Local Time)
         function initDate() {
             const now = new Date();
             const year = now.getFullYear();
@@ -112,11 +111,7 @@
 
         function getFormattedDate(date) { return date.toLocaleDateString('id-ID'); }
         function changeDate() { updateAll(); }
-
-        function goToToday() { 
-            initDate(); 
-            updateAll(); 
-        }
+        function goToToday() { initDate(); updateAll(); }
         
         function setFilter(f) {
             currentFilter = f;
@@ -208,17 +203,21 @@
 
             filtered.forEach(o => {
                 const wa = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
-                const mapsUrl = (o.mapLink && o.mapLink.includes('http')) ? o.mapLink : `https://www.google.com/maps/search/${encodeURIComponent(o.alamat || "")}`;
+                const mapsUrl = (o.mapLink && o.mapLink.includes('http')) ? o.mapLink : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.alamat || "")}`;
+                
                 html += `<div class="order-item">
                     <span style="font-size:9px; color:var(--gold)">${o.tanggal} | ${o.waktu}</span><br>
                     <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
                     <small>${o.status} | Rp${Number(o.total).toLocaleString()}</small>
-                    ${o.buktiFoto ? `<button class="btn-small" style="background:var(--safe); width:100%; margin-top:8px;" onclick="viewFoto('${o.buktiFoto}')">🖼️ LIHAT BUKTI FOTO</button>` : ''}
+                    
+                    ${o.catatan ? `<div style="background:rgba(212, 175, 55, 0.1); padding:6px; border-radius:8px; margin-top:8px; border-left:3px solid var(--gold);"><p style="font-size:10px; color:var(--gold); font-weight:800;">📝 ${o.catatan}</p></div>` : ''}
+
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px;">
                         <a href="https://wa.me/${wa}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
                         <a href="${mapsUrl}" target="_blank" style="background:var(--blue); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">MAPS</a>
                     </div>
-                    <button style="background:var(--danger); width:100%; color:white; border:none; padding:8px; border-radius:8px; margin-top:5px; font-size:10px; font-weight:800;" onclick="hapus('${o.id}')">HAPUS</button>
+                    ${o.buktiFoto ? `<button class="btn-small" style="background:var(--safe); width:100%; margin-top:5px;" onclick="viewFoto('${o.buktiFoto}')">🖼️ LIHAT BUKTI FOTO</button>` : ''}
+                    <button style="background:var(--danger); width:100%; color:white; border:none; padding:8px; border-radius:8px; margin-top:5px; font-size:10px; font-weight:800;" onclick="hapus('${o.id}')">HAPUS DATA</button>
                     <button style="background:var(--gold); width:100%; color:black; border:none; padding:8px; border-radius:8px; margin-top:5px; font-size:10px; font-weight:800;" onclick="reprint('${o.id}')">CETAK RESI</button>
                 </div>`;
             });
@@ -230,18 +229,7 @@
 
         function tambah() {
             const fisikDate = new Date();
-            const d = { 
-                noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), 
-                namaPembeli: document.getElementById('pembeli').value, 
-                nohp: document.getElementById('nohp').value, 
-                alamat: document.getElementById('alamat').value, 
-                mapLink: document.getElementById('mapLink').value, 
-                total: document.getElementById('total').value || 0, 
-                metode: document.getElementById('metodeBayar').value, 
-                status: 'Menunggu', 
-                tanggal: getFormattedDate(fisikDate), 
-                waktu: fisikDate.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
-            };
+            const d = { noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), namaPembeli: document.getElementById('pembeli').value, nohp: document.getElementById('nohp').value, alamat: document.getElementById('alamat').value, mapLink: document.getElementById('mapLink').value, total: document.getElementById('total').value || 0, metode: document.getElementById('metodeBayar').value, status: 'Menunggu', tanggal: getFormattedDate(fisikDate), waktu: fisikDate.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) };
             if(!d.namaPembeli) return alert("Nama wajib!");
             db.ref('pesanan').push(d).then(() => { lastOrder = d; executePrint(); document.querySelectorAll('input, textarea').forEach(i => i.value = ""); });
         }
