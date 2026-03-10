@@ -246,7 +246,7 @@
             const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
             const teks80mm = 
                 `[C]<font size="big"><b>EJ TOBACCO DELIVERY</b></font>\n` +
-                `[C]"Kualitas Premium, Kiriman Cepat"\n` +
+                `[C]"belanja nyaman pakai toko ej app"\n` +
                 `[C]================================================\n` +
                 `[C]<font size="big"><b>NO. RESI : ${lastOrder.noPesanan}</b></font>\n` +
                 `[C]================================================\n` +
@@ -270,7 +270,7 @@
         function showWANotif(d) {
             const waNumber = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62');
             const linkMaps = d.mapLink ? `\n📍 Map: ${d.mapLink}` : "";
-            const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang diproses kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp${Number(d.total).toLocaleString()}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang pas ya. Terima kasih! 🙏`;
+            const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang diproses kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp${Number(d.total).toLocaleString()}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang kalau bayar COD ya. Terima kasih! 🙏`;
             const urlWA = `https://wa.me/${waNumber}?text=${encodeURIComponent(teksWA)}`;
             
             const prompt = document.getElementById('waPrompt');
@@ -286,3 +286,4 @@
     </script>
 </body>
 </html>
+
