@@ -6,14 +6,15 @@
     <title>KURIR - EJ DELIVERY</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --blue: #2563eb; --wa: #25D366; }
+        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text-main); padding: 15px; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-box { text-align: center; padding: 15px; background: var(--glass); border-radius: 15px; border: 1px solid var(--glass-border); }
         .order-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 18px; margin-bottom: 15px; border-left: 5px solid var(--gold); }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-        .btn { border: none; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; color: white; text-align: center; text-decoration: none; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn { border: none; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 10px; cursor: pointer; color: white; text-align: center; text-decoration: none; text-transform: uppercase; }
+        .btn-gagal { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger); grid-column: span 2; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -25,7 +26,7 @@
         <div class="stat-box"><p style="font-size:9px; color:var(--safe);">SISA TUNAI (COD)</p><b id="tunai">Rp0</b></div>
     </div>
 
-    <div id="list">Memuat...</div>
+    <div id="list">Memuat tugas...</div>
 
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
@@ -44,17 +45,20 @@
         });
 
         async function updateStatus(id, status) {
+            if(status === 'Gagal' && !confirm("Tandai paket ini sebagai GAGAL KIRIM?")) return;
+            
             const getPos = () => new Promise(r => {
                 if(!navigator.geolocation) return r(null);
                 navigator.geolocation.getCurrentPosition(p => r(p.coords), () => r(null), { timeout: 3000 });
             });
             const pos = await getPos();
             if(pos) db.ref('tracking/kurir_ej').set({ lat: pos.latitude, lng: pos.longitude, time: new Date().toLocaleString() });
+            
             db.ref('pesanan/' + id).update({ status: status }).then(() => {
-                if(status === 'Terkirim') {
+                if(status === 'Terkirim' || status === 'Gagal') {
                     const o = orders.find(x => x.id === id);
-                    const map = pos ? `https://www.google.com/maps/search/?api=1&query=${pos.latitude},${pos.longitude}` : 'Tanpa GPS';
-                    const txt = `*EJ DELIVERY*%0A✅ TERKIRIM: ${o.namaPembeli}%0A💰 TAGIHAN: ${o.metode === 'Transfer' ? 'LUNAS' : 'Rp' + Number(o.total).toLocaleString()}%0A📍 LOKASI: ${map}`;
+                    const icon = status === 'Terkirim' ? '✅ TERKIRIM' : '❌ GAGAL';
+                    const txt = `*EJ DELIVERY - LAPORAN*%0A${icon}: ${o.namaPembeli}%0A💰 TAGIHAN: ${o.metode === 'Transfer' ? 'LUNAS' : 'Rp' + Number(o.total).toLocaleString()}`;
                     window.location.href = `https://wa.me/${OWNER_WA}?text=${txt}`;
                 }
             });
@@ -62,7 +66,9 @@
 
         function render() {
             const today = new Date().toLocaleDateString('id-ID');
-            const filtered = orders.filter(o => o.status !== 'Terkirim' || o.tanggal === today);
+            // Menampilkan paket yang belum selesai ATAU yang baru saja diupdate hari ini
+            const filtered = orders.filter(o => o.status === 'Menunggu' || o.status === 'Diantar' || (o.tanggal === today && (o.status === 'Terkirim' || o.status === 'Gagal')));
+            
             const selesai = filtered.filter(o => o.status === 'Terkirim');
             const codSum = selesai.filter(o => o.metode === 'COD').reduce((a,b)=>a+Number(b.total), 0);
             
@@ -71,26 +77,29 @@
 
             document.getElementById('list').innerHTML = filtered.map(o => {
                 const wa = String(o.nohp).replace(/\D/g, '').replace(/^0/,'62');
-                const maps = o.mapLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.alamat)}`;
+                const maps = o.mapLink || `http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(o.alamat)}`;
+                const color = o.status==='Diantar'?'#2563eb':(o.status==='Terkirim'?'#22C55E':(o.status==='Gagal'?'#EF4444':'#D4AF37'));
+                
                 return `
-                <div class="order-card" style="border-left-color:${o.status==='Diantar'?'#2563eb':(o.status==='Terkirim'?'#22C55E':'#D4AF37')}">
-                    <p style="font-size:9px; color:var(--gold); font-weight:800;">${o.noPesanan} | ${o.metode}</p>
-                    <h3 style="margin:5px 0; font-size:16px;">${o.namaPembeli}</h3>
+                <div class="order-card" style="border-left-color:${color}">
+                    <p style="font-size:9px; color:var(--gold); font-weight:800;">${o.noPesanan} | ${o.metode} | ${o.status.toUpperCase()}</p>
+                    <h3 style="margin:5px 0;">${o.namaPembeli}</h3>
                     <p style="font-size:11px; opacity:0.7;">📍 ${o.alamat}</p>
-                    <p style="font-weight:800; color:var(--gold); margin-top:5px;">${o.metode==='Transfer'?'LUNAS':'TAGIHAN: Rp'+Number(o.total).toLocaleString()}</p>
                     
-                    ${o.status !== 'Terkirim' ? `
+                    ${o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
                     <div class="btn-group">
                         <button class="btn" style="background:#222; border:1px solid #444" onclick="updateStatus('${o.id}','Diantar')">🚚 ANTAR</button>
                         <button class="btn" style="background:var(--safe)" onclick="updateStatus('${o.id}','Terkirim')">✅ SELESAI</button>
-                    </div>` : ''}
+                    </div>
+                    <button class="btn btn-gagal" onclick="updateStatus('${o.id}','Gagal')">❌ GAGAL KIRIM / RETUR</button>
+                    ` : ''}
 
                     <div class="btn-group">
                         <a href="${maps}" class="btn" style="background:var(--blue)">📍 MAPS</a>
-                        <a href="https://wa.me/${wa}?text=Halo%20${o.namaPembeli},%20kurir%20EJ%20Tobacco%20ingin%20mengantar%20paket." class="btn" style="background:var(--wa)">💬 WA</a>
+                        <a href="https://wa.me/${wa}?text=Halo%20${o.namaPembeli},%20saya%20kurir%20EJ%20Tobacco." class="btn" style="background:var(--wa)">💬 WA</a>
                     </div>
                 </div>`;
-            }).join('');
+            }).join('') || '<p style="text-align:center; opacity:0.5;">Kosong</p>';
         }
     </script>
 </body>
