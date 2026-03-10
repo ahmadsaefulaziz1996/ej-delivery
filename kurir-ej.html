@@ -14,7 +14,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text-main); padding: 15px; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .stat-box { text-align: center; padding: 10px; background: var(--glass); border-radius: 12px; border: 1px solid var(--glass-border); cursor: pointer; transition: 0.3s; }
+        .stat-box { text-align: center; padding: 10px; background: var(--glass); border-radius: 12px; border: 1px solid var(--glass-border); cursor: pointer; }
         .stat-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
         .stat-box span { font-size: 7px; color: var(--gold); display: block; }
         .stat-box b { font-size: 14px; }
@@ -88,18 +88,24 @@
 
                     if (matchSearch && matchStatus) {
                         const wa = String(o.nohp || "").replace(/\D/g, '').replace(/^0/,'62');
-                        const mapsUrl = (o.mapLink && o.mapLink.includes('http')) ? o.mapLink : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.alamat || "")}`;
+                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.alamat || "")}`;
                         
                         html += `<div class="order-card">
                             <div class="date-tag">${o.tanggal}</div>
                             <h3>${o.namaPembeli}</h3>
                             <p style="font-size:11px; opacity:0.7;">📍 ${o.alamat}</p>
                             <p style="color:var(--gold); font-weight:800; font-size:12px; margin-top:5px;">${o.metode} | Rp${Number(o.total || 0).toLocaleString()}</p>
+                            
                             ${isSisa ? `
                             <div class="btn-group">
                                 <button class="btn" style="background:var(--safe)" onclick="takePhoto('${o.id}')">📸 SUKSES</button>
-                                <button class="btn" style="background:var(--danger)" onclick="updateStatus('${o.id}','Gagal')">❌ GAGAL</button>
-                            </div>` : `<p style="color:var(--gold); font-size:10px; margin-top:10px; font-weight:800;">STATUS: ${o.status.toUpperCase()}</p>`}
+                                <button class="btn" style="background:var(--danger)" onclick="pilihanGagal('${o.id}')">⚠️ KENDALA</button>
+                            </div>` : `
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.1)">
+                                <p style="color:var(--gold); font-size:10px; font-weight:800;">STATUS: ${o.status.toUpperCase()}</p>
+                                ${o.catatan ? `<p style="font-size:10px; color:var(--danger); margin-top:3px;">📝 Catatan: ${o.catatan}</p>` : ''}
+                            </div>`}
+                            
                             <div class="btn-group">
                                 <a href="${mapsUrl}" target="_blank" class="btn" style="background:var(--blue)">MAPS</a>
                                 <a href="https://wa.me/${wa}" class="btn" style="background:var(--wa)">WA</a>
@@ -113,6 +119,17 @@
             document.getElementById('countProses').innerText = p;
             document.getElementById('tunaiTangan').innerText = "Rp" + (totalCodSuksesGlobal - totalSetoranGlobal).toLocaleString();
             document.getElementById('list').innerHTML = html || "<p style='text-align:center; opacity:0.5; padding:20px;'>Kosong.</p>";
+        }
+
+        function pilihanGagal(id) {
+            const opsi = prompt("PILIH TINDAKAN:\n1. KIRIM ULANG (Hujan/Rumah Kosong)\n2. CANCEL (Pembeli Batal)\n\nKetik angka 1 atau 2:");
+            if (opsi === "1") {
+                const alasan = prompt("Alasan Tunda?");
+                if (alasan) db.ref('pesanan/' + id).update({ catatan: "TUNDA: " + alasan }).then(() => alert("Ok, kirim lagi besok ya!"));
+            } else if (opsi === "2") {
+                const alasan = prompt("Alasan Cancel?");
+                if (alasan) db.ref('pesanan/' + id).update({ status: 'Gagal', catatan: "CANCEL: " + alasan }).then(() => alert("Pesanan dibatalkan."));
+            }
         }
 
         function takePhoto(id) { currentId = id; document.getElementById('cameraInput').click(); }
@@ -135,8 +152,9 @@
         };
 
         function updateStatus(id, status, foto = null) {
-            const data = { status: status }; if(foto) data.buktiFoto = foto;
-            db.ref('pesanan/' + id).update(data).then(() => alert("Status Berhasil Diupdate!"));
+            const data = { status: status, catatan: null }; // Hapus catatan kendala jika sukses
+            if(foto) data.buktiFoto = foto;
+            db.ref('pesanan/' + id).update(data).then(() => alert("Berhasil!"));
         }
     </script>
 </body>
