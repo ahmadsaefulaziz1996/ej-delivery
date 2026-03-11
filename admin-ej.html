@@ -88,6 +88,9 @@
             <div class="main-logo-text">EJ TOBACCO</div>
             <div class="sub-logo-text">DELIVERY</div>
         </div>
+        <button onclick="bukaLaporan()" style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 12px; border-radius: 15px; font-weight: 800; font-size: 11px; cursor: pointer; margin-top: 15px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <span>📊</span> LIHAT REKAP BULAN INI
+</button>
         <div style="text-align: right;">
             <div id="runningClock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
             <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">TGL LOADING...</div>
@@ -346,10 +349,87 @@ function pressPin(val) {
     // Update tampilan (muncul bintang agar tidak diintip)
     document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
 }
-        
+
+        // --- MESIN HITUNG LAPORAN EJ TOBACCO ---
+function bukaLaporan() {
+    const n = new Date();
+    // Kita ambil bulan dan tahun saat ini secara otomatis
+    const bulanSekarang = (n.getMonth() + 1).toString().padStart(2, '0'); 
+    const tahunSekarang = n.getFullYear().toString(); 
+    
+    let totalOmzet = 0;
+    let suksesCount = 0;
+    let gagalCount = 0;
+    let codCount = 0;
+    let transferCount = 0;
+
+    // Kita bongkar semua data di memori
+    allOrders.forEach(o => {
+        const p = o.tanggal.split('/'); // Memecah DD/MM/YYYY
+        const bulanPesanan = p[1];
+        const tahunPesanan = p[2];
+
+        // Validasi: Apakah bulannya sama?
+        if (bulanPesanan === bulanSekarang && tahunPesanan === tahunSekarang) {
+            if (o.status === 'Terkirim') {
+                suksesCount++;
+                totalOmzet += Number(o.total || 0);
+                if (o.metode === 'COD') codCount++; else transferCount++;
+            } else if (o.status === 'Gagal') {
+                gagalCount++;
+            }
+        }
+    });
+
+    // Susun template laporannya
+    const template = `
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:10px 0;">
+            <span style="opacity:0.7">💰 Omzet Terkirim:</span>
+            <b style="color:var(--safe); font-size:18px;">Rp ${totalOmzet.toLocaleString()}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:10px 0;">
+            <span style="opacity:0.7">📦 Paket Berhasil:</span>
+            <b>${suksesCount} Item</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:10px 0;">
+            <span style="opacity:0.7">❌ Paket Gagal:</span>
+            <b style="color:var(--danger)">${gagalCount} Item</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:10px 0;">
+            <span style="opacity:0.7">🤝 Metode COD:</span>
+            <b>${codCount}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:10px 0;">
+            <span style="opacity:0.7">💳 Metode Transfer:</span>
+            <b>${transferCount}</b>
+        </div>
+        <div style="margin-top:20px; padding:10px; background:rgba(212,175,55,0.05); border-radius:10px; text-align:center;">
+            <small style="color:var(--gold)">Periode: ${n.toLocaleString('id-ID', {month:'long', year:'numeric'})}</small>
+        </div>
+    `;
+
+    // Tembakkan ke layar
+    document.getElementById('isiLaporan').innerHTML = template;
+    document.getElementById('laporanOverlay').style.display = 'flex';
+}
     </script>
+
+    <div id="laporanOverlay" class="modal-foto" style="padding: 20px; overflow-y: auto; backdrop-filter: blur(15px); display: none;">
+    <div class="glass-card" style="width: 100%; max-width: 450px; border: 1px solid var(--gold); background: #0A0A0A; box-shadow: 0 0 50px rgba(0,0,0,0.8);">
+        <h2 style="color: var(--gold); text-align: center; margin-bottom: 25px; font-weight: 800; letter-spacing: 1px;">REKAPITULASI BULANAN</h2>
+        
+        <div id="isiLaporan" style="line-height: 2.5; font-size: 14px;">
+            <p style="text-align:center; opacity:0.5;">Menghitung data...</p>
+        </div>
+
+        <button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 30px; background: var(--gold); color: black; font-weight: 800; border-radius: 12px;">
+            TUTUP LAPORAN
+        </button>
+    </div>
+</div>
 </body>
 </html>
+
 
 
 
