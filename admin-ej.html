@@ -3,27 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EJ ADMIN - PREMIUM SYSTEM</title>
+    <title>EJ ADMIN PRO - FULL SYSTEM</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <link rel="icon" href="logo-baru.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo-baru.png">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --warning: #FACC15; --wa: #25D366; }
+        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text-main); padding: 15px; padding-bottom: 50px; }
+        
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .logo-text-container { display: flex; flex-direction: column; }
-        .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; }
-        .sub-logo-text { color: #fff; font-size: 11px; opacity: 0.8; letter-spacing: 2px; }
+        .logo-text-container { display: flex; flex-direction: column; gap: 2px; }
+        .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; }
+        .sub-logo-text { color: var(--text-main); font-weight: 400; font-size: 11px; opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; }
+
         .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; }
+        .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; }
         .report-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
+        .report-box span { font-size: 7px; font-weight: 800; color: var(--gold); text-transform: uppercase; }
         .report-box b { display: block; font-size: 14px; margin-top: 4px; }
+
         .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
         input, textarea, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
         .btn-main { background: linear-gradient(135deg, #F7E08C, #D4AF37); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; }
+        
         .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
+        .btn-small { padding: 10px; border-radius: 8px; font-weight: 800; font-size: 10px; text-align: center; color: white; border: none; cursor: pointer; }
+        
         .modal-foto { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; }
-        .modal-foto img { max-width: 90%; border-radius: 15px; border: 2px solid var(--gold); }
-        #waPrompt { position:fixed; bottom:20px; left:20px; right:20px; background:var(--wa); color:white; padding:20px; border-radius:15px; text-align:center; z-index:10000; display:none; }
+        .modal-foto img { max-width: 90%; max-height: 70%; border: 2px solid var(--gold); border-radius: 15px; }
+        
+        #receipt-print { display: none; }
+        #waPrompt { position:fixed; bottom:20px; left:20px; right:20px; background:var(--wa); color:white; padding:20px; border-radius:15px; text-align:center; z-index:10000; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none; }
     </style>
 </head>
 <body>
@@ -35,11 +48,14 @@
         </div>
         <div style="text-align: right;">
             <div id="runningClock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
-            <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">LOADING...</div>
+            <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">TGL LOADING...</div>
         </div>
     </div>
 
-    <input type="date" id="datePicker" onchange="updateAll()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; font-weight: 800; margin-bottom:15px;">
+    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+        <input type="date" id="datePicker" onchange="changeDate()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; font-weight: 800; flex: 1;">
+        <button onclick="goToToday()" style="background: var(--gold); border: none; border-radius: 12px; padding: 0 15px; font-weight: 800; font-size: 10px; color: black; cursor: pointer;">HARI INI</button>
+    </div>
 
     <div class="report-grid">
         <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa</span><b id="countProses">0</b></div>
@@ -47,36 +63,43 @@
         <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Cancel</span><b id="countGagal">0</b></div>
     </div>
 
-    <div class="report-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); padding:15px;">
+    <div class="report-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
         <span style="color: var(--safe); font-size: 10px; font-weight: 800;">TOTAL SALDO DI KURIR</span>
-        <b id="dailyTunai" style="font-size: 22px; color: var(--safe);">Rp0</b>
+        <b id="dailyTunai" style="font-size: 20px; color: var(--safe);">Rp0</b>
     </div>
 
     <div class="glass-card">
-        <input type="text" id="noPesanan" placeholder="No Resi (#001)">
+        <input type="text" id="noPesanan" placeholder="No Pesanan (#001)">
         <input type="text" id="pembeli" placeholder="Nama Pembeli">
         <input type="text" id="nohp" placeholder="WhatsApp (08xx)">
         <textarea id="alamat" placeholder="Alamat Lengkap"></textarea>
-        <input type="text" id="mapLink" placeholder="Link Google Maps">
+        <input type="text" id="mapLink" placeholder="Link Google Maps (Opsional)">
         <select id="metodeBayar" onchange="toggleTotal()"><option value="COD">Metode: COD</option><option value="Transfer">Metode: Transfer</option></select>
         <input type="number" id="total" placeholder="Harga COD (Rp)">
-        <button class="btn-main" onclick="tambah()">SIMPAN & PRINT RESI</button>
+        <button class="btn-main" onclick="tambah()">SIMPAN & PRINT</button>
     </div>
 
     <div class="glass-card">
-        <input type="number" id="jumlahSetoran" placeholder="Input Setoran Masuk (Rp)">
+        <input type="number" id="jumlahSetoran" placeholder="Input Setoran (Rp)">
         <button class="btn-main" style="background:var(--safe); color:white" onclick="setor()">TERIMA SETORAN</button>
     </div>
 
-    <input type="text" id="searchBar" placeholder="🔍 Cari nama/resi..." oninput="renderList()" style="width:100%; border-radius:12px; background:var(--glass); border:1px solid var(--gold); color:white; padding:12px; margin-bottom:15px; outline:none;">
+    <input type="text" id="searchBar" placeholder="🔍 Cari nama/resi..." oninput="renderList()" style="width:100%; padding:12px; border-radius:12px; background:var(--glass); border:1px solid var(--gold); color:white; margin-bottom:15px; outline:none;">
     
     <div id="adminList" class="glass-card">Memuat data...</div>
 
-    <div id="modalFoto" class="modal-foto" onclick="this.style.display='none'"><img id="imgBukti" src=""><p style="color:var(--gold); margin-top:15px; font-weight:800;">KLIK UNTUK TUTUP</p></div>
-    <div id="waPrompt">
-        <p style="font-size:12px; margin-bottom:10px;">✅ Pesanan Tersimpan!</p>
-        <button id="btnWAOpen" style="background:white; color:black; border:none; padding:12px; border-radius:10px; font-weight:800; width:100%;">KIRIM WA KE PEMBELI</button>
+    <div id="modalFoto" class="modal-foto" onclick="this.style.display='none'">
+        <img id="imgBukti" src="">
+        <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">KLIK MANA SAJA UNTUK TUTUP</p>
     </div>
+
+    <div id="waPrompt">
+        <p id="waText" style="font-size:12px; margin-bottom:10px;">✅ Data Tersimpan!</p>
+        <button id="btnWAOpen" style="background:white; color:black; border:none; padding:10px 20px; border-radius:10px; font-weight:800; width:100%;">KIRIM WA SEKARANG</button>
+        <p onclick="document.getElementById('waPrompt').style.display='none'" style="margin-top:10px; font-size:10px; opacity:0.7; cursor:pointer;">Nanti Saja</p>
+    </div>
+
+    <div id="receipt-print"><div id="receipt-content"></div></div>
 
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
@@ -84,108 +107,161 @@
         const firebaseConfig = { apiKey: "AIzaSyAVQGysGRlYJ2b4PekM3vaXKtx6UFvNlCk", databaseURL: "https://ej-tobacco-express-default-rtdb.asia-southeast1.firebasedatabase.app" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let allOrders = [], totalSetoranGlobal = 0, currentFilter = "Semua", lastOrder = null;
+        
+        let allOrders = [], totalSetoranGlobal = 0, currentFilter = "Semua", lastOrder = null, lastDateString = "";
 
         function formatTglDB(date) { const d = new Date(date); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
-        const initDate = () => { const n = new Date(); document.getElementById('datePicker').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; };
+        function initDate() { const n = new Date(); document.getElementById('datePicker').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; lastDateString = formatTglDB(n); }
         initDate();
 
-        // Listener Utama
-        db.ref('pesanan').on('value', snap => {
-            allOrders = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).reverse() : [];
-            updateAll();
-            autoCleanup(); // Jalankan hapus otomatis 90 hari
-        });
-        db.ref('setoran').on('value', snap => {
-            totalSetoranGlobal = Object.values(snap.val() || {}).reduce((a, b) => a + b, 0);
-            updateAll();
-        });
+        function changeDate() { updateAll(); }
+        function goToToday() { initDate(); updateAll(); }
+        function setFilter(f) { currentFilter = f; document.querySelectorAll('.report-box').forEach(el => el.classList.remove('active')); document.getElementById('f-'+f).classList.add('active'); updateAll(); }
 
-        // Fitur Auto Hapus 90 Hari
-        function autoCleanup() {
-            const limit = Date.now() - (90 * 24 * 60 * 60 * 1000);
-            allOrders.forEach(o => {
-                const p = o.tanggal.split('/');
-                const tgl = new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime();
-                if (tgl < limit) db.ref('pesanan/' + o.id).remove();
-            });
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('runningClock').innerText = now.toLocaleTimeString('id-ID');
+                document.getElementById('currentDay').innerText = now.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}).toUpperCase();
+                if (formatTglDB(now) !== lastDateString) { lastDateString = formatTglDB(now); initDate(); updateAll(); }
+            }, 1000);
         }
 
+        db.ref('pesanan').on('value', snap => {
+            const val = snap.val();
+            allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
+            db.ref('setoran').on('value', sSnap => {
+                totalSetoranGlobal = Object.values(sSnap.val() || {}).reduce((a, b) => a + b, 0);
+                updateAll();
+            });
+        });
+
         function updateAll() {
-            let s=0, g=0, p=0, totalCODAll = 0;
-            const tgl = formatTglDB(document.getElementById('datePicker').value);
+            const pickerVal = document.getElementById('datePicker').value;
+            if(!pickerVal) return;
+            const p = pickerVal.split('-');
+            const tglTarget = `${p[2]}/${p[1]}/${p[0]}`;
+            updateDashboard(tglTarget);
+            renderList(tglTarget);
+        }
+
+        function updateDashboard(tglTarget) {
+            let s=0, g=0, p=0, codSukses=0;
             allOrders.forEach(o => {
-                if (o.tanggal === tgl) { if (o.status === 'Terkirim') s++; else if (o.status === 'Gagal') g++; }
+                if (o.tanggal === tglTarget) {
+                    if (o.status === 'Terkirim') s++;
+                    else if (o.status === 'Gagal') g++;
+                }
                 if (o.status !== 'Terkirim' && o.status !== 'Gagal') p++;
-                if (o.status === 'Terkirim' && o.metode === 'COD') totalCODAll += Number(o.total || 0);
+                if (o.status === 'Terkirim' && o.metode === 'COD') codSukses += Number(o.total || 0);
             });
             document.getElementById('countSukses').innerText = s;
             document.getElementById('countGagal').innerText = g;
             document.getElementById('countProses').innerText = p;
-            document.getElementById('dailyTunai').innerText = "Rp" + (totalCODAll - totalSetoranGlobal).toLocaleString();
-            renderList();
+            document.getElementById('dailyTunai').innerText = "Rp" + (codSukses - totalSetoranGlobal).toLocaleString();
         }
 
-        function renderList() {
-            const tgl = formatTglDB(document.getElementById('datePicker').value);
-            const key = document.getElementById('searchBar').value.toLowerCase();
+        function renderList(tglTarget) {
+            const keyword = document.getElementById('searchBar').value.toLowerCase();
             let html = "";
             const filtered = allOrders.filter(o => {
-                const mS = (o.namaPembeli || "").toLowerCase().includes(key) || (o.noPesanan || "").toLowerCase().includes(key);
-                const mSt = (currentFilter === "Semua") ? (o.status !== 'Terkirim' && o.status !== 'Gagal') : (o.status === currentFilter && o.tanggal === tgl);
-                return mS && mSt;
+                const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword) || (o.noPesanan || "").toLowerCase().includes(keyword);
+                let matchStatus = (currentFilter === "Semua") ? (o.status !== 'Terkirim' && o.status !== 'Gagal') : (o.status === currentFilter && o.tanggal === tglTarget);
+                return matchSearch && matchStatus;
             });
-            filtered.forEach(o => {
-                const waNum = String(o.nohp).replace(/\D/g, '').replace(/^0/, '62');
-                const infoKendala = (o.alasanTunda || o.kendala) ? `<div style="background:rgba(250,204,21,0.1); border-left:3px solid var(--warning); padding:8px; margin-top:8px; border-radius:5px;"><small style="color:var(--warning); font-weight:800;">⚠️ KENDALA:</small><p style="font-size:11px;">${o.alasanTunda || o.kendala}</p></div>` : "";
-                html += `<div class="order-item">
-                    <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
-                    <small>${o.status} | Rp${Number(o.total).toLocaleString()}</small>
-                    ${infoKendala}
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px;">
-                        <a href="https://wa.me/${waNum}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
-                        <button onclick="reprint('${o.id}')" style="background:var(--gold); border:none; padding:8px; border-radius:8px; font-weight:800; font-size:10px;">PRINT</button>
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
-                        ${o.buktiFoto ? `<button onclick="viewFoto('${o.buktiFoto}')" style="background:var(--safe); border:none; padding:8px; border-radius:8px; color:white; font-size:10px; font-weight:800;">LIHAT FOTO</button>` : `<div style="background:var(--glass); border-radius:8px; text-align:center; font-size:10px; padding:8px;">NO FOTO</div>`}
-                        <button onclick="hapus('${o.id}')" style="background:var(--danger); border:none; padding:8px; border-radius:8px; color:white; font-size:10px; font-weight:800;">HAPUS</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('adminList').innerHTML = html || "Kosong";
-        }
 
-        function tambah() {
-            const n = new Date();
-            const d = { noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), namaPembeli: document.getElementById('pembeli').value, nohp: document.getElementById('nohp').value, alamat: document.getElementById('alamat').value, mapLink: document.getElementById('mapLink').value, total: document.getElementById('total').value || 0, metode: document.getElementById('metodeBayar').value, status: 'Menunggu', tanggal: formatTglDB(n), waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) };
-            if(!d.namaPembeli) return alert("Nama Wajib!");
-            db.ref('pesanan').push(d).then(() => { lastOrder = d; executePrint(); showWAPrompt(d); document.querySelectorAll('.glass-card input, .glass-card textarea').forEach(i => i.value=""); });
-        }
-
-        function executePrint() {
-            const cleanNo = lastOrder.noPesanan.replace(/[^a-zA-Z0-9]/g, "");
-            const text = `[C]<b>EJ TOBACCO DELIVERY</b>\n[C]================================================\n[C]RESI: ${lastOrder.noPesanan}\n[L]PENERIMA: ${lastOrder.namaPembeli}\n[L]TOTAL: Rp${Number(lastOrder.total).toLocaleString()}\n[C]================================================\n[C][b]code128,3,80,${cleanNo},yes\n\n\n\n\n`;
-            window.location.href = "rawbt:" + encodeURI(text);
-        }
-
-        function showWAPrompt(d) {
-            const wa = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62');
-            const msg = encodeURIComponent(`*EJ TOBACCO DELIVERY*\nHalo Kak ${d.namaPembeli}, pesanan Anda sedang diproses.\nResi: ${d.noPesanan}\nTotal: Rp${Number(d.total).toLocaleString()}`);
-            document.getElementById('waPrompt').style.display='block';
-            document.getElementById('btnWAOpen').onclick = () => { window.open(`https://wa.me/${wa}?text=${msg}`); document.getElementById('waPrompt').style.display='none'; };
+            if(filtered.length === 0) {
+                html = `<p style="text-align:center; opacity:0.5; padding:20px;">Tidak ada data.</p>`;
+            } else {
+                filtered.forEach(o => {
+                    const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
+                    html += `<div class="order-item">
+                        <span style="font-size:9px; color:var(--gold)">${o.tanggal} | ${o.waktu}</span><br>
+                        <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
+                        <small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString()}</small>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px;">
+                            <a href="https://wa.me/${waNum}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
+                            <button style="background:var(--gold); color:black; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="reprint('${o.id}')">REPRINT</button>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
+                            ${o.buktiFoto ? `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.buktiFoto}')">LIHAT FOTO</button>` : `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px;">BELUM ADA FOTO</div>`}
+                            <button style="background:var(--danger); color:white; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="hapus('${o.id}')">HAPUS</button>
+                        </div>
+                    </div>`;
+                });
+            }
+            document.getElementById('adminList').innerHTML = html;
         }
 
         function viewFoto(src) { document.getElementById('imgBukti').src = src; document.getElementById('modalFoto').style.display = 'flex'; }
-        function setor() { const j = Number(document.getElementById('jumlahSetoran').value); if(j>0) db.ref('setoran').push(j).then(() => { alert("Setoran Diterima!"); document.getElementById('jumlahSetoran').value=""; }); }
-        function hapus(id) { if(confirm("Hapus?")) db.ref('pesanan/'+id).remove(); }
-        function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
-        function setFilter(f) { currentFilter = f; document.querySelectorAll('.report-box').forEach(el => el.classList.remove('active')); document.getElementById('f-'+f).classList.add('active'); updateAll(); }
         function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
-        setInterval(() => { 
+
+        function tambah() {
             const n = new Date();
-            document.getElementById('runningClock').innerText = n.toLocaleTimeString('id-ID'); 
-            document.getElementById('currentDay').innerText = n.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}).toUpperCase();
-        }, 1000);
+            const nohpVal = document.getElementById('nohp').value;
+            const d = { 
+                noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), 
+                namaPembeli: document.getElementById('pembeli').value, 
+                nohp: nohpVal, 
+                alamat: document.getElementById('alamat').value, 
+                mapLink: document.getElementById('mapLink').value, 
+                total: document.getElementById('total').value || 0, 
+                metode: document.getElementById('metodeBayar').value, 
+                status: 'Menunggu', 
+                tanggal: formatTglDB(n), 
+                waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
+            };
+            if(!d.namaPembeli || !d.nohp) return alert("Nama & WA wajib!");
+            
+            db.ref('pesanan').push(d).then(() => { 
+                lastOrder = d; 
+                executePrint(); 
+                showWANotif(d);
+                document.querySelectorAll('.glass-card input, .glass-card textarea').forEach(i => i.value = ""); 
+            });
+        }
+
+        function executePrint() {
+            if(!lastOrder) return;
+            const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
+            const teks80mm = 
+                `[C]<font size="big"><b>EJ TOBACCO DELIVERY</b></font>\n` +
+                `[C]"Kualitas Premium, Kiriman Cepat"\n` +
+                `[C]================================================\n` +
+                `[C]<font size="big"><b>NO. RESI : ${lastOrder.noPesanan}</b></font>\n` +
+                `[C]================================================\n` +
+                `[L]<b>PENERIMA:</b>\n` +
+                `[L]${lastOrder.namaPembeli}\n` +
+                `[L]No. HP : ${lastOrder.nohp}\n\n` +
+                `[L]<b>ALAMAT PENGIRIMAN:</b>\n` +
+                `[L]${lastOrder.alamat}\n` +
+                `[C]================================================\n` +
+                `[L]METODE PEMBAYARAN: ${lastOrder.metode}\n` +
+                `[L]TOTAL TAGIHAN    : Rp${Number(lastOrder.total).toLocaleString()}\n` +
+                `[C]================================================\n` +
+                `[C][b]code128,3,80,${cleanNo},yes\n\n` +
+                `[C]------------------------------------------------\n` +
+                `[C]Tgl: ${lastOrder.tanggal} ${lastOrder.waktu}\n` +
+                `[C]Terima kasih atas pesanan Anda!\n\n\n\n\n`;
+            window.location.href = "rawbt:" + encodeURI(teks80mm);
+        }
+
+        function showWANotif(d) {
+            const waNumber = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62');
+            const linkMaps = d.mapLink ? `\n📍 Map: ${d.mapLink}` : "";
+            const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang diproses kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp${Number(d.total).toLocaleString()}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang pas ya. Terima kasih! 🙏`;
+            const urlWA = `https://wa.me/${waNumber}?text=${encodeURIComponent(teksWA)}`;
+            
+            const prompt = document.getElementById('waPrompt');
+            prompt.style.display = 'block';
+            document.getElementById('btnWAOpen').onclick = () => { window.open(urlWA, '_blank'); prompt.style.display = 'none'; };
+        }
+
+        function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
+        function setor() { const n = new Date(); const dK = formatTglDB(n).replace(/\//g, '-'); const j = Number(document.getElementById('jumlahSetoran').value); db.ref('setoran/' + dK).transaction(cv => (cv || 0) + j).then(() => { alert("Setoran Diterima!"); document.getElementById('jumlahSetoran').value = ""; }); }
+        function hapus(id) { if(confirm("Hapus pesanan ini?")) db.ref('pesanan/' + id).remove(); }
+        
+        startClock();
     </script>
 </body>
 </html>
