@@ -227,7 +227,11 @@
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
                             ${o.buktiFoto ? `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.buktiFoto}')">LIHAT FOTO</button>` : `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px;">BELUM ADA FOTO</div>`}
-                            <button style="background:var(--danger); color:white; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="hapus('${o.id}')">HAPUS</button>
+                           // Tempel kode ini sebagai penggantinya:
+${o.status === 'Terkirim' ? 
+    `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 DATA TERKUNCI</div>` : 
+    `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer; width:100%;">HAPUS PESANAN</button>`
+}
                         </div>
                     </div>`;
                 });
@@ -268,7 +272,7 @@
             const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
             const teks80mm = 
                 `[C]<font size="big"><b>EJ TOBACCO DELIVERY</b></font>\n` +
-                `[C]"Kualitas Premium, Kiriman Cepat"\n` +
+                `[C]"belanja semakin nyamang menggunakan aplikasi toko ej"\n` +
                 `[C]================================================\n` +
                 `[C]<font size="big"><b>NO. RESI : ${lastOrder.noPesanan}</b></font>\n` +
                 `[C]================================================\n` +
@@ -291,7 +295,7 @@
         function showWANotif(d) {
             const waNumber = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62');
             const linkMaps = d.mapLink ? `\n📍 Map: ${d.mapLink}` : "";
-            const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang diproses kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp${Number(d.total).toLocaleString()}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang pas ya. Terima kasih! 🙏`;
+            const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang diproses kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp${Number(d.total).toLocaleString()}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang pas kalau COD ya. Terima kasih! 🙏`;
             const urlWA = `https://wa.me/${waNumber}?text=${encodeURIComponent(teksWA)}`;
             
             const prompt = document.getElementById('waPrompt');
@@ -301,7 +305,24 @@
 
         function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
         function setor() { const n = new Date(); const dK = formatTglDB(n).replace(/\//g, '-'); const j = Number(document.getElementById('jumlahSetoran').value); db.ref('setoran/' + dK).transaction(cv => (cv || 0) + j).then(() => { alert("Setoran Diterima!"); document.getElementById('jumlahSetoran').value = ""; }); }
-        function hapus(id) { if(confirm("Hapus pesanan ini?")) db.ref('pesanan/' + id).remove(); }
+        function hapus(id) {
+    // 1. Kita cari dulu data paketnya berdasarkan ID
+    const pesananTerpilih = allOrders.find(o => o.id === id);
+
+    // 2. Kita cek: Apakah statusnya sudah sukses?
+    if (pesananTerpilih && pesananTerpilih.status === 'Terkirim') {
+        // Jika iya, kita kasih peringatan dan batalkan perintah hapus
+        alert("⛔ AKSES DITOLAK!\n\nDemi keamanan pembukuan, pesanan yang sudah berstatus SUKSES tidak dapat dihapus.");
+        return; 
+    }
+
+    // 3. Jika statusnya BELUM sukses, baru kita izinkan hapus
+    if (confirm("Apakah Anda yakin ingin menghapus pesanan ini?")) {
+        db.ref('pesanan/' + id).remove()
+            .then(() => alert("✅ Berhasil dihapus."))
+            .catch((err) => alert("❌ Gagal: " + err.message));
+    }
+}
         
         startClock();
 
@@ -330,4 +351,5 @@ function pressPin(val) {
     </script>
 </body>
 </html>
+
 
