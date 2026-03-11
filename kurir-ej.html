@@ -52,6 +52,11 @@
         <div id="clock" style="font-size: 14px; font-weight: 600; color: #fff;">00:00:00</div>
     </div>
 
+    <div id="statusKoneksi" style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 5px;">
+    <div id="lampuKoneksi" style="width: 8px; height: 8px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 10px var(--safe);"></div>
+    <span id="teksKoneksi" style="font-size: 9px; font-weight: 800; color: var(--safe); letter-spacing: 1px;">SISTEM ONLINE</span>
+</div>
+    
     <div class="wallet-card">
         <span>💰 Uang COD di Tangan</span>
         <b id="totalCOD">Rp 0</b>
@@ -275,7 +280,30 @@ db.ref('pesanan').on('value', (snapshot) => {
     // Update angka patokan jumlah terakhir
     jumlahPesananTerakhir = jumlahSekarang;
 });
+
+        // --- DETEKSI KONEKSI INTERNET ---
+window.addEventListener('online', updateStatusInternet);
+window.addEventListener('offline', updateStatusInternet);
+
+function updateStatusInternet() {
+    const lampu = document.getElementById('lampuKoneksi');
+    const teks = document.getElementById('teksKoneksi');
+    
+    if (navigator.onLine) {
+        lampu.style.background = "var(--safe)";
+        lampu.style.boxShadow = "0 0 10px var(--safe)";
+        teks.innerText = "SISTEM ONLINE";
+        teks.style.color = "var(--safe)";
+    } else {
+        lampu.style.background = "var(--danger)";
+        lampu.style.boxShadow = "0 0 10px var(--danger)";
+        teks.innerText = "KONEKSI TERPUTUS";
+        teks.style.color = "var(--danger)";
+    }
+}
+        
     </script>
 </body>
 </html>
+
 
