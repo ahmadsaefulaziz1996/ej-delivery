@@ -445,8 +445,6 @@ db.ref('pesanan').limitToLast(500).on('value', snap => {
                 <span style="font-size:9px; color:var(--gold)">${o.tanggal} | ${o.waktu}</span><br>
                 <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
                 <small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString()}</small>
-
-                // Tambahkan baris ini di tempat yang Bos inginkan di kartu pesanan Admin
 ${o.catatanKurir ? `<div style="font-size:11px; color:var(--gold); margin-top:5px; font-style:italic;">📝 Catatan: ${o.catatanKurir}</div>` : ''}
                 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px;">
@@ -781,6 +779,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
