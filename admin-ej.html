@@ -97,20 +97,20 @@
     </div>
 
     <div class="glass-card">
-        <input type="text" id="noPesanan" placeholder="No Pesanan (#001)" autocomplete="off">
-        <input type="text" id="pembeli" placeholder="Nama Pembeli" autocomplete="off">
-        <input type="text" id="nohp" placeholder="WhatsApp (08xx)" autocomplete="off">
-        <textarea id="alamat" placeholder="Alamat Lengkap" autocomplete="off"></textarea>
-        <input type="text" id="mapLink" placeholder="Link Google Maps (Opsional)" autocomplete="off">
-        
-        <select id="metodeBayar" onchange="toggleTotal()"><option value="COD">Metode: COD</option><option value="Transfer">Metode: Transfer</option></select>
-        <input type="number" id="total" placeholder="Harga COD (Rp)" autocomplete="off" inputmode="numeric">
-
-        <label style="color: var(--danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; background: rgba(239, 68, 68, 0.05); padding: 10px; border-radius: 10px; border: 1px dashed var(--danger); cursor: pointer;">
-            <input type="checkbox" id="isUrgent" style="width: 18px; height: 18px; accent-color: var(--danger);"> 🔥 TANDAI SEBAGAI PESANAN URGENT
-        </label>
-        <button class="btn-main" onclick="tambah()">SIMPAN & PRINT</button>
+    <input type="text" id="pembeli" placeholder="Nama Pembeli" autocomplete="off">
+    <input type="text" id="nohp" placeholder="WhatsApp (08xx)" autocomplete="off">
+    <textarea id="alamat" placeholder="Alamat Lengkap (Patokan rumah)"></textarea>
+    
+    <label style="font-size:10px; color:var(--gold); margin-bottom:5px; display:block;">📍 LOKASI (PASTIKAN MUNCUL ✅)</label>
+    <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+        <input type="text" id="mapLink" placeholder="Tempel Link Maps di sini..." style="margin:0; flex:1;" oninput="cekValiditasMap()">
+        <button onclick="autoGenerateKoor()" id="btnAuto" style="background: #2563eb; color: white; border: none; border-radius: 10px; padding: 0 15px; font-weight: 800; font-size: 10px; cursor: pointer; white-space: nowrap;">⚡ AUTO-GENERATE</button>
     </div>
+    <div id="mapStatus" style="font-size:10px; color: #EF4444; margin-bottom: 10px;">⚠️ Radar Belum Aktif</div>
+    <select id="metodeBayar"><option value="COD">COD</option><option value="Transfer">Transfer</option></select>
+    <input type="number" id="total" placeholder="Harga COD (Rp)">
+    <button class="btn-main" onclick="tambah()">SIMPAN & PRINT</button>
+</div>
 
     <div class="glass-card">
         <input type="number" id="jumlahSetoran" placeholder="Input Setoran (Rp)">
@@ -341,33 +341,30 @@
         }
 
         let radarMesin; 
-        function extractCoords(url) {
-            if (!url) return null;
-            try {
-                // 1. CEK JIKA USER INPUT ANGKA LANGSUNG (Contoh: -6.123, 106.123)
-                const rawMatch = url.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
-                if (rawMatch) {
-                    return { lat: parseFloat(rawMatch[1]), lng: parseFloat(rawMatch[2]) };
-                }
+        function extractCoords(text) {
+    if(!text) return null;
+    // Mencari pola angka,angka atau @angka,angka
+    const match = text.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/) || 
+                  text.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                  
+    if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+    return null;
+}
 
-                // 2. CEK JIKA LINK PANJANG DENGAN POLA @ (Standard Google Maps)
-                const m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-                if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
-                
-                // 3. CEK JIKA LINK DENGAN POLA q= (Pencarian/Pin)
-                const q = url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-                if (q) return { lat: parseFloat(q[1]), lng: parseFloat(q[2]) };
-
-                // Jika link pendek (maps.app.goo.gl), sampaikan ke Bos kalau koordinat tak terbaca
-                if (url.includes("maps.app.goo.gl") || url.includes("goo.gl")) {
-                    console.log("Link pendek terdeteksi. Disarankan pakai angka koordinat langsung.");
-                }
-            } catch(e) { 
-                return null; 
-            }
-            return null;
-        }
-
+// Tambahan biar status teks berubah otomatis saat diketik
+function cekValiditasMap() {
+    const input = document.getElementById('mapLink');
+    const status = document.getElementById('mapStatus');
+    const koor = extractCoords(input.value);
+    if (koor) { 
+        status.innerText = "✅ RADAR AKTIF!"; 
+        status.style.color = "#22C55E"; 
+    } else { 
+        status.innerText = "⚠️ Radar Belum Aktif"; 
+        status.style.color = "#EF4444"; 
+    }
+}
+        
         function bukaRadar() {
             document.getElementById('petaOverlay').style.display = 'flex';
             if (radarMesin) radarMesin.remove();
@@ -393,6 +390,45 @@
             });
         }
         setTimeout(bersihkanDataLama, 5000);
+
+        async function autoGenerateKoor() {
+    const input = document.getElementById('mapLink');
+    const status = document.getElementById('mapStatus');
+    const btn = document.getElementById('btnAuto');
+    const url = input.value.trim();
+
+    if(!url.includes("http")) return alert("Tempel link Maps-nya dulu Bos!");
+
+    btn.innerText = "⌛ PROSES...";
+    status.innerText = "🔍 Mencari koordinat rahasia...";
+    status.style.color = "#D4AF37";
+
+    try {
+        // Menggunakan jembatan corsproxy untuk melihat isi link pendek
+        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
+        const response = await fetch(proxyUrl);
+        const html = await response.text();
+
+        // Mencari angka koordinat di dalam hasil 'intipan'
+        const match = html.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/) || 
+                      html.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+
+        if (match) {
+            input.value = `${match[1]}, ${match[2]}`; // Mengganti link jadi angka
+            status.innerText = "✅ BERHASIL: Koordinat Terkunci!";
+            status.style.color = "#22C55E";
+        } else {
+            throw new Error("Gagal");
+        }
+    } catch (err) {
+        status.innerText = "❌ GAGAL: Google Memblokir.";
+        status.style.color = "#EF4444";
+        alert("Gagal otomatis, Bos. Solusi: Buka linknya dulu di browser, copy link panjang di bar atas, lalu tempel balik ke sini.");
+    } finally {
+        btn.innerText = "⚡ AUTO-GENERATE";
+    }
+}
+        
     </script>
 </body>
 </html>
