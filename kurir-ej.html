@@ -4,144 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>EJ DELIVERY - KURIR PRO</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-   <style>
-    /* --- 1. ATURAN GLOBAL (ANTI-BROWSER, GAGAH, & PADAT) --- */
-    * { 
-        box-sizing: border-box; 
-        margin: 0; 
-        padding: 0; 
-        font-family: 'Plus Jakarta Sans', sans-serif;
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- 1. IDENTITAS WARNA (SINGKRON ADMIN) --- */
+        :root { 
+            --gold: #D4AF37; 
+            --gold-gradient: linear-gradient(135deg, #F7E08C, #D4AF37);
+            --bg: #050505; 
+            --glass: rgba(255, 255, 255, 0.03); 
+            --glass-border: rgba(212, 175, 55, 0.2); 
+            --text-main: #FFFFFF; 
+            --safe: #22C55E; 
+            --danger: #EF4444; 
+            --blue: #2563eb; 
+            --wa: #25D366; 
+            --warning: #F59E0B;
+        }
+
+        /* --- 2. RESET GLOBAL (FULL SCREEN MODE) --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* 1. Hilangkan kotak biru saat tombol diklik */
-        -webkit-tap-highlight-color: transparent; 
+        html { scroll-behavior: smooth; }
         
-        /* 2. Kunci agar teks tidak bisa di-blok (Anti-Copas) */
-        -webkit-user-select: none;
-        user-select: none;
-        
-        /* 3. Hilangkan menu klik kanan/tekan lama (iOS & Android) */
-        -webkit-touch-callout: none;
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            width: 100%; 
+            margin: 0; 
+            padding: 12px; /* Singkron dengan Admin */
+            padding-bottom: 100px;
+            overflow-x: hidden; 
+            -webkit-user-select: none; 
+            user-select: none;
+        }
 
-        /* --- SEMBUNYIKAN GARIS ABU-ABU (SCROLLBAR) --- */
-/* Untuk Chrome, Safari, dan Opera (Android/iPhone) */
-::-webkit-scrollbar {
-    display: none;
-}
-    }
+        ::-webkit-scrollbar { display: none; }
+        input, textarea { -webkit-user-select: text; user-select: text; width: 100%; }
+        img { pointer-events: none; -webkit-user-drag: none; }
 
-    html, body {
-        background: var(--bg); 
-        color: var(--text); 
-        width: 100%;
-        margin: 0;
-        /* Padding disamakan dengan Admin agar Full Screen */
-        padding: 12px; 
-        padding-bottom: 80px; /* Ruang aman di bawah agar tidak mentok */
-        min-height: 100vh;
-        overflow-x: hidden; /* Kunci agar tidak goyang kanan-kiri */
-        
-        /* Hapus overscroll-behavior agar bisa tarik untuk refresh */
-        -webkit-user-select: none;
-        user-select: none;
-    }
+        /* --- 3. KOMPONEN UI --- */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; z-index: 9999; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
+        .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
 
-    /* PENGECUALIAN: Kolom ketikan harus tetap bisa diisi */
-    input, textarea {
-        -webkit-user-select: text;
-        user-select: text;
-        outline: none !important;
-        box-shadow: none !important;
-    }
+        .wallet-card { background: rgba(34, 197, 94, 0.05); border: 1px solid var(--safe); border-radius: 20px; padding: 20px; margin-bottom: 15px; text-align: center; }
+        .wallet-card span { font-size: 10px; font-weight: 800; color: var(--safe); text-transform: uppercase; letter-spacing: 1.5px; }
+        #totalCOD { display: block; font-size: 26px; font-weight: 800; color: var(--safe); margin-top: 5px; }
 
-    img {
-        /* 5. Logo & Gambar tidak bisa ditarik/digeser */
-        pointer-events: none;
-        -webkit-user-drag: none;
-    }
+        .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .tab-btn { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px 5px; border-radius: 12px; color: #fff; font-weight: 800; font-size: 10px; text-align: center; cursor: pointer; }
+        .tab-btn.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); color: var(--gold); }
+        .count-badge { display: block; font-size: 14px; margin-top: 2px; }
 
-    /* --- 2. VARIABLE WARNA EJ TOBACCO --- */
-    :root { 
-        --gold: #FFD700; 
-        --gold-gradient: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
-        --bg: #000000; 
-        --card: rgba(255, 255, 255, 0.04); 
-        --border: rgba(255, 215, 0, 0.15);
-        --text: #FFFFFF; 
-        --muted: #888888; 
-        --safe: #00FF88; 
-        --danger: #FF3333; 
-        --wa: #25D366; 
-        --warning: #F59E0B; 
-        --blue: #2563eb;
-    }
+        .search-box { width: 100%; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 15px; outline: none; }
 
-    /* --- 3. KOMPONEN UI KURIR --- */
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+        .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; overflow: hidden; }
+        .status-badge { position: absolute; top: 0; right: 0; padding: 6px 15px; font-size: 9px; font-weight: 800; border-radius: 0 0 0 15px; text-transform: uppercase; color: #000; }
 
-    .wallet-card { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--safe); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center; }
-    .wallet-card span { font-size: 10px; font-weight: 800; color: var(--safe); text-transform: uppercase; letter-spacing: 1.5px; }
-    #totalCOD { display: block; font-size: 28px; font-weight: 800; color: var(--safe); margin-top: 5px; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .btn { border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-success { background: var(--safe); }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-danger { background: var(--danger); }
+        .btn-wa { background: var(--wa); width: 100%; margin-top: 12px; color: white; }
+        .btn-maps { background: var(--blue); width: 100%; margin-top: 8px; }
 
-    .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .tab-btn { background: var(--card); border: 1px solid var(--border); padding: 12px 5px; border-radius: 15px; color: #fff; font-weight: 800; font-size: 10px; text-align: center; cursor: pointer; position: relative; }
-    .tab-btn.active { background: var(--gold-gradient); border-color: transparent; color: #000; }
-    .count-badge { display: block; font-size: 14px; margin-top: 2px; }
+        /* --- MODAL FOTO (SINGKRON ADMIN) --- */
+        .modal-view { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100000; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        #imgPreview { max-width: 90%; max-height: 75vh; border-radius: 15px; border: 2px solid var(--gold); object-fit: contain; }
 
-    .search-box { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; color: white; margin-bottom: 15px; outline: none; }
-
-    .glass-card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 18px; margin-bottom: 15px; position: relative; overflow: hidden; }
-    .status-badge { position: absolute; top: 0; right: 0; padding: 5px 12px; font-size: 9px; font-weight: 800; border-radius: 0 0 0 12px; text-transform: uppercase; }
-
-    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-    .btn { border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; }
-    .btn-success { background: var(--safe); }
-    .btn-warning { background: var(--warning); color: black; }
-    .btn-danger { background: var(--danger); }
-    .btn-wa { background: var(--wa); width: 100%; margin-top: 15px; }
-    .btn-maps { background: var(--blue); width: 100%; margin-top: 8px; }
-
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
-    #imgPreview { max-width: 90%; border-radius: 15px; border: 2px solid var(--gold); }
-</style>
+        #notifBanner { background: rgba(212, 175, 55, 0.05); border: 1px dashed var(--gold); color: var(--gold); padding: 15px; text-align: center; border-radius: 15px; margin-bottom: 15px; cursor: pointer; }
+    </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="logo-text">EJ DELIVERY <span style="font-weight:400; font-size:12px; color:#fff;">| KURIR</span></div>
-        <div id="clock" style="font-size: 14px; font-weight: 600; color: #fff;">00:00:00</div>
+        <div class="logo-text" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">EJ DELIVERY <span style="font-weight:400; font-size:11px; color:#fff;">| KURIR</span></div>
+        <div style="text-align: right;">
+            <div id="clock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
+            <div id="statusLabel" style="font-size: 9px; color: var(--gold); font-weight: 800;">ONLINE</div>
+        </div>
     </div>
-    
-    <div id="statusKoneksi" style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 5px;">
-    <div id="lampuKoneksi" style="width: 8px; height: 8px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 10px var(--safe);"></div>
-    <span id="teksKoneksi" style="font-size: 9px; font-weight: 800; color: var(--safe); letter-spacing: 1px;">SISTEM ONLINE</span>
-</div>
-    
+
     <div class="wallet-card">
-        <span>💰 Uang COD di Tangan</span>
+        <span>💰 Saldo COD Harus Setor</span>
         <b id="totalCOD">Rp 0</b>
     </div>
 
-    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-
-<div id="notifBanner" onclick="aktifkanSuara()" style="background: rgba(212, 175, 55, 0.1); border: 2px dashed var(--gold); color: var(--gold); padding: 18px; text-align: center; border-radius: 20px; margin: 10px 0 20px 0; cursor: pointer; transition: 0.3s;">
-    <div style="font-size: 24px; margin-bottom: 5px;">🔔</div>
-    <div style="font-weight: 800; font-size: 12px; letter-spacing: 1px;">AKTIFKAN SUARA NOTIFIKASI</div>
-    <div style="font-size: 9px; opacity: 0.6; margin-top: 5px;">(Klik agar HP berbunyi saat ada pesanan baru)</div>
-</div>
+    <div id="notifBanner" onclick="aktifkanSuara()">
+        <span style="font-size: 16px;">🔔</span> <b style="font-size: 11px;">TAP UNTUK AKTIFKAN NOTIFIKASI SUARA</b>
+    </div>
 
     <input type="text" id="searchOrder" class="search-box" placeholder="🔍 Cari nama pembeli..." oninput="renderOrders()">
 
     <div class="tab-menu">
-        <div class="tab-btn active" id="t-Proses" onclick="setTab('Proses')">PROSES <span class="count-badge" id="c-Proses">0</span></div>
+        <div class="tab-btn active" id="t-Proses" onclick="setTab('Proses')">SISA <span class="count-badge" id="c-Proses">0</span></div>
         <div class="tab-btn" id="t-Terkirim" onclick="setTab('Terkirim')">SUKSES <span class="count-badge" id="c-Terkirim">0</span></div>
         <div class="tab-btn" id="t-Gagal" onclick="setTab('Gagal')">CANCEL <span class="count-badge" id="c-Gagal">0</span></div>
     </div>
 
-    <div id="orderContainer"></div>
+    <div id="orderContainer">Memuat data...</div>
 
-    <div id="modalView" class="modal" onclick="this.style.display='none'"><img id="imgPreview" src=""><p style="color:white; margin-top:10px; font-size:12px;">KLIK UNTUK TUTUP</p></div>
+    <div id="modalView" class="modal-view" onclick="this.style.display='none'">
+        <img id="imgPreview" src="">
+        <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">TAP MANA SAJA UNTUK TUTUP</p>
+    </div>
+
+    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
@@ -150,14 +120,11 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentTab = 'Proses';
-        let allData = [];
-        let totalSetoranGlobal = 0;
+        let currentTab = 'Proses', allData = [], totalSetoranGlobal = 0, lastCount = 0, audioIzin = false;
 
-        function getTodayString() {
-            const n = new Date();
-            return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;
-        }
+        function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
+        
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
 
         function setTab(tab) {
             currentTab = tab;
@@ -166,103 +133,97 @@
             renderOrders();
         }
 
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
-
-        // Listener Data Pesanan
         db.ref('pesanan').on('value', snap => {
             const val = snap.val();
             allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
-            updateStats();
+            
+            // Logika Notifikasi Suara
+            if (lastCount > 0 && allData.length > lastCount && audioIzin) {
+                const snd = document.getElementById('notifSound');
+                snd.currentTime = 0; snd.play();
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            }
+            lastCount = allData.length;
+            updateUI();
         });
 
-        // Listener Data Setoran (Sinkron Admin)
         db.ref('setoran').on('value', snap => {
             totalSetoranGlobal = Object.values(snap.val() || {}).reduce((a, b) => a + b, 0);
-            updateStats();
+            updateUI();
         });
 
-        function updateStatus(id, stat) {
-    const msg = stat === 'Tunda' ? "Alasan Tunda (Contoh: Rumah Kosong/HP Mati):" : "Alasan Gagal/Cancel:";
-    const alasan = prompt(msg);
-    
-    // Validasi: Harus diisi, tidak boleh kosong atau klik 'Batal'
-    if (alasan != null && alasan.trim() !== "") {
-        db.ref('pesanan/' + id).update({ 
-            status: stat, 
-            alasanTunda: alasan,
-            waktuUpdate: new Date().toLocaleTimeString()
-        }).then(() => alert("Status diperbarui!"));
-    } else {
-        alert("⚠️ Gagal: Alasan wajib diisi!");
-    }
-}
+        function updateUI() {
+            const today = getTgl();
+            let p=0, s=0, g=0, codTotal=0;
+
+            allData.forEach(o => {
+                const isToday = o.tanggal === today;
+                if (o.status === 'Terkirim' && o.metode === 'COD') codTotal += Number(o.total || 0);
+                if (o.status !== 'Terkirim' && o.status !== 'Gagal') p++;
+                else if (o.status === 'Terkirim' && isToday) s++;
+                else if (o.status === 'Gagal' && isToday) g++;
+            });
+
+            document.getElementById('c-Proses').innerText = p;
+            document.getElementById('c-Terkirim').innerText = s;
+            document.getElementById('c-Gagal').innerText = g;
+            document.getElementById('totalCOD').innerText = "Rp " + (codTotal - totalSetoranGlobal).toLocaleString();
+            renderOrders();
+        }
+
         function renderOrders() {
             const container = document.getElementById('orderContainer');
             const search = document.getElementById('searchOrder').value.toLowerCase();
-            const today = getTodayString();
+            const today = getTgl();
             container.innerHTML = "";
 
             const filtered = allData.filter(o => {
-                const mS = (o.namaPembeli || "").toLowerCase().includes(search);
-                const isToday = o.tanggal === today;
-
-                if (currentTab === 'Proses') return mS && (o.status !== 'Terkirim' && o.status !== 'Gagal');
-                return mS && (o.status === currentTab) && isToday;
+                const matchName = (o.namaPembeli || "").toLowerCase().includes(search) || (o.noPesanan || "").toLowerCase().includes(search);
+                if (currentTab === 'Proses') return matchName && (o.status !== 'Terkirim' && o.status !== 'Gagal');
+                return matchName && (o.status === currentTab && o.tanggal === today);
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.5; font-size:13px;">Tidak ada pengiriman.</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.3; font-size:12px;">Data tidak ditemukan.</div>`;
                 return;
             }
 
             filtered.forEach(o => {
-                const badgeColor = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
+                const badgeBg = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
                 const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
-                const teksWA = encodeURIComponent(`Halo Kak ${o.namaPembeli}, saya Kurir EJ Tobacco.\nSaya sedang menuju lokasi untuk mengantar paket Kakak.`);
                 
-                let buttons = "";
-                if (o.status !== 'Terkirim' && o.status !== 'Gagal') {
-                    buttons = `
-                        <a href="https://wa.me/${waNum}?text=${teksWA}" class="btn btn-wa">💬 HUBUNGI PEMBELI</a>
-                        <div class="btn-group">
-                            <button class="btn btn-success" onclick="document.getElementById('file-${o.id}').click()">✅ SELESAI</button>
-                            <button class="btn btn-warning" onclick="updateStatus('${o.id}', 'Tunda')">⚠️ TUNDA</button>
-                        </div>
-                        <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStatus('${o.id}', 'Gagal')">❌ CANCEL</button>
-                    `;
-                } else if (o.buktiFoto) {
-                    buttons = `<button class="btn" style="background:var(--card); border:1px solid var(--safe); color:var(--safe);" onclick="previewFoto('${o.buktiFoto}')">👁️ LIHAT FOTO BUKTI</button>`;
-                }
-
                 container.innerHTML += `
                     <div class="glass-card">
-                        <div class="status-badge" style="background:${badgeColor}">${o.status}</div>
+                        <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
                         <span style="font-size:10px; color:var(--gold); font-weight:800;">${o.noPesanan}</span>
-                        <h3 style="margin-top:5px; font-size:17px;">${o.namaPembeli}</h3>
-                        <p style="font-size:12px; margin-top:5px; opacity:0.7;">📍 ${o.alamat}</p>
-                        <div style="margin-top:10px; font-weight:800; color:var(--safe);">TAGIHAN: Rp ${Number(o.total).toLocaleString()} (${o.metode})</div>
-                        ${o.alasanTunda ? `<div style="color:var(--warning); font-size:11px; margin-top:10px; font-weight:800;">⚠️ ${o.alasanTunda}</div>` : ''}
-                        ${o.mapLink ? `<a href="${o.mapLink}" class="btn btn-maps" target="_blank">🗺️ PENUNJUK JALAN</a>` : ''}
-                        ${buttons}
-                        <input type="file" id="file-${o.id}" accept="image/*" capture="camera" style="display:none;" onchange="doUpload('${o.id}', this)">
+                        <h3 style="margin: 5px 0; font-size:18px;">${o.namaPembeli}</h3>
+                        <p style="font-size:12px; opacity:0.7; margin-bottom:10px;">📍 ${o.alamat}</p>
+                        <div style="font-weight:800; color:var(--safe); font-size:13px;">TAGIHAN: Rp ${Number(o.total).toLocaleString()} (${o.metode})</div>
+                        
+                        ${o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
+                            <a href="https://wa.me/${waNum}" class="btn btn-wa">💬 HUBUNGI PEMBELI</a>
+                            ${o.mapLink ? `<a href="${o.mapLink}" class="btn btn-maps" target="_blank">🗺️ PENUNJUK JALAN</a>` : ''}
+                            <div class="btn-group">
+                                <button class="btn btn-success" onclick="document.getElementById('f-${o.id}').click()">✅ SELESAI</button>
+                                <button class="btn btn-warning" onclick="updateStat('${o.id}', 'Tunda')">⚠️ TUNDA</button>
+                            </div>
+                            <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')">❌ CANCEL / GAGAL</button>
+                        ` : (o.buktiFoto ? `<button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px solid var(--gold); color:var(--gold);" onclick="preview('${o.buktiFoto}')">👁️ LIHAT FOTO BUKTI</button>` : '')}
+                        
+                        <input type="file" id="f-${o.id}" accept="image/*" capture="camera" style="display:none;" onchange="upload('${o.id}', this)">
                     </div>
                 `;
             });
         }
 
-        function updateStatus(id, stat) {
-            const msg = stat === 'Tunda' ? "Alasan Tunda:" : "Alasan Gagal:";
-            const alasan = prompt(msg);
-            if (alasan) {
-                db.ref('pesanan/' + id).update({ 
-                    status: stat, 
-                    alasanTunda: alasan,
-                    waktuUpdate: new Date().toLocaleTimeString()
-                });
-            }
+        function updateStat(id, stat) {
+            const alasan = prompt("Masukkan Alasan (Wajib):");
+            if (alasan && alasan.trim() !== "") {
+                db.ref('pesanan/' + id).update({ status: stat, alasanTunda: alasan, waktuUpdate: new Date().toLocaleTimeString() });
+            } else { alert("Alasan tidak boleh kosong!"); }
         }
 
-        function doUpload(id, input) {
+        function upload(id, input) {
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -270,101 +231,25 @@
                 db.ref('pesanan/' + id).update({
                     status: 'Terkirim',
                     buktiFoto: e.target.result,
-                    alasanTunda: null,
                     waktuSelesai: new Date().toLocaleTimeString()
                 }).then(() => alert("Berhasil Terkirim!"));
             };
             reader.readAsDataURL(file);
         }
 
-        function previewFoto(src) {
-            document.getElementById('imgPreview').src = src;
-            document.getElementById('modalView').style.display = 'flex';
+        function preview(src) { document.getElementById('imgPreview').src = src; document.getElementById('modalView').style.display = 'flex'; }
+
+        function aktifkanSuara() {
+            const snd = document.getElementById('notifSound');
+            snd.play().then(() => {
+                snd.pause(); audioIzin = true;
+                const b = document.getElementById('notifBanner');
+                b.style.background = "rgba(34, 197, 94, 0.1)";
+                b.style.color = "var(--safe)";
+                b.innerHTML = "✅ NOTIFIKASI SUARA AKTIF";
+                setTimeout(() => b.style.display = 'none', 2000);
+            });
         }
-
-        // --- SISTEM DETEKSI PESANAN BARU ---
-let jumlahPesananTerakhir = 0;
-let izinSuara = false;
-
-// Fungsi untuk memberi izin ke browser agar boleh bunyi
-function aktifkanSuara() {
-    const audio = document.getElementById('notifSound');
-    audio.play().then(() => {
-        audio.pause(); // Tes putar sebentar lalu matikan
-        izinSuara = true;
-        
-        // Ubah tampilan tombol jadi hijau sukses
-        const banner = document.getElementById('notifBanner');
-        banner.style.background = "rgba(0, 255, 136, 0.1)";
-        banner.style.borderColor = "var(--safe)";
-        banner.style.color = "var(--safe)";
-        banner.innerHTML = "✅ NOTIFIKASI SUARA AKTIF";
-        
-        // Biarkan 2 detik lalu hilangkan tombolnya agar tidak menuhi layar
-        setTimeout(() => { banner.style.display = 'none'; }, 2000);
-    }).catch(err => {
-        alert("Gagal mengaktifkan suara. Pastikan volume HP menyala.");
-    });
-}
-
-// Pantau database pesanan secara real-time
-db.ref('pesanan').on('value', (snapshot) => {
-    const data = snapshot.val();
-    const jumlahSekarang = data ? Object.keys(data).length : 0;
-
-    // Logika: Jika jumlah pesanan di database bertambah (artinya Admin baru klik SIMPAN)
-    if (jumlahPesananTerakhir > 0 && jumlahSekarang > jumlahPesananTerakhir) {
-        if (izinSuara) {
-            const notif = document.getElementById('notifSound');
-            notif.currentTime = 0; // Mulai dari awal suara
-            notif.play(); // BUNYIKAN "TING!"
-            
-            // Getarkan HP kurir (2 kali getar pendek)
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200]);
-            }
-        }
-    }
-    
-    // Update angka patokan jumlah terakhir
-    jumlahPesananTerakhir = jumlahSekarang;
-});
-
-        // --- DETEKSI KONEKSI INTERNET ---
-window.addEventListener('online', updateStatusInternet);
-window.addEventListener('offline', updateStatusInternet);
-
-function updateStatusInternet() {
-    const lampu = document.getElementById('lampuKoneksi');
-    const teks = document.getElementById('teksKoneksi');
-    
-    if (navigator.onLine) {
-        lampu.style.background = "var(--safe)";
-        lampu.style.boxShadow = "0 0 10px var(--safe)";
-        teks.innerText = "SISTEM ONLINE";
-        teks.style.color = "var(--safe)";
-    } else {
-        lampu.style.background = "var(--danger)";
-        lampu.style.boxShadow = "0 0 10px var(--danger)";
-        teks.innerText = "KONEKSI TERPUTUS";
-        teks.style.color = "var(--danger)";
-    }
-}
-        
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
