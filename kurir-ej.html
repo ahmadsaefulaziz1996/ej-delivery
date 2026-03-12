@@ -83,6 +83,15 @@
     cursor: not-allowed !important;
     pointer-events: none !important; /* Kunci klik total */
 }
+
+        @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+.reconnecting {
+    animation: blink 0.5s infinite;
+}
     </style>
 </head>
 <body>
@@ -317,27 +326,43 @@ window.addEventListener('offline', updateStatusInternet);
 function updateStatusInternet() {
     const lampu = document.getElementById('lampuKoneksi');
     const teks = document.getElementById('teksKoneksi');
-    // Ambil semua tombol di layar
     const allButtons = document.querySelectorAll('.btn, .btn-main, .btn-wa, .btn-maps');
     
     if (navigator.onLine) {
-        // --- MODE ONLINE (NORMAL) ---
-        if(lampu) { lampu.style.background = "var(--safe)"; lampu.style.boxShadow = "0 0 10px var(--safe)"; }
-        if(teks) { teks.innerText = "ONLINE"; teks.style.color = "var(--safe)"; }
+        // --- PROSES RECONNECT ---
+        if(lampu) {
+            lampu.style.background = "var(--safe)";
+            lampu.style.boxShadow = "0 0 10px var(--safe)";
+            lampu.classList.add('reconnecting'); // Efek kedip saat nyambung
+        }
+        if(teks) {
+            teks.innerText = "SINKRONISASI...";
+            teks.style.color = "var(--safe)";
+        }
+
+        // Paksa Firebase ambil data terbaru (Reconnect)
+        db.goOnline(); 
         
-        // Aktifkan kembali semua tombol
-        allButtons.forEach(btn => btn.classList.remove('btn-disabled'));
+        setTimeout(() => {
+            if(lampu) lampu.classList.remove('reconnecting');
+            if(teks) teks.innerText = "ONLINE";
+            allButtons.forEach(btn => btn.classList.remove('btn-disabled'));
+            renderOrders(); // Gambar ulang pesanan terbaru
+        }, 1500);
 
     } else {
-        // --- MODE OFFLINE (LOCK) ---
-        if(lampu) { lampu.style.background = "var(--danger)"; lampu.style.boxShadow = "0 0 10px var(--danger)"; }
-        if(teks) { teks.innerText = "OFFLINE"; teks.style.color = "var(--danger)"; }
-        
-        // BEKUKAN semua tombol
+        // --- MODE OFFLINE ---
+        db.goOffline(); // Putus koneksi firebase agar hemat baterai
+        if(lampu) {
+            lampu.style.background = "var(--danger)";
+            lampu.style.boxShadow = "0 0 10px var(--danger)";
+            lampu.classList.remove('reconnecting');
+        }
+        if(teks) {
+            teks.innerText = "OFFLINE";
+            teks.style.color = "var(--danger)";
+        }
         allButtons.forEach(btn => btn.classList.add('btn-disabled'));
-        
-        if (navigator.vibrate) navigator.vibrate(500);
-        console.log("Sistem terkunci karena offline.");
     }
 }
 
@@ -346,6 +371,7 @@ updateStatusInternet();
     </script>
 </body>
 </html>
+
 
 
 
