@@ -5,80 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EJ DELIVERY - KURIR PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root { 
-            --gold: #FFD700; --gold-gradient: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
-            --bg: #000000; --card: rgba(255, 255, 255, 0.04); --border: rgba(255, 215, 0, 0.15);
-            --text: #FFFFFF; --muted: #888888; --safe: #00FF88; --danger: #FF3333; --wa: #25D366; --warning: #F59E0B; --blue: #2563eb;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--bg); color: var(--text); padding: 20px; padding-bottom: 80px; min-height: 100vh; }
-* { 
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0; 
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    
-    /* BARIS SAKTI PENGHILANG WARNA BIRU */
-    -webkit-tap-highlight-color: transparent; 
-}
-   {     /* 2. Kunci agar teks tidak bisa di-blok/seleksi */
+   <style>
+    /* --- 1. ATURAN GLOBAL (ANTI-BROWSER, GAGAH, & PADAT) --- */
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        
+        /* 1. Hilangkan kotak biru saat tombol diklik */
+        -webkit-tap-highlight-color: transparent; 
+        
+        /* 2. Kunci agar teks tidak bisa di-blok (Anti-Copas) */
         -webkit-user-select: none;
         user-select: none;
         
-        /* 3. Hilangkan menu klik kanan/tekan lama */
+        /* 3. Hilangkan menu klik kanan/tekan lama (iOS & Android) */
         -webkit-touch-callout: none;
     }
 
-    /* PENTING: Supaya kolom ketikan tetap bisa diklik/diisi */
-    input, textarea {
-        -webkit-user-select: text;
-        user-select: text;
-        outline: none !important;
-    }
-
     html, body {
+        background: var(--bg); 
+        color: var(--text); 
+        padding: 20px; 
+        padding-bottom: 80px; 
+        min-height: 100vh;
         /* 4. Hilangkan efek membal/mentok saat scroll */
         overscroll-behavior: none;
     }
 
+    /* PENGECUALIAN: Kolom ketikan harus tetap bisa diisi */
+    input, textarea {
+        -webkit-user-select: text;
+        user-select: text;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
     img {
-        /* 5. Logo tidak bisa ditarik/digeser */
+        /* 5. Logo & Gambar tidak bisa ditarik/digeser */
         pointer-events: none;
         -webkit-user-drag: none;
     }
-    /* --- SELESAI --- */
-        
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
 
-        /* Wallet Card (Sinkron Admin) */
-        .wallet-card { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--safe); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center; }
-        .wallet-card span { font-size: 10px; font-weight: 800; color: var(--safe); text-transform: uppercase; letter-spacing: 1.5px; }
-        #totalCOD { display: block; font-size: 28px; font-weight: 800; color: var(--safe); margin-top: 5px; }
+    /* --- 2. VARIABLE WARNA EJ TOBACCO --- */
+    :root { 
+        --gold: #FFD700; 
+        --gold-gradient: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+        --bg: #000000; 
+        --card: rgba(255, 255, 255, 0.04); 
+        --border: rgba(255, 215, 0, 0.15);
+        --text: #FFFFFF; 
+        --muted: #888888; 
+        --safe: #00FF88; 
+        --danger: #FF3333; 
+        --wa: #25D366; 
+        --warning: #F59E0B; 
+        --blue: #2563eb;
+    }
 
-        /* Tab Menu */
-        .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { background: var(--card); border: 1px solid var(--border); padding: 12px 5px; border-radius: 15px; color: #fff; font-weight: 800; font-size: 10px; text-align: center; cursor: pointer; position: relative; }
-        .tab-btn.active { background: var(--gold-gradient); border-color: transparent; color: #000; }
-        .count-badge { display: block; font-size: 14px; margin-top: 2px; }
+    /* --- 3. KOMPONEN UI KURIR --- */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
 
-        .search-box { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; color: white; margin-bottom: 15px; outline: none; }
+    .wallet-card { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--safe); border-radius: 24px; padding: 20px; margin-bottom: 20px; text-align: center; }
+    .wallet-card span { font-size: 10px; font-weight: 800; color: var(--safe); text-transform: uppercase; letter-spacing: 1.5px; }
+    #totalCOD { display: block; font-size: 28px; font-weight: 800; color: var(--safe); margin-top: 5px; }
 
-        .glass-card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 18px; margin-bottom: 15px; position: relative; overflow: hidden; }
-        .status-badge { position: absolute; top: 0; right: 0; padding: 5px 12px; font-size: 9px; font-weight: 800; border-radius: 0 0 0 12px; text-transform: uppercase; }
+    .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { background: var(--card); border: 1px solid var(--border); padding: 12px 5px; border-radius: 15px; color: #fff; font-weight: 800; font-size: 10px; text-align: center; cursor: pointer; position: relative; }
+    .tab-btn.active { background: var(--gold-gradient); border-color: transparent; color: #000; }
+    .count-badge { display: block; font-size: 14px; margin-top: 2px; }
 
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-        .btn { border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-success { background: var(--safe); }
-        .btn-warning { background: var(--warning); color: black; }
-        .btn-danger { background: var(--danger); }
-        .btn-wa { background: var(--wa); width: 100%; margin-top: 15px; }
-        .btn-maps { background: var(--blue); width: 100%; margin-top: 8px; }
+    .search-box { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; color: white; margin-bottom: 15px; outline: none; }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
-        #imgPreview { max-width: 90%; border-radius: 15px; border: 2px solid var(--gold); }
-    </style>
+    .glass-card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 18px; margin-bottom: 15px; position: relative; overflow: hidden; }
+    .status-badge { position: absolute; top: 0; right: 0; padding: 5px 12px; font-size: 9px; font-weight: 800; border-radius: 0 0 0 12px; text-transform: uppercase; }
+
+    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .btn { border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .btn-success { background: var(--safe); }
+    .btn-warning { background: var(--warning); color: black; }
+    .btn-danger { background: var(--danger); }
+    .btn-wa { background: var(--wa); width: 100%; margin-top: 15px; }
+    .btn-maps { background: var(--blue); width: 100%; margin-top: 8px; }
+
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
+    #imgPreview { max-width: 90%; border-radius: 15px; border: 2px solid var(--gold); }
+</style>
 </head>
 <body>
 
@@ -340,6 +354,7 @@ function updateStatusInternet() {
     </script>
 </body>
 </html>
+
 
 
 
