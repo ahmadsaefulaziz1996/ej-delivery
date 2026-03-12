@@ -92,6 +92,16 @@
 .reconnecting {
     animation: blink 0.5s infinite;
 }
+
+        @keyframes blinkUrgent {
+    0% { border-color: var(--danger); box-shadow: 0 0 5px var(--danger); }
+    50% { border-color: #fff; box-shadow: 0 0 20px var(--danger); background: rgba(239, 68, 68, 0.2); }
+    100% { border-color: var(--danger); box-shadow: 0 0 5px var(--danger); }
+}
+.card-urgent {
+    animation: blinkUrgent 0.8s infinite !important;
+    border: 2px solid var(--danger) !important;
+}
     </style>
 </head>
 <body>
@@ -212,9 +222,11 @@
         filtered.forEach(o => {
             const badgeBg = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
+            const urgentClass = o.urgent ? 'card-urgent' : '';
             
             container.innerHTML += `
                 <div class="glass-card">
+                <div class="glass-card ${urgentClass}"> <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
                     <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
                     <span style="font-size:10px; color:var(--gold); font-weight:800;">${o.noPesanan}</span>
                     <h3 style="margin: 5px 0;">${o.namaPembeli}</h3>
@@ -309,6 +321,7 @@
 </script>
 </body>
 </html>
+
 
 
 
