@@ -6,6 +6,8 @@
     <title>EJ ADMIN PRO - FULL SYSTEM</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
+    <link rel="icon" href="logo-baru.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo-baru.png">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -32,6 +34,7 @@
         .logo-text-container { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
         .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; animation: goldBreathe 3s ease-in-out infinite; }
         @keyframes goldBreathe { 0% { opacity: 1; text-shadow: 0 0 5px var(--gold); } 50% { opacity: 0.7; text-shadow: 0 0 20px var(--gold); } 100% { opacity: 1; text-shadow: 0 0 5px var(--gold); } }
+        .logo-text-container:active { transform: scale(0.95); transition: 0.1s; }
 
         .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
         .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 10px 5px; border-radius: 12px; text-align: center; cursor: pointer; font-size: 11px; }
@@ -68,7 +71,7 @@
     <div id="loginOverlay">
         <div class="pin-container">
             <div style="margin-bottom: 20px;">
-                <h2 style="color:#fff; font-size:22px;">EJ ACCESS</h2>
+                <h2 style="color:#fff; font-size:22px; font-family:'Space Grotesk';">EJ ACCESS</h2>
                 <p style="color:var(--gold); font-size:11px; letter-spacing:2px;">SECURITY VERIFICATION</p>
             </div>
             <div class="pin-display" id="pinDisplay">****</div>
@@ -92,11 +95,11 @@
     <div class="header">
         <div class="logo-text-container" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
             <div class="main-logo-text">EJ TOBACCO</div>
-            <div style="font-size:9px; letter-spacing:1px; color:#fff;">DELIVERY SYSTEM</div>
+            <div class="sub-logo-text" style="font-size:9px; letter-spacing:1px; color:#fff;">DELIVERY SYSTEM</div>
         </div>
         <div style="text-align: right;">
             <div id="runningClock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
-            <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">LOADING...</div>
+            <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">TGL LOADING...</div>
             <div id="statusKoneksi" style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 3px;">
                 <div id="lampuKoneksi" style="width: 6px; height: 6px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 10px var(--safe);"></div>
                 <span id="teksKoneksi" style="font-size: 8px; font-weight: 800; color: var(--safe);">ONLINE</span>
@@ -352,7 +355,7 @@
                 total: document.getElementById('total').value || 0, 
                 metode: document.getElementById('metodeBayar').value,
                 urgent: document.getElementById('isUrgent').checked,
-                status: 'Gudang', // <--- FIX GUDANG
+                status: 'Gudang', 
                 tanggal: formatTglDB(n), 
                 waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
             };
@@ -392,7 +395,7 @@
             if (confirm("Apakah Anda yakin ingin menghapus pesanan ini?")) db.ref('pesanan/' + id).remove();
         }
 
-        // --- FITUR BARU: KIRIM ULANG KE GUDANG ---
+        // --- FITUR KIRIM ULANG KE GUDANG ---
         function kirimUlang(id) {
             const dataLama = allOrders.find(o => o.id === id);
             if (!dataLama) return;
@@ -406,7 +409,7 @@
             }
         }
 
-        // --- LAPORAN BULANAN (TETAP ADA) ---
+        // --- LAPORAN BULANAN ---
         function bukaLaporan() {
             const n = new Date();
             const bln = (n.getMonth() + 1).toString().padStart(2, '0'); 
@@ -432,7 +435,7 @@
             document.getElementById('laporanOverlay').style.display = 'flex';
         }
 
-        // --- PETA RADAR (DENGAN MARKER) ---
+        // --- PETA RADAR DENGAN MARKER LOKASI ---
         let radarMesin; 
         function extractCoords(url) { try { const m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/); if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) }; if (url.includes('q=')) { const p = url.split('q=')[1].split('&')[0].split(','); return { lat: parseFloat(p[0]), lng: parseFloat(p[1]) }; } } catch(e) { return null; } }
 
@@ -450,6 +453,34 @@
             });
             setTimeout(() => { radarMesin.invalidateSize(); }, 300);
         }
+
+        // --- AUTO CLEANER (HAPUS DATA LEBIH DARI 90 HARI) ---
+        function bersihkanDataLama() {
+            const BATAS_WAKTU_MS = 90 * 24 * 60 * 60 * 1000;
+            const waktuSekarang = new Date().getTime();
+
+            db.ref('pesanan').once('value', snap => {
+                const data = snap.val();
+                if (!data) return;
+
+                for (let id in data) {
+                    const o = data[id];
+                    if (o.tanggal) {
+                        const p = o.tanggal.split('/');
+                        if (p.length === 3) {
+                            const waktuPesanan = new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime();
+                            if (waktuSekarang - waktuPesanan > BATAS_WAKTU_MS) {
+                                db.ref('pesanan/' + id).remove();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Jalankan auto cleaner 5 detik setelah aplikasi terbuka
+        setTimeout(bersihkanDataLama, 5000);
+
     </script>
 </body>
 </html>
