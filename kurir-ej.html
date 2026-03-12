@@ -62,9 +62,9 @@
             <p style="color:var(--gold); font-size:11px; letter-spacing:2px; margin-bottom:20px;">PILIH IDENTITAS KURIR</p>
             
             <select id="namaKurirInput" class="kurir-select">
-                <option value="AGUS">👦 KURIR - AGUS</option>
-                <option value="BUDI">👦 KURIR - BUDI</option>
-                <option value="CIPTO">👦 KURIR - CIPTO</option>
+                <option value="kurirA">👦 KURIR - kurirA</option>
+                <option value="kurirB">👦 KURIR - kurirB</option>
+                <option value="kurirC">👦 KURIR - kurirC</option>
                 </select>
 
             <div class="pin-display" id="pinDisplay">****</div>
@@ -127,22 +127,41 @@
     function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
 
-    // --- LOGIKA LOGIN KURIR ---
+   // --- LOGIKA LOGIN KURIR (TIAP KURIR BEDA PIN) ---
     let inputPin = "";
-    const PIN_RAHASIA = "1234";
+    
+    // ATUR PIN MASING-MASING KURIR DI SINI BOS:
+    const dataPIN = {
+        "kurirA": "1111",   // PIN untuk kurirA
+        "kurirB": "2222",   // PIN untuk kurirB
+        "kurirC": "3333"   // PIN untuk kurirC
+    };
+
     function pressPin(val) {
-        if (val === 'C') { inputPin = ""; } 
+        if (val === 'C') { 
+            inputPin = ""; 
+        } 
         else if (val === 'OK') {
-            if (inputPin === PIN_RAHASIA) {
-                myName = document.getElementById('namaKurirInput').value; // Kunci nama kurir
+            // Ambil nama kurir yang dipilih di layar
+            const namaPilihan = document.getElementById('namaKurirInput').value;
+            
+            // Cek apakah PIN yang diketik cocok dengan PIN milik nama tersebut
+            if (inputPin === dataPIN[namaPilihan]) {
+                myName = namaPilihan; // Kunci nama kurir
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('namaKurirHeader').innerText = myName;
                 updateUI(); // Refresh layar pakai filter kurir
-            } else { alert("⚠️ PIN SALAH!"); inputPin = ""; }
-        } else { if (inputPin.length < 4) inputPin += val; }
+            } else { 
+                alert("⚠️ PIN SALAH! Pastikan nama dan PIN sesuai."); 
+                inputPin = ""; 
+            }
+        } 
+        else { 
+            if (inputPin.length < 4) inputPin += val; 
+        }
         document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
     }
-
+        
     db.ref('pesanan').limitToLast(500).on('value', snap => {
         const val = snap.val();
         allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
@@ -321,3 +340,4 @@
 </script>
 </body>
 </html>
+
