@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>EJ ADMIN PRO - FULL SYSTEM</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
@@ -37,7 +37,13 @@
         padding-bottom: 50px;
         /* Hilangkan efek membal saat scroll mentok */
         overscroll-behavior: none; 
-    }
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 15px; /* Sesuaikan padding agar tidak terlalu mepet teksnya */
+    overflow-x: hidden; /* Kunci agar tidak bisa geser kanan-kiri */
+    touch-action: pan-y; /* Hanya boleh scroll atas-bawah, dilarang zoom pinch */
+}
 
     /* Pengecualian: Kolom isian harus tetap bisa diketik & di-blok teksnya */
     input, textarea {
@@ -605,6 +611,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
