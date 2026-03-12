@@ -7,6 +7,8 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
     <style>
         /* --- 1. IDENTITAS WARNA (SINGKRON ADMIN) --- */
         :root { 
@@ -23,26 +25,11 @@
             --warning: #F59E0B;
         }
 
-        /* --- 2. RESET GLOBAL (FULL SCREEN MODE) --- */
+        /* --- 2. RESET GLOBAL --- */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        html { scroll-behavior: smooth; }
-        
-        body { 
-            background: var(--bg); 
-            color: var(--text-main); 
-            width: 100%; 
-            margin: 0; 
-            padding: 12px; /* Singkron dengan Admin */
-            padding-bottom: 100px;
-            overflow-x: hidden; 
-            -webkit-user-select: none; 
-            user-select: none;
-        }
-
+        body { background: var(--bg); color: var(--text-main); padding: 12px; padding-bottom: 100px; overflow-x: hidden; user-select: none; }
         ::-webkit-scrollbar { display: none; }
-        input, textarea { -webkit-user-select: text; user-select: text; width: 100%; }
-        img { pointer-events: none; -webkit-user-drag: none; }
+        input { -webkit-user-select: text; user-select: text; width: 100%; }
 
         /* --- 3. KOMPONEN UI --- */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; z-index: 9999; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
@@ -52,8 +39,8 @@
         .wallet-card span { font-size: 10px; font-weight: 800; color: var(--safe); text-transform: uppercase; letter-spacing: 1.5px; }
         #totalCOD { display: block; font-size: 26px; font-weight: 800; color: var(--safe); margin-top: 5px; }
 
-        .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .tab-btn { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px 5px; border-radius: 12px; color: #fff; font-weight: 800; font-size: 10px; text-align: center; cursor: pointer; }
+        .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 15px; }
+        .tab-btn { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px 2px; border-radius: 12px; color: #fff; font-weight: 800; font-size: 9px; text-align: center; cursor: pointer; }
         .tab-btn.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); color: var(--gold); }
         .count-badge { display: block; font-size: 14px; margin-top: 2px; }
 
@@ -62,46 +49,22 @@
         .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; overflow: hidden; }
         .status-badge { position: absolute; top: 0; right: 0; padding: 6px 15px; font-size: 9px; font-weight: 800; border-radius: 0 0 0 15px; text-transform: uppercase; color: #000; }
 
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
         .btn { border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-success { background: var(--safe); }
         .btn-warning { background: var(--warning); color: #000; }
         .btn-danger { background: var(--danger); }
         .btn-wa { background: var(--wa); width: 100%; margin-top: 12px; color: white; }
         .btn-maps { background: var(--blue); width: 100%; margin-top: 8px; }
+        .btn-scan { background: var(--gold); color: #000; width: 100%; margin-bottom: 15px; }
 
-        /* --- MODAL FOTO (SINGKRON ADMIN) --- */
+        /* SCANNER & MODAL */
+        #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; display: none; border: 2px solid var(--gold); }
         .modal-view { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100000; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
         #imgPreview { max-width: 90%; max-height: 75vh; border-radius: 15px; border: 2px solid var(--gold); object-fit: contain; }
 
-        #notifBanner { background: rgba(212, 175, 55, 0.05); border: 1px dashed var(--gold); color: var(--gold); padding: 15px; text-align: center; border-radius: 15px; margin-bottom: 15px; cursor: pointer; }
-  
-        /* Efek tombol saat offline */
-.btn-disabled {
-    filter: grayscale(1) !important;
-    opacity: 0.5 !important;
-    cursor: not-allowed !important;
-    pointer-events: none !important; /* Kunci klik total */
-}
-
-        @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0.3; }
-    100% { opacity: 1; }
-}
-.reconnecting {
-    animation: blink 0.5s infinite;
-}
-
-        @keyframes blinkUrgent {
-    0% { border-color: var(--danger); box-shadow: 0 0 5px var(--danger); }
-    50% { border-color: #fff; box-shadow: 0 0 20px var(--danger); background: rgba(239, 68, 68, 0.2); }
-    100% { border-color: var(--danger); box-shadow: 0 0 5px var(--danger); }
-}
-.card-urgent {
-    animation: blinkUrgent 0.8s infinite !important;
-    border: 2px solid var(--danger) !important;
-}
+        .btn-disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
+        @keyframes blinkUrgent { 0% { border-color: var(--danger); } 50% { border-color: #fff; background: rgba(239, 68, 68, 0.2); } 100% { border-color: var(--danger); } }
+        .card-urgent { animation: blinkUrgent 0.8s infinite !important; border: 2px solid var(--danger) !important; }
     </style>
 </head>
 <body>
@@ -113,8 +76,8 @@
         <div style="text-align: right;">
             <div id="clock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
             <div style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 3px;">
-                <div id="lampuKoneksi" style="width: 7px; height: 7px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 8px var(--safe); transition: 0.3s;"></div>
-                <div id="teksKoneksi" style="font-size: 9px; color: var(--safe); font-weight: 800; letter-spacing: 0.5px;">ONLINE</div>
+                <div id="lampuKoneksi" style="width: 7px; height: 7px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 8px var(--safe);"></div>
+                <div id="teksKoneksi" style="font-size: 9px; color: var(--safe); font-weight: 800;">ONLINE</div>
             </div>
         </div>
     </div>
@@ -124,13 +87,13 @@
         <b id="totalCOD">Rp 0</b>
     </div>
 
-    <div id="notifBanner" onclick="aktifkanSuara()">
-        <span style="font-size: 16px;">🔔</span> <b style="font-size: 11px;">TAP UNTUK AKTIFKAN NOTIFIKASI SUARA</b>
-    </div>
+    <button class="btn btn-scan" id="btnScanMain" onclick="toggleScanner()">📷 SCAN BARCODE (BORONGAN/CARI)</button>
+    <div id="reader"></div>
 
-    <input type="text" id="searchOrder" class="search-box" placeholder="🔍 Cari nama pembeli..." oninput="renderOrders()">
+    <input type="text" id="searchOrder" class="search-box" placeholder="🔍 Cari nama pembeli atau resi..." oninput="renderOrders()">
 
     <div class="tab-menu">
+        <div class="tab-btn" id="t-Gudang" onclick="setTab('Gudang')">GUDANG <span class="count-badge" id="c-Gudang">0</span></div>
         <div class="tab-btn active" id="t-Proses" onclick="setTab('Proses')">SISA <span class="count-badge" id="c-Proses">0</span></div>
         <div class="tab-btn" id="t-Terkirim" onclick="setTab('Terkirim')">SUKSES <span class="count-badge" id="c-Terkirim">0</span></div>
         <div class="tab-btn" id="t-Gagal" onclick="setTab('Gagal')">CANCEL <span class="count-badge" id="c-Gagal">0</span></div>
@@ -143,8 +106,6 @@
         <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">TAP MANA SAJA UNTUK TUTUP</p>
     </div>
 
-    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
     <script>
@@ -155,25 +116,15 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentTab = 'Proses', allData = [], totalSetoranGlobal = 0, lastCount = 0, audioIzin = false;
+    let currentTab = 'Proses', allData = [], totalSetoranGlobal = 0, html5QrCode = null;
 
-    // --- FUNGSI TOOLS ---
     function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
-    
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
 
-    // --- DATABASE LISTENER (SUDAH DIPERBAIKI) ---
+    // DATABASE LISTENER
     db.ref('pesanan').limitToLast(500).on('value', snap => {
         const val = snap.val();
         allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
-        
-        // Logika Notifikasi Suara
-        if (lastCount > 0 && allData.length > lastCount && audioIzin) {
-            const snd = document.getElementById('notifSound');
-            if(snd) { snd.currentTime = 0; snd.play(); }
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }
-        lastCount = allData.length;
         updateUI();
     });
 
@@ -182,19 +133,20 @@
         updateUI();
     });
 
-    // --- UI FUNCTIONS ---
     function updateUI() {
         const today = getTgl();
-        let p=0, s=0, g=0, codTotal=0;
+        let gd=0, p=0, s=0, g=0, codTotal=0;
 
         allData.forEach(o => {
-            const isToday = o.tanggal === today;
+            if (o.status === 'Gudang') gd++;
+            else if (o.status === 'Proses' || o.status === 'Menunggu' || o.status === 'Tunda') p++;
+            else if (o.status === 'Terkirim' && o.tanggal === today) s++;
+            else if (o.status === 'Gagal' && o.tanggal === today) g++;
+            
             if (o.status === 'Terkirim' && o.metode === 'COD') codTotal += Number(o.total || 0);
-            if (o.status !== 'Terkirim' && o.status !== 'Gagal') p++;
-            else if (o.status === 'Terkirim' && isToday) s++;
-            else if (o.status === 'Gagal' && isToday) g++;
         });
 
+        document.getElementById('c-Gudang').innerText = gd;
         document.getElementById('c-Proses').innerText = p;
         document.getElementById('c-Terkirim').innerText = s;
         document.getElementById('c-Gagal').innerText = g;
@@ -209,41 +161,42 @@
         container.innerHTML = "";
 
         const filtered = allData.filter(o => {
-            const matchName = (o.namaPembeli || "").toLowerCase().includes(search) || (o.noPesanan || "").toLowerCase().includes(search);
-            if (currentTab === 'Proses') return matchName && (o.status !== 'Terkirim' && o.status !== 'Gagal');
-            return matchName && (o.status === currentTab && o.tanggal === today);
+            const match = (o.namaPembeli || "").toLowerCase().includes(search) || (o.noPesanan || "").toLowerCase().includes(search);
+            if (currentTab === 'Gudang') return match && o.status === 'Gudang';
+            if (currentTab === 'Proses') return match && (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang');
+            return match && (o.status === currentTab && o.tanggal === today);
         });
 
         if (filtered.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.3;">Data tidak ditemukan.</div>`;
+            container.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.3;">Tidak ada data.</div>`;
             return;
         }
 
         filtered.forEach(o => {
             const badgeBg = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
-            const urgentClass = o.urgent ? 'card-urgent' : '';
             
             container.innerHTML += `
-                <div class="glass-card">
-                <div class="glass-card ${urgentClass}"> <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
+                <div class="glass-card ${o.urgent ? 'card-urgent' : ''}">
                     <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
                     <span style="font-size:10px; color:var(--gold); font-weight:800;">${o.noPesanan}</span>
                     <h3 style="margin: 5px 0;">${o.namaPembeli}</h3>
                     <p style="font-size:12px; opacity:0.7; margin-bottom:10px;">📍 ${o.alamat}</p>
                     <div style="font-weight:800; color:var(--safe); font-size:13px;">TAGIHAN: Rp ${Number(o.total).toLocaleString()} (${o.metode})</div>
                     
-                    ${o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
+                    ${o.status === 'Gudang' ? `
+                        <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="updateStat('${o.id}', 'Proses', 'Ambil dari Gudang')">📦 AMBIL PAKET INI</button>
+                    ` : (o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
                         <a href="https://wa.me/${waNum}" class="btn btn-wa">💬 HUBUNGI PEMBELI</a>
                         ${o.mapLink ? `<a href="${o.mapLink}" class="btn btn-maps" target="_blank">🗺️ PENUNJUK JALAN</a>` : ''}
-                        <div class="btn-group">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
                             <button class="btn btn-success" onclick="document.getElementById('f-${o.id}').click()">✅ SELESAI</button>
                             <button class="btn btn-warning" onclick="updateStat('${o.id}', 'Tunda')">⚠️ TUNDA</button>
                         </div>
                         <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')">❌ CANCEL / GAGAL</button>
-                    ` : (o.buktiFoto ? `<button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px solid var(--gold); color:var(--gold);" onclick="preview('${o.buktiFoto}')">👁️ LIHAT FOTO BUKTI</button>` : '')}
+                    ` : (o.buktiFoto ? `<button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px solid var(--gold); color:var(--gold);" onclick="preview('${o.buktiFoto}')">👁️ LIHAT FOTO BUKTI</button>` : ''))}
                     
-                    <input type="file" id="f-${o.id}" accept="image/*" capture="camera" style="display:none;" onchange="upload('${o.id}', this)">
+                    <input type="file" id="f-${o.id}" accept="image/*" capture="camera" style="display:none;" onchange="uploadSelesai('${o.id}', this)">
                 </div>
             `;
         });
@@ -256,20 +209,19 @@
         renderOrders();
     }
 
-    function updateStat(id, stat) {
-        const alasan = prompt("Masukkan Alasan:");
+    function updateStat(id, stat, autoAlasan) {
+        const alasan = autoAlasan || prompt("Masukkan Alasan/Catatan:");
         if (alasan) {
-            db.ref('pesanan/' + id).update({ status: stat, alasanTunda: alasan, waktuUpdate: new Date().toLocaleTimeString() });
+            db.ref('pesanan/' + id).update({ 
+                status: stat, 
+                alasanTunda: alasan, 
+                waktuUpdate: new Date().toLocaleTimeString() 
+            });
         }
     }
 
-    function upload(id, input) {
-        // FITUR RADIUS DIMATIKAN SESUAI REQUEST
-        gasUpload(id, input);
-    }
-
-    function gasUpload(id, input) {
-        const catatan = prompt("Catatan Tambahan (Contoh: Titip Satpam / Diterima Istri):") || "-";
+    function uploadSelesai(id, input) {
+        const catatan = prompt("Catatan Tambahan (Contoh: Titip Satpam):") || "-";
         const reader = new FileReader();
         reader.onload = (e) => {
             db.ref('pesanan/' + id).update({
@@ -279,7 +231,7 @@
                 waktuSelesai: new Date().toLocaleTimeString()
             }).then(() => {
                 alert("✅ Berhasil Terkirim!");
-                input.value = ""; // Reset input file
+                input.value = "";
             });
         };
         reader.readAsDataURL(input.files[0]);
@@ -287,21 +239,49 @@
 
     function preview(src) { document.getElementById('imgPreview').src = src; document.getElementById('modalView').style.display = 'flex'; }
 
-    function aktifkanSuara() {
-        const snd = document.getElementById('notifSound');
-        snd.play().then(() => {
-            snd.pause(); audioIzin = true;
-            const b = document.getElementById('notifBanner');
-            b.innerHTML = "✅ NOTIFIKASI SUARA AKTIF";
-            setTimeout(() => b.style.display = 'none', 2000);
-        });
+    // --- SCANNER LOGIC ---
+    function toggleScanner() {
+        const r = document.getElementById('reader');
+        if (r.style.display === 'block') {
+            stopScanner();
+        } else {
+            startScanner();
+        }
+    }
+
+    function startScanner() {
+        document.getElementById('reader').style.display = 'block';
+        document.getElementById('btnScanMain').innerText = "🛑 BERHENTI SCAN";
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
+        (decodedText) => {
+            const target = allData.find(o => o.noPesanan.replace(/[^a-zA-Z0-9]/g, "") === decodedText.replace(/[^a-zA-Z0-9]/g, ""));
+            if (target) {
+                if (target.status === 'Gudang') {
+                    db.ref('pesanan/' + target.id).update({ status: 'Proses', waktuAmbil: new Date().toLocaleTimeString() });
+                    alert("📦 Berhasil Ambil: " + target.namaPembeli);
+                } else {
+                    document.getElementById('searchOrder').value = target.noPesanan;
+                    renderOrders();
+                    stopScanner();
+                }
+            }
+        }).catch(err => console.error(err));
+    }
+
+    function stopScanner() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                document.getElementById('reader').style.display = 'none';
+                document.getElementById('btnScanMain').innerText = "📷 SCAN BARCODE (BORONGAN/CARI)";
+            });
+        }
     }
 
     function updateStatusInternet() {
         const lampu = document.getElementById('lampuKoneksi');
         const teks = document.getElementById('teksKoneksi');
         const allButtons = document.querySelectorAll('.btn');
-        
         if (navigator.onLine) {
             db.goOnline();
             if(lampu) { lampu.style.background = "var(--safe)"; lampu.style.boxShadow = "0 0 10px var(--safe)"; }
@@ -321,13 +301,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
