@@ -275,16 +275,20 @@
 }
 
         function gasUpload(id, input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                db.ref('pesanan/' + id).update({
-                    status: 'Terkirim',
-                    buktiFoto: e.target.result,
-                    waktuSelesai: new Date().toLocaleTimeString()
-                }).then(() => alert("✅ Terkirim!"));
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
+    // Kurir diminta isi catatan singkat (opsional)
+    const catatan = prompt("Catatan Tambahan (Contoh: Titip Satpam / Diterima Istri):") || "-";
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        db.ref('pesanan/' + id).update({
+            status: 'Terkirim',
+            buktiFoto: e.target.result,
+            catatanKurir: catatan, // Data baru tersimpan di Firebase
+            waktuSelesai: new Date().toLocaleTimeString()
+        }).then(() => alert("✅ Berhasil Terkirim dengan Catatan!"));
+    };
+    reader.readAsDataURL(input.files[0]);
+}
 
         function preview(src) { document.getElementById('imgPreview').src = src; document.getElementById('modalView').style.display = 'flex'; }
 
@@ -322,6 +326,7 @@
     </script>
 </body>
 </html>
+
 
 
 
