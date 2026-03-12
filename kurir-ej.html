@@ -179,7 +179,7 @@
                         </div>
                         <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')">❌ CANCEL / GAGAL</button>
                     ` : (o.buktiFoto ? `<button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px solid var(--gold); color:var(--gold);" onclick="preview('${o.buktiFoto}')">👁️ LIHAT FOTO BUKTI</button>` : ''))}
-                    <input type="file" id="f-${o.id}" accept="image/*" capture="camera" style="display:none;" onchange="uploadSelesai('${o.id}', this)">
+                    <input type="file" id="f-${o.id}" accept="image/*" capture="environment" style="display:none;" onchange="uploadSelesai('${o.id}', this)">
                 </div>
             `;
         });
@@ -199,14 +199,58 @@
         }
     }
 
+    // --- MESIN KOMPRESOR FOTO (ANTI LEMOT) ---
     function uploadSelesai(id, input) {
-        const catatan = prompt("Catatan Tambahan (Contoh: Titip Satpam):") || "-";
+        const file = input.files[0];
+        if (!file) return;
+
+        const catatan = prompt("Catatan Tambahan (Contoh: Titip Satpam, Taruh Teras):") || "-";
+        
+        // Baca file gambar
         const reader = new FileReader();
-        reader.onload = (e) => {
-            db.ref('pesanan/' + id).update({ status: 'Terkirim', buktiFoto: e.target.result, catatanKurir: catatan, waktuSelesai: new Date().toLocaleTimeString() })
-            .then(() => { alert("✅ Berhasil Terkirim!"); input.value = ""; });
-        };
-        reader.readAsDataURL(input.files[0]);
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Buat canvas virtual untuk mengubah ukuran foto
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; // Ukuran maksimal lebar
+                const MAX_HEIGHT = 1000; // Ukuran maksimal tinggi
+                let width = img.width;
+                let height = img.height;
+
+                // Jaga proporsi asli gambar (landscape/portrait)
+                if (width > height) {
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                } else {
+                    if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+
+                // Gambar ulang foto di canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // KOMPRESI: Ubah ke JPEG dan pangkas kualitas jadi 60%
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+                // Kirim ke database
+                db.ref('pesanan/' + id).update({ 
+                    status: 'Terkirim', 
+                    buktiFoto: compressedDataUrl, 
+                    catatanKurir: catatan, 
+                    waktuSelesai: new Date().toLocaleTimeString() 
+                }).then(() => { 
+                    alert("✅ Berhasil Terkirim (Foto Cepat & Ringan)!"); 
+                    input.value = ""; 
+                }).catch(err => {
+                    alert("❌ Gagal Terkirim: " + err.message);
+                });
+            }
+            img.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
     }
 
     function preview(src) { document.getElementById('imgPreview').src = src; document.getElementById('modalView').style.display = 'flex'; }
