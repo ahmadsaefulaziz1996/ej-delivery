@@ -278,40 +278,62 @@
             document.getElementById('dailyTunai').innerText = "Rp" + (codSukses - totalSetoranGlobal).toLocaleString();
         }
 
-        function renderList(tglTarget) {
-            const keyword = document.getElementById('searchBar').value.toLowerCase();
-            let html = "";
-            const filtered = allOrders.filter(o => {
-                const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword) || (o.noPesanan || "").toLowerCase().includes(keyword);
-                let matchStatus = (currentFilter === "Semua") ? (o.status !== 'Terkirim' && o.status !== 'Gagal') : (o.status === currentFilter && o.tanggal === tglTarget);
-                return matchSearch && matchStatus;
-            });
+        function renderList() {
+    // 1. Ambil kata kunci pencarian
+    const keyword = document.getElementById('searchBar').value.toLowerCase();
+    
+    // 2. Ambil tanggal yang sedang aktif di datePicker
+    const pickerVal = document.getElementById('datePicker').value;
+    const p = pickerVal.split('-');
+    const tglAktif = `${p[2]}/${p[1]}/${p[0]}`;
 
-            if(filtered.length === 0) {
-                html = `<p style="text-align:center; opacity:0.5; padding:20px;">Tidak ada data.</p>`;
-            } else {
-                filtered.forEach(o => {
-                    const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
-                    html += `<div class="order-item">
-                        <span style="font-size:9px; color:var(--gold)">${o.tanggal} | ${o.waktu}</span><br>
-                        <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
-                        <small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString()}</small>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px;">
-                            <a href="https://wa.me/${waNum}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
-                            <button style="background:var(--gold); color:black; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="reprint('${o.id}')">REPRINT</button>
-                        </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
-                            ${o.buktiFoto ? `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.buktiFoto}')">LIHAT FOTO</button>` : `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px;">BELUM ADA FOTO</div>`}
-${o.status === 'Terkirim' ? 
-    `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 DATA TERKUNCI</div>` : 
-    `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer; width:100%;">HAPUS PESANAN</button>`
-}
-                        </div>
-                    </div>`;
-                });
-            }
-            document.getElementById('adminList').innerHTML = html;
+    let html = "";
+    
+    // 3. Mulai Filter Data
+    const filtered = allOrders.filter(o => {
+        // Cek apakah nama atau resi cocok dengan ketikan Bos
+        const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword) || 
+                            (o.noPesanan || "").toLowerCase().includes(keyword);
+        
+        // Cek status filter (Sisa/Sukses/Cancel)
+        let matchStatus;
+        if (currentFilter === "Semua") {
+            // Jika filter "Sisa", cari semua yang belum beres tanpa peduli tanggal
+            matchStatus = (o.status !== 'Terkirim' && o.status !== 'Gagal');
+        } else {
+            // Jika filter Sukses/Cancel, wajib cocok status DAN tanggalnya
+            matchStatus = (o.status === currentFilter && o.tanggal === tglAktif);
         }
+        
+        return matchSearch && matchStatus;
+    });
+
+    // 4. Tampilkan ke layar
+    if(filtered.length === 0) {
+        html = `<p style="text-align:center; opacity:0.5; padding:20px;">Data tidak ditemukan.</p>`;
+    } else {
+        filtered.forEach(o => {
+            const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
+            html += `<div class="order-item">
+                <span style="font-size:9px; color:var(--gold)">${o.tanggal} | ${o.waktu}</span><br>
+                <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
+                <small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString()}</small>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px;">
+                    <a href="https://wa.me/${waNum}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
+                    <button style="background:var(--gold); color:black; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="reprint('${o.id}')">REPRINT</button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
+                    ${o.buktiFoto ? `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.buktiFoto}')">LIHAT FOTO</button>` : `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px;">BELUM ADA FOTO</div>`}
+                    ${o.status === 'Terkirim' ? 
+                        `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 TERKUNCI</div>` : 
+                        `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">HAPUS</button>`
+                    }
+                </div>
+            </div>`;
+        });
+    }
+    document.getElementById('adminList').innerHTML = html;
+}
 
         function viewFoto(src) { document.getElementById('imgBukti').src = src; document.getElementById('modalFoto').style.display = 'flex'; }
         function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
@@ -583,6 +605,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
