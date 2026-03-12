@@ -6,60 +6,39 @@
     <title>EJ ADMIN PRO - FULL SYSTEM</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
-    <link rel="icon" href="logo-baru.png" type="image/png">
-    <link rel="apple-touch-icon" href="logo-baru.png">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        /* --- 1. IDENTITAS WARNA --- */
-        :root { 
-            --gold: #D4AF37; --bg: #050505; 
-            --glass: rgba(255, 255, 255, 0.03); 
-            --glass-border: rgba(212, 175, 55, 0.2); 
-            --text-main: #FFFFFF; --safe: #22C55E; 
-            --danger: #EF4444; --blue: #2563eb; --wa: #25D366; 
-        }
-
-        /* --- 2. RESET GLOBAL --- */
+        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         html { scroll-behavior: smooth; }
         body { background: var(--bg); color: var(--text-main); width: 100%; margin: 0; padding: 12px; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
         ::-webkit-scrollbar { display: none; }
         input, textarea, select { -webkit-user-select: text; user-select: text; width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
         img { pointer-events: none; -webkit-user-drag: none; }
-
-        /* --- 3. KOMPONEN UI --- */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; z-index: 9999; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
         .logo-text-container { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
         .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; animation: goldBreathe 3s ease-in-out infinite; }
         @keyframes goldBreathe { 0% { opacity: 1; text-shadow: 0 0 5px var(--gold); } 50% { opacity: 0.7; text-shadow: 0 0 20px var(--gold); } 100% { opacity: 1; text-shadow: 0 0 5px var(--gold); } }
         .logo-text-container:active { transform: scale(0.95); transition: 0.1s; }
-
         .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
         .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 10px 5px; border-radius: 12px; text-align: center; cursor: pointer; font-size: 11px; }
         .report-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
         .report-box b { display: block; font-size: 14px; margin-top: 4px; }
-
         .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; width: 100%; }
         .btn-main { background: linear-gradient(135deg, #F7E08C, #D4AF37); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; }
         .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
         .btn-small { padding: 10px; border-radius: 8px; font-weight: 800; font-size: 10px; text-align: center; color: white; border: none; cursor: pointer; }
-
-        /* --- MODAL & LOGIN --- */
         .modal-foto { display: none; position: fixed; z-index: 2000000 !important; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         .modal-foto img { max-width: 90%; max-height: 75vh; border: 2px solid var(--gold); border-radius: 15px; object-fit: contain; box-shadow: 0 0 30px rgba(212, 175, 55, 0.3); }
-
         #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .pin-container { text-align: center; width: 100%; max-width: 320px; padding: 20px; }
         .pin-display { font-size: 40px; letter-spacing: 15px; margin: 30px 0; color: var(--gold); font-weight: 800; text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
         .numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; }
         .num-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 26px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
-
         #waPrompt { position: fixed; bottom: 30px; left: 20px; right: 20px; background: var(--wa); color: white; padding: 20px; border-radius: 20px; text-align: center; z-index: 2000000; box-shadow: 0 15px 40px rgba(0,0,0,0.6); display: none; }
-
-        /* RADAR */
         #mapRadar { width: 100%; height: 100%; background: #000 !important; }
         .leaflet-tile-container img { display: block !important; visibility: visible !important; opacity: 1 !important; }
         #mapRadar .leaflet-pane, #mapRadar .leaflet-control-container { box-shadow: none !important; text-shadow: none !important; }
@@ -70,24 +49,13 @@
 
     <div id="loginOverlay">
         <div class="pin-container">
-            <div style="margin-bottom: 20px;">
-                <h2 style="color:#fff; font-size:22px; font-family:'Space Grotesk';">EJ ACCESS</h2>
-                <p style="color:var(--gold); font-size:11px; letter-spacing:2px;">SECURITY VERIFICATION</p>
-            </div>
+            <div style="margin-bottom: 20px;"><h2 style="color:#fff; font-size:22px;">EJ ACCESS</h2><p style="color:var(--gold); font-size:11px; letter-spacing:2px;">SECURITY VERIFICATION</p></div>
             <div class="pin-display" id="pinDisplay">****</div>
             <div class="numpad">
-                <button class="num-btn" onclick="pressPin('1')">1</button>
-                <button class="num-btn" onclick="pressPin('2')">2</button>
-                <button class="num-btn" onclick="pressPin('3')">3</button>
-                <button class="num-btn" onclick="pressPin('4')">4</button>
-                <button class="num-btn" onclick="pressPin('5')">5</button>
-                <button class="num-btn" onclick="pressPin('6')">6</button>
-                <button class="num-btn" onclick="pressPin('7')">7</button>
-                <button class="num-btn" onclick="pressPin('8')">8</button>
-                <button class="num-btn" onclick="pressPin('9')">9</button>
-                <button class="num-btn" onclick="pressPin('C')" style="color:var(--danger)">C</button>
-                <button class="num-btn" onclick="pressPin('0')">0</button>
-                <button class="num-btn" onclick="pressPin('OK')" style="color:var(--safe)">OK</button>
+                <button class="num-btn" onclick="pressPin('1')">1</button><button class="num-btn" onclick="pressPin('2')">2</button><button class="num-btn" onclick="pressPin('3')">3</button>
+                <button class="num-btn" onclick="pressPin('4')">4</button><button class="num-btn" onclick="pressPin('5')">5</button><button class="num-btn" onclick="pressPin('6')">6</button>
+                <button class="num-btn" onclick="pressPin('7')">7</button><button class="num-btn" onclick="pressPin('8')">8</button><button class="num-btn" onclick="pressPin('9')">9</button>
+                <button class="num-btn" onclick="pressPin('C')" style="color:var(--danger)">C</button><button class="num-btn" onclick="pressPin('0')">0</button><button class="num-btn" onclick="pressPin('OK')" style="color:var(--safe)">OK</button>
             </div>
         </div>
     </div>
@@ -99,7 +67,7 @@
         </div>
         <div style="text-align: right;">
             <div id="runningClock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
-            <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">TGL LOADING...</div>
+            <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">LOADING...</div>
             <div id="statusKoneksi" style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 3px;">
                 <div id="lampuKoneksi" style="width: 6px; height: 6px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 10px var(--safe);"></div>
                 <span id="teksKoneksi" style="font-size: 8px; font-weight: 800; color: var(--safe);">ONLINE</span>
@@ -118,18 +86,10 @@
     </div>
     
     <div class="report-grid">
-        <div class="report-box" id="f-Gudang" onclick="setFilter('Gudang')" style="border-color: var(--blue);">
-            <span>Gudang</span><b id="countGudang">0</b>
-        </div>
-        <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')">
-            <span>Sisa Jalan</span><b id="countProses">0</b>
-        </div>
-        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);">
-            <span>Sukses</span><b id="countSukses">0</b>
-        </div>
-        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);">
-            <span>Cancel</span><b id="countGagal">0</b>
-        </div>
+        <div class="report-box" id="f-Gudang" onclick="setFilter('Gudang')" style="border-color: var(--blue);"><span>Gudang</span><b id="countGudang">0</b></div>
+        <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa Jalan</span><b id="countProses">0</b></div>
+        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
+        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Cancel</span><b id="countGagal">0</b></div>
     </div>
 
     <div class="report-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
@@ -144,18 +104,12 @@
         <textarea id="alamat" placeholder="Alamat Lengkap" autocomplete="off"></textarea>
         <input type="text" id="mapLink" placeholder="Link Google Maps (Opsional)" autocomplete="off">
         
-        <select id="metodeBayar" onchange="toggleTotal()">
-            <option value="COD">Metode: COD</option>
-            <option value="Transfer">Metode: Transfer</option>
-        </select>
-
+        <select id="metodeBayar" onchange="toggleTotal()"><option value="COD">Metode: COD</option><option value="Transfer">Metode: Transfer</option></select>
         <input type="number" id="total" placeholder="Harga COD (Rp)" autocomplete="off" inputmode="numeric">
 
         <label style="color: var(--danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; background: rgba(239, 68, 68, 0.05); padding: 10px; border-radius: 10px; border: 1px dashed var(--danger); cursor: pointer;">
-            <input type="checkbox" id="isUrgent" style="width: 18px; height: 18px; accent-color: var(--danger);"> 
-            🔥 TANDAI SEBAGAI PESANAN URGENT
+            <input type="checkbox" id="isUrgent" style="width: 18px; height: 18px; accent-color: var(--danger);"> 🔥 TANDAI SEBAGAI PESANAN URGENT
         </label>
-
         <button class="btn-main" onclick="tambah()">SIMPAN & PRINT</button>
     </div>
 
@@ -165,12 +119,11 @@
     </div>
 
     <input type="text" id="searchBar" placeholder="🔍 Cari nama/resi..." oninput="renderList()" style="width:100%; border:1px solid var(--gold);">
-    
     <div id="adminList" class="glass-card">Memuat data...</div>
 
     <div id="modalFoto" class="modal-foto" onclick="this.style.display='none'">
         <img id="imgBukti" src="">
-        <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px; letter-spacing: 1px;">KLIK MANA SAJA UNTUK TUTUP</p>
+        <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">KLIK MANA SAJA UNTUK TUTUP</p>
     </div>
 
     <div id="waPrompt">
@@ -182,9 +135,7 @@
     <div id="laporanOverlay" class="modal-foto" style="padding: 20px; overflow-y: auto; backdrop-filter: blur(15px);">
         <div class="glass-card" style="width: 100%; max-width: 450px; background: #0A0A0A; border: 1px solid var(--gold);">
             <h2 style="color: var(--gold); text-align: center; margin-bottom: 15px; font-weight: 800;">REKAPITULASI BULANAN</h2>
-            
             <input type="month" id="bulanLaporan" onchange="hitungLaporan()" style="width: 100%; background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 12px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 14px; margin-bottom: 20px; outline: none; cursor: pointer;">
-
             <div id="isiLaporan" style="line-height: 2.5; font-size: 14px;">Memuat data...</div>
             <button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 30px;">TUTUP LAPORAN</button>
         </div>
@@ -206,7 +157,6 @@
         
         let allOrders = [], totalSetoranGlobal = 0, currentFilter = "Semua", lastOrder = null, lastDateString = "";
 
-        // --- SISTEM TANGGAL & JAM ---
         function formatTglDB(date) { const d = new Date(date); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
         function initDate() { const n = new Date(); document.getElementById('datePicker').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; lastDateString = formatTglDB(n); }
         initDate();
@@ -222,7 +172,6 @@
             if (formatTglDB(now) !== lastDateString) { lastDateString = formatTglDB(now); initDate(); updateAll(); }
         }, 1000);
 
-        // --- SISTEM LOGIN PIN ---
         let inputPin = "";
         const PIN_RAHASIA = "1234";
         function pressPin(val) {
@@ -234,7 +183,6 @@
             document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
         }
 
-        // --- DETEKSI INTERNET ---
         window.addEventListener('online', updateStatusInternet);
         window.addEventListener('offline', updateStatusInternet);
         function updateStatusInternet() {
@@ -250,7 +198,6 @@
         }
         updateStatusInternet();
 
-        // --- DATABASE LISTENER ---
         db.ref('pesanan').limitToLast(500).on('value', snap => {
             const val = snap.val();
             allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
@@ -269,16 +216,13 @@
             renderList();
         }
 
-        // --- DASHBOARD COUNTER ---
         function updateDashboard(tglTarget) {
             let s=0, g=0, p=0, gd=0, codSukses=0;
             allOrders.forEach(o => {
                 if (o.status === 'Gudang') gd++;
                 if (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang') p++;
-
                 if (o.tanggal === tglTarget) {
-                    if (o.status === 'Terkirim') s++;
-                    else if (o.status === 'Gagal') g++;
+                    if (o.status === 'Terkirim') s++; else if (o.status === 'Gagal') g++;
                 }
                 if (o.status === 'Terkirim' && o.metode === 'COD') codSukses += Number(o.total || 0);
             });
@@ -289,7 +233,6 @@
             document.getElementById('dailyTunai').innerText = "Rp" + (codSukses - totalSetoranGlobal).toLocaleString();
         }
 
-        // --- RENDER DAFTAR PELANGGAN ---
         function renderList() {
             const keyword = document.getElementById('searchBar').value.toLowerCase();
             const pickerVal = document.getElementById('datePicker').value;
@@ -325,16 +268,9 @@
                         </div>
 
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
-                            ${o.buktiFoto ? 
-                                `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.buktiFoto}')">LIHAT FOTO</button>` : 
-                                `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px; border:1px solid rgba(255,255,255,0.05);">TANPA FOTO</div>`
-                            }
-                            ${o.status === 'Terkirim' ? 
-                                `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 TERKUNCI</div>` : 
-                                (o.status === 'Gagal' ? 
-                                    `<button onclick="kirimUlang('${o.id}')" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">KIRIM ULANG</button>` :
-                                    `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">HAPUS</button>`
-                                )
+                            ${o.buktiFoto ? `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.buktiFoto}')">LIHAT FOTO</button>` : `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px; border:1px solid rgba(255,255,255,0.05);">TANPA FOTO</div>`}
+                            ${o.status === 'Terkirim' ? `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 TERKUNCI</div>` : 
+                                (o.status === 'Gagal' ? `<button onclick="kirimUlang('${o.id}')" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">KIRIM ULANG</button>` : `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">HAPUS</button>`)
                             }
                         </div>
                     </div>`;
@@ -343,7 +279,17 @@
             document.getElementById('adminList').innerHTML = html;
         }
 
-        // --- FUNGSI KLIK & SIMPAN ---
+        // --- SISTEM UPDATE BUKU KAS (ADMIN) ---
+        function catatBukuKas(tanggal, jenis, operasi = 1) {
+            if(!tanggal) return;
+            const p = tanggal.split('/');
+            if(p.length !== 3) return;
+            const blnId = `${p[2]}-${p[1]}`; // YYYY-MM
+            if (jenis === 'Gagal') {
+                db.ref(`laporanBulanan/${blnId}/gagalCount`).set(firebase.database.ServerValue.increment(operasi));
+            }
+        }
+
         function viewFoto(src) { document.getElementById('modalFoto').style.display = 'flex'; document.getElementById('imgBukti').src = src; }
         function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
 
@@ -367,7 +313,6 @@
             
             db.ref('pesanan').push(d).then(() => { 
                 lastOrder = d; executePrint(); 
-                
                 const waNumber = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62');
                 const linkMaps = d.mapLink ? `\n📍 Map: ${d.mapLink}` : "";
                 const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang diproses kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp${Number(d.total).toLocaleString()}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang pas kalau COD ya. Terima kasih! 🙏`;
@@ -395,10 +340,13 @@
         function hapus(id) {
             const p = allOrders.find(o => o.id === id);
             if (p && p.status === 'Terkirim') return alert("⛔ AKSES DITOLAK!\n\nPesanan SUKSES tidak dapat dihapus.");
-            if (confirm("Apakah Anda yakin ingin menghapus pesanan ini?")) db.ref('pesanan/' + id).remove();
+            if (confirm("Apakah Anda yakin ingin menghapus pesanan ini?")) {
+                db.ref('pesanan/' + id).remove().then(() => {
+                    if (p.status === 'Gagal') catatBukuKas(p.tanggal, 'Gagal', -1); // Kurangi angka di buku kas
+                });
+            }
         }
 
-        // --- FITUR KIRIM ULANG KE GUDANG ---
         function kirimUlang(id) {
             const dataLama = allOrders.find(o => o.id === id);
             if (!dataLama) return;
@@ -407,12 +355,15 @@
                 const dataBaru = { ...dataLama, noPesanan: dataLama.noPesanan.includes("-RE") ? dataLama.noPesanan : dataLama.noPesanan + "-RE", status: 'Gudang', tanggal: formatTglDB(n), waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}), buktiFoto: null, alasanTunda: null };
                 delete dataBaru.id; 
                 db.ref('pesanan').push(dataBaru).then(() => {
-                    db.ref('pesanan/' + id).remove().then(() => { alert("✅ Pesanan dipindahkan kembali ke GUDANG."); setFilter('Gudang'); });
+                    db.ref('pesanan/' + id).remove().then(() => { 
+                        catatBukuKas(dataLama.tanggal, 'Gagal', -1); // Hapus status gagal dari buku kas lama
+                        alert("✅ Pesanan dipindahkan kembali ke GUDANG."); setFilter('Gudang'); 
+                    });
                 });
             }
         }
 
-        // --- LAPORAN BULANAN (BISA PILIH BULAN) ---
+        // --- SISTEM BUKU KAS (0.001 DETIK LOADING) ---
         function bukaLaporan() {
             document.getElementById('laporanOverlay').style.display = 'flex';
             const n = new Date();
@@ -425,36 +376,51 @@
         function hitungLaporan() {
             const inputVal = document.getElementById('bulanLaporan').value;
             if (!inputVal) return;
-            
             const pInput = inputVal.split('-');
-            const thn = pInput[0];
-            const bln = pInput[1];
-            
-            let totalOmzet = 0, suksesCount = 0, gagalCount = 0, codCount = 0, transferCount = 0;
-
-            allOrders.forEach(o => {
-                if (o.tanggal) {
-                    const p = o.tanggal.split('/'); 
-                    if (p[1] === bln && p[2] === thn) {
-                        if (o.status === 'Terkirim') { suksesCount++; totalOmzet += Number(o.total || 0); if (o.metode === 'COD') codCount++; else transferCount++; } 
-                        else if (o.status === 'Gagal') gagalCount++;
-                    }
-                }
-            });
-
+            const thn = pInput[0]; const bln = pInput[1];
             const namaBulan = new Date(`${thn}-${bln}-01`).toLocaleString('id-ID', {month:'long', year:'numeric'});
 
+            document.getElementById('isiLaporan').innerHTML = `<p style="text-align:center; color:var(--gold);">Membaca Buku Kas Cepat... ⏳</p>`;
+
+            // Langsung tembak ke Buku Kas Firebase
+            db.ref(`laporanBulanan/${thn}-${bln}`).once('value').then(snap => {
+                const data = snap.val();
+                if (data) {
+                    tampilUI(data.totalOmzet || 0, data.suksesCount || 0, data.gagalCount || 0, data.codCount || 0, data.transferCount || 0, namaBulan);
+                } else {
+                    // MIGRATION: Jika belum ada buku kas di bulan itu, hitung manual 1x lalu simpan.
+                    db.ref('pesanan').once('value').then(pSnap => {
+                        let totalOmzet = 0, suksesCount = 0, gagalCount = 0, codCount = 0, transferCount = 0;
+                        const pData = pSnap.val();
+                        if (pData) {
+                            Object.keys(pData).forEach(k => {
+                                const o = pData[k];
+                                if (o.tanggal && o.tanggal.includes(`/${bln}/${thn}`)) {
+                                    if (o.status === 'Terkirim') {
+                                        suksesCount++; totalOmzet += Number(o.total || 0);
+                                        if (o.metode === 'COD') codCount++; else transferCount++;
+                                    } else if (o.status === 'Gagal') gagalCount++;
+                                }
+                            });
+                        }
+                        db.ref(`laporanBulanan/${thn}-${bln}`).set({ totalOmzet, suksesCount, gagalCount, codCount, transferCount });
+                        tampilUI(totalOmzet, suksesCount, gagalCount, codCount, transferCount, namaBulan);
+                    });
+                }
+            });
+        }
+
+        function tampilUI(omzet, sukses, gagal, cod, transfer, namaBulan) {
             document.getElementById('isiLaporan').innerHTML = `
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">💰 Omzet Terkirim:</span><b style="color:var(--safe); font-size:18px;">Rp ${totalOmzet.toLocaleString()}</b></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">📦 Paket Berhasil:</span><b style="font-size:16px;">${suksesCount} Item</b></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">❌ Paket Gagal:</span><b style="color:var(--danger); font-size:16px;">${gagalCount} Item</b></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">🤝 Metode COD:</span><b style="font-size:16px;">${codCount}</b></div>
-                <div style="display:flex; justify-content:space-between; padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">💳 Metode Transfer:</span><b style="font-size:16px;">${transferCount}</b></div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">💰 Omzet Terkirim:</span><b style="color:var(--safe); font-size:18px;">Rp ${omzet.toLocaleString()}</b></div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">📦 Paket Berhasil:</span><b style="font-size:16px;">${sukses} Item</b></div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">❌ Paket Gagal:</span><b style="color:var(--danger); font-size:16px;">${gagal} Item</b></div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">🤝 Metode COD:</span><b style="font-size:16px;">${cod}</b></div>
+                <div style="display:flex; justify-content:space-between; padding:18px 0; align-items:center;"><span style="opacity:0.6; font-size:13px;">💳 Metode Transfer:</span><b style="font-size:16px;">${transfer}</b></div>
                 <div style="margin-top:25px; padding:15px; background:rgba(212,175,55,0.08); border-radius:15px; text-align:center; border:1px dashed rgba(212,175,55,0.2);"><small style="color:var(--gold); font-weight:800; text-transform:uppercase; letter-spacing:1px;">Periode: ${namaBulan}</small></div>
             `;
         }
 
-        // --- PETA RADAR DENGAN MARKER LOKASI ---
         let radarMesin; 
         function extractCoords(url) { try { const m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/); if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) }; if (url.includes('q=')) { const p = url.split('q=')[1].split('&')[0].split(','); return { lat: parseFloat(p[0]), lng: parseFloat(p[1]) }; } } catch(e) { return null; } }
 
@@ -477,26 +443,21 @@
         function bersihkanDataLama() {
             const BATAS_WAKTU_MS = 90 * 24 * 60 * 60 * 1000;
             const waktuSekarang = new Date().getTime();
-
             db.ref('pesanan').once('value', snap => {
                 const data = snap.val();
                 if (!data) return;
-
                 for (let id in data) {
                     const o = data[id];
                     if (o.tanggal) {
                         const p = o.tanggal.split('/');
                         if (p.length === 3) {
                             const waktuPesanan = new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime();
-                            if (waktuSekarang - waktuPesanan > BATAS_WAKTU_MS) {
-                                db.ref('pesanan/' + id).remove();
-                            }
+                            if (waktuSekarang - waktuPesanan > BATAS_WAKTU_MS) db.ref('pesanan/' + id).remove();
                         }
                     }
                 }
             });
         }
-        
         setTimeout(bersihkanDataLama, 5000);
 
     </script>
