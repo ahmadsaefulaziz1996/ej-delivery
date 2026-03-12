@@ -12,94 +12,107 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        html, body {
-    /* MENGHILANGKAN EFEK MEMBAL SAAT SCROLL MENTOK */
-    overscroll-behavior: none;
+    /* --- 1. ATURAN GLOBAL (ANTI-BROWSER & GAGAH) --- */
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        
+        /* Hilangkan kotak biru browser saat diklik */
+        -webkit-tap-highlight-color: transparent; 
+        
+        /* Kunci teks agar tidak bisa di-blok (Anti-Copas) */
+        -webkit-user-select: none;
+        user-select: none;
+        
+        /* Hilangkan menu tekan lama di iPhone */
+        -webkit-touch-callout: none;
+    }
+
+    html, body { 
+        background: var(--bg); 
+        color: var(--text-main); 
+        padding: 15px; 
+        padding-bottom: 50px;
+        /* Hilangkan efek membal saat scroll mentok */
+        overscroll-behavior: none; 
+    }
+
+    /* Pengecualian: Kolom isian harus tetap bisa diketik & di-blok teksnya */
+    input, textarea {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    /* Logo tidak bisa ditarik/digeser */
+    img {
+        pointer-events: none;
+        -webkit-user-drag: none;
+    }
+
+    /* Hilangkan garis biru fokus pada Chrome Mobile */
+    input:focus, textarea:focus, select:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* --- 2. VARIABLE WARNA --- */
+    :root { 
+        --gold: #D4AF37; 
+        --bg: #050505; 
+        --glass: rgba(255, 255, 255, 0.03); 
+        --glass-border: rgba(212, 175, 55, 0.2); 
+        --text-main: #FFFFFF; 
+        --safe: #22C55E; 
+        --danger: #EF4444; 
+        --blue: #2563eb; 
+        --wa: #25D366; 
+    }
+
+    /* --- 3. KOMPONEN DASHBOARD --- */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .logo-text-container { display: flex; flex-direction: column; gap: 2px; }
+    .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; }
+    .sub-logo-text { color: var(--text-main); font-weight: 400; font-size: 11px; opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; }
+
+    .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; }
+    .report-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
+    .report-box span { font-size: 7px; font-weight: 800; color: var(--gold); text-transform: uppercase; }
+    .report-box b { display: block; font-size: 14px; margin-top: 4px; }
+
+    .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
+    input, textarea, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
+    .btn-main { background: linear-gradient(135deg, #F7E08C, #D4AF37); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; }
     
-    /* MENGHILANGKAN EFEK BIRU SAAT KLIK */
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* KHUSUS UNTUK CHROME MOBILE AGAR TIDAK ADA GARI BIRU PADA INPUT */
-input:focus, textarea:focus, select:focus {
-    outline: none !important;
-    box-shadow: none !important;
-}
-        /* KUNCI MATI SEMUA ELEMEN AGAR TIDAK BISA DI-SELEKSI/DI-BLOK */
-* {
-    -webkit-user-select: none; /* Safari/Chrome Mobile */
-    -ms-user-select: none;      /* IE/Edge */
-    user-select: none;          /* Standard */
-    -webkit-touch-callout: none; /* Hilangkan menu klik kanan di iPhone */
-}
-
-/* KECUALIKAN UNTUK KOLOM INPUT (Supaya Admin/Kurir Tetap Bisa Ngetik) */
-input, textarea {
-    -webkit-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-}
-
-/* CEGAH GAMBAR/LOGO DITARIK ATAU DISIMPAN */
-img {
-    pointer-events: none;
-    -webkit-user-drag: none;
-}
-        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--bg); color: var(--text-main); padding: 15px; padding-bottom: 50px; }
-        * { 
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0; 
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
+    .btn-small { padding: 10px; border-radius: 8px; font-weight: 800; font-size: 10px; text-align: center; color: white; border: none; cursor: pointer; }
     
-    /* BARIS SAKTI PENGHILANG WARNA BIRU */
-    -webkit-tap-highlight-color: transparent; 
-}
-        
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .logo-text-container { display: flex; flex-direction: column; gap: 2px; }
-        .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; }
-        .sub-logo-text { color: var(--text-main); font-weight: 400; font-size: 11px; opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; }
+    .modal-foto { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; }
+    .modal-foto img { max-width: 90%; max-height: 70%; border: 2px solid var(--gold); border-radius: 15px; }
+    
+    #receipt-print { display: none; }
+    #waPrompt { position:fixed; bottom:20px; left:20px; right:20px; background:var(--wa); color:white; padding:20px; border-radius:15px; text-align:center; z-index:10000; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none; }
 
-        .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .report-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
-        .report-box span { font-size: 7px; font-weight: 800; color: var(--gold); text-transform: uppercase; }
-        .report-box b { display: block; font-size: 14px; margin-top: 4px; }
-
-        .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
-        input, textarea, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
-        .btn-main { background: linear-gradient(135deg, #F7E08C, #D4AF37); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; }
-        
-        .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
-        .btn-small { padding: 10px; border-radius: 8px; font-weight: 800; font-size: 10px; text-align: center; color: white; border: none; cursor: pointer; }
-        
-        .modal-foto { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; }
-        .modal-foto img { max-width: 90%; max-height: 70%; border: 2px solid var(--gold); border-radius: 15px; }
-        
-        #receipt-print { display: none; }
-        #waPrompt { position:fixed; bottom:20px; left:20px; right:20px; background:var(--wa); color:white; padding:20px; border-radius:15px; text-align:center; z-index:10000; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none; }
-
-        /* --- LOGIN OVERLAY SYSTEM --- */
-#loginOverlay {
-    position: fixed; inset: 0; background: #000; z-index: 99999;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.pin-container { text-align: center; width: 100%; max-width: 320px; padding: 20px; }
-.pin-display { 
-    font-size: 35px; letter-spacing: 12px; margin: 30px 0; 
-    color: var(--gold); font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-}
-.numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; width: 100%; }
-.num-btn { 
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.1); 
-    color: #fff; width: 75px; height: 75px; border-radius: 50%; 
-    font-size: 24px; font-weight: 600; cursor: pointer; transition: 0.2s;
-}
-.num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
-    </style>
+    /* --- LOGIN OVERLAY SYSTEM --- */
+    #loginOverlay {
+        position: fixed; inset: 0; background: #000; z-index: 99999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .pin-container { text-align: center; width: 100%; max-width: 320px; padding: 20px; }
+    .pin-display { 
+        font-size: 35px; letter-spacing: 12px; margin: 30px 0; 
+        color: var(--gold); font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+    }
+    .numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; width: 100%; }
+    .num-btn { 
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.1); 
+        color: #fff; width: 75px; height: 75px; border-radius: 50%; 
+        font-size: 24px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
+</style>
 </head>
 <body>
 
@@ -570,6 +583,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
