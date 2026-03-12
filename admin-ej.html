@@ -323,8 +323,14 @@
     </select>
 
     <input type="number" id="total" placeholder="Harga COD (Rp)" autocomplete="off" inputmode="numeric">
+
+        <label style="color: var(--danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; background: rgba(239, 68, 68, 0.05); padding: 10px; border-radius: 10px; border: 1px dashed var(--danger); cursor: pointer;">
+    <input type="checkbox" id="isUrgent" style="width: 18px; height: 18px; accent-color: var(--danger);"> 
+    🔥 TANDAI SEBAGAI PESANAN URGENT
+</label>
+
+<button class="btn-main" onclick="tambah()">SIMPAN & PRINT</button>
     
-    <button class="btn-main" onclick="tambah()">SIMPAN & PRINT</button>
 </div>
 
     <div class="glass-card">
@@ -504,7 +510,8 @@ ${o.catatanKurir ? `<div style="font-size:11px; color:var(--gold); margin-top:5p
         alamat: document.getElementById('alamat').value, 
         mapLink: document.getElementById('mapLink').value, 
         total: document.getElementById('total').value || 0, 
-        metode: document.getElementById('metodeBayar').value, 
+        metode: document.getElementById('metodeBayar').value,
+        urgent: document.getElementById('isUrgent').checked,
         status: 'Menunggu', 
         tanggal: formatTglDB(n), 
         waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
@@ -526,6 +533,7 @@ ${o.catatanKurir ? `<div style="font-size:11px; color:var(--gold); margin-top:5p
         document.getElementById('alamat').value = "";
         document.getElementById('mapLink').value = "";
         document.getElementById('total').value = "";
+        document.getElementById('isUrgent').checked = false;
         
         // Fokuskan kembali ke input Nama Pembeli
         document.getElementById('pembeli').focus();
@@ -785,6 +793,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
