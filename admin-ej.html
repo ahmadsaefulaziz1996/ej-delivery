@@ -207,6 +207,29 @@
     display: none; 
 }
 
+/* --- FIX RADAR: BERSIHKAN DARI KOTAK-KOTAK --- */
+#mapRadar {
+    width: 100%; 
+    height: 100%; 
+    background: #111;
+    /* Tambahkan ini biar kotak-kotak dashboard gak masuk ke sini */
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Pastikan elemen di dalam peta tidak ikut kena gaya glass-card */
+#mapRadar * {
+    background: none !important;
+    border: none !important;
+}
+
+/* Gaya untuk Popup (Tulisan saat titik emas diklik) */
+.leaflet-popup-content-wrapper {
+    background: #111 !important;
+    color: var(--gold) !important;
+    border: 1px solid var(--gold) !important;
+}
+
 </style>
 
 
