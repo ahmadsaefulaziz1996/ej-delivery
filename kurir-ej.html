@@ -33,18 +33,18 @@
     html, body {
         background: var(--bg); 
         color: var(--text); 
-        padding: 20px; 
-        padding-bottom: 80px; 
-        min-height: 100vh;
-        /* 4. Hilangkan efek membal/mentok saat scroll */
-        overscroll-behavior: none;
         width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 15px; /* Sesuaikan padding agar tidak terlalu mepet teksnya */
-    overflow-x: hidden; /* Kunci agar tidak bisa geser kanan-kiri */
-    touch-action: pan-y; /* Hanya boleh scroll atas-bawah, dilarang zoom pinch */
-}
+        margin: 0;
+        /* Padding disamakan dengan Admin agar Full Screen */
+        padding: 12px; 
+        padding-bottom: 80px; /* Ruang aman di bawah agar tidak mentok */
+        min-height: 100vh;
+        overflow-x: hidden; /* Kunci agar tidak goyang kanan-kiri */
+        
+        /* Hapus overscroll-behavior agar bisa tarik untuk refresh */
+        -webkit-user-select: none;
+        user-select: none;
+    }
 
     /* PENGECUALIAN: Kolom ketikan harus tetap bisa diisi */
     input, textarea {
@@ -354,6 +354,7 @@ function updateStatusInternet() {
     </script>
 </body>
 </html>
+
 
 
 
