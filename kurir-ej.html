@@ -172,9 +172,11 @@ function hitungJarak(lat1, lon1, lat2, lon2) {
 updateStatusInternet();
         }
 
-        db.ref('pesanan').on('value', snap => {
-            const val = snap.val();
-            allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
+        db.ref('pesanan').limitToLast(500).on('value', snap => {
+    const val = snap.val();
+    allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
+    updateUI(); 
+});
             
             // Logika Notifikasi Suara
             if (lastCount > 0 && allData.length > lastCount && audioIzin) {
@@ -371,6 +373,7 @@ updateStatusInternet();
     </script>
 </body>
 </html>
+
 
 
 
