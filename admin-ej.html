@@ -207,27 +207,30 @@
     display: none; 
 }
 
-/* --- FIX RADAR: BERSIHKAN DARI KOTAK-KOTAK --- */
+/* --- KUNCI MATI AGAR PETA BERSIH --- */
 #mapRadar {
-    width: 100%; 
-    height: 100%; 
-    background: #111;
-    /* Tambahkan ini biar kotak-kotak dashboard gak masuk ke sini */
-    border: none !important;
-    box-shadow: none !important;
+    background: #000 !important;
+    position: relative;
+    z-index: 1;
 }
 
-/* Pastikan elemen di dalam peta tidak ikut kena gaya glass-card */
+/* Menghapus semua bayangan emas/garis yang nyasar ke dalam peta */
 #mapRadar * {
-    background: none !important;
-    border: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+    background-image: none !important;
+    animation: none !important; /* Mematikan animasi breathe jika nyasar ke sini */
 }
 
-/* Gaya untuk Popup (Tulisan saat titik emas diklik) */
-.leaflet-popup-content-wrapper {
-    background: #111 !important;
-    color: var(--gold) !important;
-    border: 1px solid var(--gold) !important;
+/* Pastikan gambar peta tetap tajam */
+.leaflet-tile-container img {
+    filter: brightness(0.8) contrast(1.2);
+}
+
+/* Munculkan kembali warna emas HANYA untuk titik pelanggan */
+.leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-drop-marker {
+    filter: none !important;
 }
 
 </style>
@@ -655,8 +658,10 @@ function bukaRadar() {
 
     // 4. Pasang Gambar Peta Hitam Mewah (GRATIS)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; EJ TOBACCO'
-    }).addTo(radarMesin);
+    attribution: '&copy; EJ TOBACCO',
+    subdomains: 'abcd',
+    maxZoom: 20
+}).addTo(radarMesin);
 
     // 5. Tebar Titik Emas Pelanggan yang Sudah Terkirim
     allOrders.forEach(o => {
@@ -735,6 +740,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
