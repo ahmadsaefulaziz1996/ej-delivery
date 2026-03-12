@@ -34,6 +34,11 @@
         overscroll-behavior: none;
     }
 
+       html, body {
+    /* ... kode yang sudah ada ... */
+    touch-action: pan-x pan-y; /* Hanya boleh scroll, dilarang zoom pakai dua jari */
+}
+
     /* PENGECUALIAN: Kolom ketikan harus tetap bisa diisi */
     input, textarea {
         -webkit-user-select: text;
@@ -354,6 +359,7 @@ function updateStatusInternet() {
     </script>
 </body>
 </html>
+
 
 
 
