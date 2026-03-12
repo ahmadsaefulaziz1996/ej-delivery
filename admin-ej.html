@@ -455,8 +455,14 @@
                     }
                     
                     ${o.status === 'Terkirim' ? 
+                        /* Jika Sukses: Terkunci */
                         `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 TERKUNCI</div>` : 
-                        `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">HAPUS</button>`
+                        (o.status === 'Gagal' ? 
+                            /* Jika Gagal: Tombol Hapus diganti Kirim Ulang */
+                            `<button onclick="kirimUlang('${o.id}')" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">KIRIM ULANG</button>` :
+                            /* Jika Menunggu: Tetap Tombol Hapus */
+                            `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">HAPUS</button>`
+                        )
                     }
                 </div>
             </div>`;
@@ -464,7 +470,6 @@
     }
     document.getElementById('adminList').innerHTML = html;
 }
-
 
         function viewFoto(src) { 
     const modal = document.getElementById('modalFoto');
@@ -697,7 +702,30 @@ function updateStatusInternet() {
         teks.style.color = "var(--danger)";
     }
 }
+
+        function kirimUlang(id) {
+    const dataLama = allOrders.find(o => o.id === id);
+    if (!dataLama) return;
+
+    if (confirm(`Kirim ulang pesanan ${dataLama.namaPembeli}?`)) {
+        const n = new Date();
+        const dataBaru = {
+            ...dataLama,
+            noPesanan: dataLama.noPesanan.includes("-RE") ? dataLama.noPesanan : dataLama.noPesanan + "-RE", 
+            status: 'Menunggu',
+            tanggal: formatTglDB(n),
+            waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
+            buktiFoto: null // Foto gagal lama jangan dibawa
+        };
         
+        delete dataBaru.id; // Biar Firebase buat ID unik baru
+
+        db.ref('pesanan').push(dataBaru).then(() => {
+            alert("✅ Berhasil! Pesanan diduplikasi ke hari ini.");
+            setFilter('Semua'); // Pindah ke tab Sisa biar langsung kelihatan
+        });
+    }
+}
     </script>
 
     <div id="laporanOverlay" class="modal-foto" style="padding: 20px; overflow-y: auto; backdrop-filter: blur(15px); display: none;">
@@ -724,6 +752,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
