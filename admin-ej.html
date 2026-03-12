@@ -300,10 +300,13 @@
 </div>
     
     <div class="report-grid">
-        <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa</span><b id="countProses">0</b></div>
-        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
-        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Cancel</span><b id="countGagal">0</b></div>
+    <div class="report-box" id="f-Gudang" onclick="setFilter('Gudang')" style="border-color: var(--blue);">
+        <span>Gudang</span><b id="countGudang">0</b>
     </div>
+    
+    <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa</span><b id="countProses">0</b></div>
+    <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
+</div>
 
     <div class="report-box" style="margin-bottom: 20px; border-color: var(--safe); background: rgba(34, 197, 94, 0.05); cursor: default;">
         <span style="color: var(--safe); font-size: 10px; font-weight: 800;">TOTAL SALDO DI KURIR</span>
@@ -404,21 +407,30 @@ db.ref('pesanan').limitToLast(500).on('value', snap => {
         }
 
         function updateDashboard(tglTarget) {
-            let s=0, g=0, p=0, codSukses=0;
-            allOrders.forEach(o => {
-                if (o.tanggal === tglTarget) {
-                    if (o.status === 'Terkirim') s++;
-                    else if (o.status === 'Gagal') g++;
-                }
-                if (o.status !== 'Terkirim' && o.status !== 'Gagal') p++;
-                if (o.status === 'Terkirim' && o.metode === 'COD') codSukses += Number(o.total || 0);
-            });
-            document.getElementById('countSukses').innerText = s;
-            document.getElementById('countGagal').innerText = g;
-            document.getElementById('countProses').innerText = p;
-            document.getElementById('dailyTunai').innerText = "Rp" + (codSukses - totalSetoranGlobal).toLocaleString();
-        }
+    let s=0, g=0, p=0, gd=0, codSukses=0;
+    allOrders.forEach(o => {
+        // 1. Hitung Gudang (Semua paket yang belum diambil kurir)
+        if (o.status === 'Gudang') gd++;
+        
+        // 2. Hitung Sisa/Jalan (Hanya paket yang SUDAH DIAMBIL tapi belum selesai/gagal)
+        // Kita anggap status 'Proses', 'Menunggu', atau 'Urgent' adalah paket di jalan
+        if (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang') p++;
 
+        if (o.tanggal === tglTarget) {
+            if (o.status === 'Terkirim') s++;
+            else if (o.status === 'Gagal') g++;
+        }
+        
+        if (o.status === 'Terkirim' && o.metode === 'COD') codSukses += Number(o.total || 0);
+    });
+
+    // Pasang angkanya ke layar
+    document.getElementById('countGudang').innerText = gd;
+    document.getElementById('countProses').innerText = p;
+    document.getElementById('countSukses').innerText = s;
+    document.getElementById('countGagal').innerText = g;
+    document.getElementById('dailyTunai').innerText = "Rp" + (codSukses - totalSetoranGlobal).toLocaleString();
+}
         function renderList() {
     // Ambil inputan dari kolom cari
     const keyword = document.getElementById('searchBar').value.toLowerCase();
@@ -432,20 +444,23 @@ db.ref('pesanan').limitToLast(500).on('value', snap => {
     
     // Filter data dengan logika "Cerdas"
     const filtered = allOrders.filter(o => {
-        const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword) || 
-                            (o.noPesanan || "").toLowerCase().includes(keyword);
-        
-        let matchStatus;
-        if (currentFilter === "Semua") {
-            // Tab SISA: Cari global (biar ketemu meski beda tanggal)
-            matchStatus = (o.status !== 'Terkirim' && o.status !== 'Gagal');
-        } else {
-            // Tab Sukses/Cancel: Per tanggal agar rapi
-            matchStatus = (o.status === currentFilter && o.tanggal === tglAktif);
-        }
-        
-        return matchSearch && matchStatus;
-    });
+    const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword) || 
+                        (o.noPesanan || "").toLowerCase().includes(keyword);
+    
+    let matchStatus;
+    if (currentFilter === "Semua") {
+        // Tab SISA: Munculkan yang sudah dibawa kurir (status 'Proses' atau 'Menunggu')
+        matchStatus = (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang');
+    } else if (currentFilter === "Gudang") {
+        // Tab gudang: Munculkan yang baru saja dipacking
+        matchStatus = (o.status === 'Gudang');
+    } else {
+        // Tab Sukses/Cancel: Berdasarkan tanggal
+        matchStatus = (o.status === currentFilter && o.tanggal === tglAktif);
+    }
+    
+    return matchSearch && matchStatus;
+});
 
     if(filtered.length === 0) {
         html = `<p style="text-align:center; opacity:0.5; padding:20px;">Data tidak ditemukan.</p>`;
@@ -512,7 +527,7 @@ ${o.catatanKurir ? `<div style="font-size:11px; color:var(--gold); margin-top:5p
         total: document.getElementById('total').value || 0, 
         metode: document.getElementById('metodeBayar').value,
         urgent: document.getElementById('isUrgent').checked,
-        status: 'Menunggu', 
+        status: 'Gudang', 
         tanggal: formatTglDB(n), 
         waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
     };
@@ -793,6 +808,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
