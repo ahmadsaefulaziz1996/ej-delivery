@@ -138,194 +138,178 @@
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
     <script>
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAVQGysGRlYJ2b4PekM3vaXKtx6UFvNlCk", 
-            databaseURL: "https://ej-tobacco-express-default-rtdb.asia-southeast1.firebasedatabase.app" 
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let currentTab = 'Proses', allData = [], totalSetoranGlobal = 0, lastCount = 0, audioIzin = false;
-
-        // --- FUNGSI TOOLS ---
-        function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
-        
-        function extractCoords(url) {
-            try {
-                const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
-                const match = url.match(regex);
-                if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
-                return null;
-            } catch (e) { return null; }
-        }
-
-        function hitungJarak(lat1, lon1, lat2, lon2) {
-            const R = 6371e3;
-            const φ1 = lat1 * Math.PI/180;
-            const φ2 = lat2 * Math.PI/180;
-            const Δφ = (lat2-lat1) * Math.PI/180;
-            const Δλ = (lon2-lon1) * Math.PI/180;
-            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))); 
-        }
-
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
-
-        // --- DATABASE LISTENER ---
-        db.ref('pesanan').limitToLast(500).on('value', snap => {
-            const val = snap.val();
-            allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
-            
-            if (lastCount > 0 && allData.length > lastCount && audioIzin) {
-                const snd = document.getElementById('notifSound');
-                snd.currentTime = 0; snd.play();
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            }
-            lastCount = allData.length;
-            updateUI();
-        });
-
-        db.ref('setoran').on('value', snap => {
-            totalSetoranGlobal = Object.values(snap.val() || {}).reduce((a, b) => a + b, 0);
-            updateUI();
-        });
-
-        // --- UI FUNCTIONS ---
-        function updateUI() {
-            const today = getTgl();
-            let p=0, s=0, g=0, codTotal=0;
-
-            allData.forEach(o => {
-                const isToday = o.tanggal === today;
-                if (o.status === 'Terkirim' && o.metode === 'COD') codTotal += Number(o.total || 0);
-                if (o.status !== 'Terkirim' && o.status !== 'Gagal') p++;
-                else if (o.status === 'Terkirim' && isToday) s++;
-                else if (o.status === 'Gagal' && isToday) g++;
-            });
-
-            document.getElementById('c-Proses').innerText = p;
-            document.getElementById('c-Terkirim').innerText = s;
-            document.getElementById('c-Gagal').innerText = g;
-            document.getElementById('totalCOD').innerText = "Rp " + (codTotal - totalSetoranGlobal).toLocaleString();
-            renderOrders();
-        }
-
-        function renderOrders() {
-            const container = document.getElementById('orderContainer');
-            const search = document.getElementById('searchOrder').value.toLowerCase();
-            const today = getTgl();
-            container.innerHTML = "";
-
-            const filtered = allData.filter(o => {
-                const matchName = (o.namaPembeli || "").toLowerCase().includes(search) || (o.noPesanan || "").toLowerCase().includes(search);
-                if (currentTab === 'Proses') return matchName && (o.status !== 'Terkirim' && o.status !== 'Gagal');
-                return matchName && (o.status === currentTab && o.tanggal === today);
-            });
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.3;">Data tidak ditemukan.</div>`;
-                return;
-            }
-
-            filtered.forEach(o => {
-                const badgeBg = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
-                const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
-                
-                container.innerHTML += `
-                    <div class="glass-card">
-                        <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
-                        <span style="font-size:10px; color:var(--gold); font-weight:800;">${o.noPesanan}</span>
-                        <h3 style="margin: 5px 0;">${o.namaPembeli}</h3>
-                        <p style="font-size:12px; opacity:0.7; margin-bottom:10px;">📍 ${o.alamat}</p>
-                        <div style="font-weight:800; color:var(--safe); font-size:13px;">TAGIHAN: Rp ${Number(o.total).toLocaleString()} (${o.metode})</div>
-                        
-                        ${o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
-                            <a href="https://wa.me/${waNum}" class="btn btn-wa">💬 HUBUNGI PEMBELI</a>
-                            ${o.mapLink ? `<a href="${o.mapLink}" class="btn btn-maps" target="_blank">🗺️ PENUNJUK JALAN</a>` : ''}
-                            <div class="btn-group">
-                                <button class="btn btn-success" onclick="document.getElementById('f-${o.id}').click()">✅ SELESAI</button>
-                                <button class="btn btn-warning" onclick="updateStat('${o.id}', 'Tunda')">⚠️ TUNDA</button>
-                            </div>
-                            <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')">❌ CANCEL / GAGAL</button>
-                        ` : (o.buktiFoto ? `<button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px solid var(--gold); color:var(--gold);" onclick="preview('${o.buktiFoto}')">👁️ LIHAT FOTO BUKTI</button>` : '')}
-                        
-                        <input type="file" id="f-${o.id}" accept="image/*" capture="camera" style="display:none;" onchange="upload('${o.id}', this)">
-                    </div>
-                `;
-            });
-        }
-
-        function setTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('t-' + tab).classList.add('active');
-            renderOrders();
-        }
-
-        function updateStat(id, stat) {
-            const alasan = prompt("Masukkan Alasan:");
-            if (alasan) {
-                db.ref('pesanan/' + id).update({ status: stat, alasanTunda: alasan, waktuUpdate: new Date().toLocaleTimeString() });
-            }
-        }
-
-        function upload(id, input) {
-    // LANGSUNG GAS UPLOAD TANPA CEK JARAK
-    gasUpload(id, input);
-}
-
-        function gasUpload(id, input) {
-    // Kurir diminta isi catatan singkat (opsional)
-    const catatan = prompt("Catatan Tambahan (Contoh: Titip Satpam / Diterima Istri):") || "-";
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        db.ref('pesanan/' + id).update({
-            status: 'Terkirim',
-            buktiFoto: e.target.result,
-            catatanKurir: catatan, // Data baru tersimpan di Firebase
-            waktuSelesai: new Date().toLocaleTimeString()
-        }).then(() => alert("✅ Berhasil Terkirim dengan Catatan!"));
+    const firebaseConfig = { 
+        apiKey: "AIzaSyAVQGysGRlYJ2b4PekM3vaXKtx6UFvNlCk", 
+        databaseURL: "https://ej-tobacco-express-default-rtdb.asia-southeast1.firebasedatabase.app" 
     };
-    reader.readAsDataURL(input.files[0]);
-}
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        function preview(src) { document.getElementById('imgPreview').src = src; document.getElementById('modalView').style.display = 'flex'; }
+    let currentTab = 'Proses', allData = [], totalSetoranGlobal = 0, lastCount = 0, audioIzin = false;
 
-        function aktifkanSuara() {
+    // --- FUNGSI TOOLS ---
+    function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
+    
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
+
+    // --- DATABASE LISTENER (SUDAH DIPERBAIKI) ---
+    db.ref('pesanan').limitToLast(500).on('value', snap => {
+        const val = snap.val();
+        allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
+        
+        // Logika Notifikasi Suara
+        if (lastCount > 0 && allData.length > lastCount && audioIzin) {
             const snd = document.getElementById('notifSound');
-            snd.play().then(() => {
-                snd.pause(); audioIzin = true;
-                const b = document.getElementById('notifBanner');
-                b.innerHTML = "✅ NOTIFIKASI SUARA AKTIF";
-                setTimeout(() => b.style.display = 'none', 2000);
-            });
+            if(snd) { snd.currentTime = 0; snd.play(); }
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+        lastCount = allData.length;
+        updateUI();
+    });
+
+    db.ref('setoran').on('value', snap => {
+        totalSetoranGlobal = Object.values(snap.val() || {}).reduce((a, b) => a + b, 0);
+        updateUI();
+    });
+
+    // --- UI FUNCTIONS ---
+    function updateUI() {
+        const today = getTgl();
+        let p=0, s=0, g=0, codTotal=0;
+
+        allData.forEach(o => {
+            const isToday = o.tanggal === today;
+            if (o.status === 'Terkirim' && o.metode === 'COD') codTotal += Number(o.total || 0);
+            if (o.status !== 'Terkirim' && o.status !== 'Gagal') p++;
+            else if (o.status === 'Terkirim' && isToday) s++;
+            else if (o.status === 'Gagal' && isToday) g++;
+        });
+
+        document.getElementById('c-Proses').innerText = p;
+        document.getElementById('c-Terkirim').innerText = s;
+        document.getElementById('c-Gagal').innerText = g;
+        document.getElementById('totalCOD').innerText = "Rp " + (codTotal - totalSetoranGlobal).toLocaleString();
+        renderOrders();
+    }
+
+    function renderOrders() {
+        const container = document.getElementById('orderContainer');
+        const search = document.getElementById('searchOrder').value.toLowerCase();
+        const today = getTgl();
+        container.innerHTML = "";
+
+        const filtered = allData.filter(o => {
+            const matchName = (o.namaPembeli || "").toLowerCase().includes(search) || (o.noPesanan || "").toLowerCase().includes(search);
+            if (currentTab === 'Proses') return matchName && (o.status !== 'Terkirim' && o.status !== 'Gagal');
+            return matchName && (o.status === currentTab && o.tanggal === today);
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.3;">Data tidak ditemukan.</div>`;
+            return;
         }
 
-        function updateStatusInternet() {
-            const lampu = document.getElementById('lampuKoneksi');
-            const teks = document.getElementById('teksKoneksi');
-            const allButtons = document.querySelectorAll('.btn');
+        filtered.forEach(o => {
+            const badgeBg = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
+            const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
             
-            if (navigator.onLine) {
-                db.goOnline();
-                if(lampu) { lampu.style.background = "var(--safe)"; lampu.style.boxShadow = "0 0 10px var(--safe)"; }
-                if(teks) teks.innerText = "ONLINE";
-                allButtons.forEach(btn => btn.classList.remove('btn-disabled'));
-            } else {
-                db.goOffline();
-                if(lampu) { lampu.style.background = "var(--danger)"; lampu.style.boxShadow = "0 0 10px var(--danger)"; }
-                if(teks) teks.innerText = "OFFLINE";
-                allButtons.forEach(btn => btn.classList.add('btn-disabled'));
-            }
-        }
+            container.innerHTML += `
+                <div class="glass-card">
+                    <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
+                    <span style="font-size:10px; color:var(--gold); font-weight:800;">${o.noPesanan}</span>
+                    <h3 style="margin: 5px 0;">${o.namaPembeli}</h3>
+                    <p style="font-size:12px; opacity:0.7; margin-bottom:10px;">📍 ${o.alamat}</p>
+                    <div style="font-weight:800; color:var(--safe); font-size:13px;">TAGIHAN: Rp ${Number(o.total).toLocaleString()} (${o.metode})</div>
+                    
+                    ${o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
+                        <a href="https://wa.me/${waNum}" class="btn btn-wa">💬 HUBUNGI PEMBELI</a>
+                        ${o.mapLink ? `<a href="${o.mapLink}" class="btn btn-maps" target="_blank">🗺️ PENUNJUK JALAN</a>` : ''}
+                        <div class="btn-group">
+                            <button class="btn btn-success" onclick="document.getElementById('f-${o.id}').click()">✅ SELESAI</button>
+                            <button class="btn btn-warning" onclick="updateStat('${o.id}', 'Tunda')">⚠️ TUNDA</button>
+                        </div>
+                        <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')">❌ CANCEL / GAGAL</button>
+                    ` : (o.buktiFoto ? `<button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px solid var(--gold); color:var(--gold);" onclick="preview('${o.buktiFoto}')">👁️ LIHAT FOTO BUKTI</button>` : '')}
+                    
+                    <input type="file" id="f-${o.id}" accept="image/*" capture="camera" style="display:none;" onchange="upload('${o.id}', this)">
+                </div>
+            `;
+        });
+    }
 
-        window.addEventListener('online', updateStatusInternet);
-        window.addEventListener('offline', updateStatusInternet);
-        updateStatusInternet();
-    </script>
+    function setTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('t-' + tab).classList.add('active');
+        renderOrders();
+    }
+
+    function updateStat(id, stat) {
+        const alasan = prompt("Masukkan Alasan:");
+        if (alasan) {
+            db.ref('pesanan/' + id).update({ status: stat, alasanTunda: alasan, waktuUpdate: new Date().toLocaleTimeString() });
+        }
+    }
+
+    function upload(id, input) {
+        // FITUR RADIUS DIMATIKAN SESUAI REQUEST
+        gasUpload(id, input);
+    }
+
+    function gasUpload(id, input) {
+        const catatan = prompt("Catatan Tambahan (Contoh: Titip Satpam / Diterima Istri):") || "-";
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            db.ref('pesanan/' + id).update({
+                status: 'Terkirim',
+                buktiFoto: e.target.result,
+                catatanKurir: catatan,
+                waktuSelesai: new Date().toLocaleTimeString()
+            }).then(() => {
+                alert("✅ Berhasil Terkirim!");
+                input.value = ""; // Reset input file
+            });
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    function preview(src) { document.getElementById('imgPreview').src = src; document.getElementById('modalView').style.display = 'flex'; }
+
+    function aktifkanSuara() {
+        const snd = document.getElementById('notifSound');
+        snd.play().then(() => {
+            snd.pause(); audioIzin = true;
+            const b = document.getElementById('notifBanner');
+            b.innerHTML = "✅ NOTIFIKASI SUARA AKTIF";
+            setTimeout(() => b.style.display = 'none', 2000);
+        });
+    }
+
+    function updateStatusInternet() {
+        const lampu = document.getElementById('lampuKoneksi');
+        const teks = document.getElementById('teksKoneksi');
+        const allButtons = document.querySelectorAll('.btn');
+        
+        if (navigator.onLine) {
+            db.goOnline();
+            if(lampu) { lampu.style.background = "var(--safe)"; lampu.style.boxShadow = "0 0 10px var(--safe)"; }
+            if(teks) teks.innerText = "ONLINE";
+            allButtons.forEach(btn => btn.classList.remove('btn-disabled'));
+        } else {
+            db.goOffline();
+            if(lampu) { lampu.style.background = "var(--danger)"; lampu.style.boxShadow = "0 0 10px var(--danger)"; }
+            if(teks) teks.innerText = "OFFLINE";
+            allButtons.forEach(btn => btn.classList.add('btn-disabled'));
+        }
+    }
+
+    window.addEventListener('online', updateStatusInternet);
+    window.addEventListener('offline', updateStatusInternet);
+    updateStatusInternet();
+</script>
 </body>
 </html>
+
 
 
 
