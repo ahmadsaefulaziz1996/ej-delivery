@@ -11,84 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-    /* --- 1. ATURAN GLOBAL (ANTI-BROWSER & GAGAH) --- */
-    * { 
-        box-sizing: border-box; 
-        margin: 0; 
-        padding: 0; 
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        
-        /* Hilangkan kotak biru browser saat diklik */
-        -webkit-tap-highlight-color: transparent; 
-        
-        /* Kunci teks agar tidak bisa di-blok (Anti-Copas) */
-        -webkit-user-select: none;
-        user-select: none;
-        
-        /* Hilangkan menu tekan lama di iPhone */
-        -webkit-touch-callout: none;
-
-        /* --- SEMBUNYIKAN GARIS ABU-ABU (SCROLLBAR) --- */
-/* Untuk Chrome, Safari, dan Opera (Android/iPhone) */
-::-webkit-scrollbar {
-    display: none;
-}
-    }
-
-html, body { 
-    background: var(--bg); 
-    color: var(--text-main); 
-    /* 1. Kecilkan padding pinggir agar tidak ada ruang kosong lebar */
-    padding: 10px; 
-    margin: 0;
-    width: 100%;
-    /* 2. Kunci layar agar tidak goyang kanan-kiri */
-    overflow-x: hidden;
-    overscroll-behavior: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.glass-card { 
-    background: var(--glass); 
-    border: 1px solid var(--glass-border); 
-    border-radius: 20px; 
-    padding: 20px; 
-    margin-bottom: 15px; 
-    /* 3. Pastikan lebar kartu 100% dari area body */
-    width: 100%; 
-    display: block;
-}
-
-/* 4. Pastikan grid status juga memenuhi lebar */
-.report-grid { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr 1fr; 
-    gap: 8px; 
-    margin-bottom: 12px; 
-    width: 100%;
-}
-
-
-    /* Pengecualian: Kolom isian harus tetap bisa diketik & di-blok teksnya */
-    input, textarea {
-        -webkit-user-select: text;
-        user-select: text;
-    }
-
-    /* Logo tidak bisa ditarik/digeser */
-    img {
-        pointer-events: none;
-        -webkit-user-drag: none;
-    }
-
-    /* Hilangkan garis biru fokus pada Chrome Mobile */
-    input:focus, textarea:focus, select:focus {
-        outline: none !important;
-        box-shadow: none !important;
-    }
-
-    /* --- 2. VARIABLE WARNA --- */
+<style>
+    /* --- 1. VARIABLE WARNA (IDENTITAS EJ TOBACCO) --- */
     :root { 
         --gold: #D4AF37; 
         --bg: #050505; 
@@ -101,23 +25,68 @@ html, body {
         --wa: #25D366; 
     }
 
-    /* --- 3. KOMPONEN DASHBOARD --- */
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    /* --- 2. ATURAN GLOBAL (KUNCI LAYAR & ANTI-BROWSER) --- */
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        -webkit-tap-highlight-color: transparent; /* Hapus kotak biru saat klik */
+        -webkit-user-select: none; /* Anti-Blok Teks */
+        user-select: none;
+        -webkit-touch-callout: none; /* Anti menu tekan lama */
+    }
+
+    html, body { 
+        background: var(--bg); 
+        color: var(--text-main); 
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        padding: 12px; /* Padding ideal: mepet tapi tetap elegan */
+        overflow-x: hidden; /* Kunci agar tidak goyang kanan-kiri */
+        overscroll-behavior: none; /* Anti membal/bounce saat scroll */
+        touch-action: pan-y; /* Kunci mati fitur Zooming */
+    }
+
+    /* Pengecualian: Input & Textarea harus tetap bisa diketik & copas */
+    input, textarea {
+        -webkit-user-select: text;
+        user-select: text;
+        width: 100%; /* Pastikan input melebar penuh */
+    }
+
+    /* Sembunyikan garis abu-abu scrollbar agar tampilan bersih */
+    ::-webkit-scrollbar { display: none; }
+
+    img {
+        pointer-events: none;
+        -webkit-user-drag: none;
+    }
+
+    /* --- 3. KOMPONEN DASHBOARD (SINKRONISASI LAYAR) --- */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; width: 100%; }
     .logo-text-container { display: flex; flex-direction: column; gap: 2px; }
     .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; }
     .sub-logo-text { color: var(--text-main); font-weight: 400; font-size: 11px; opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; }
 
-    .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-    .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; }
+    /* Grid Statistik Harian */
+    .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; width: 100%; }
+    .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; width: 100%; }
     .report-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
     .report-box span { font-size: 7px; font-weight: 800; color: var(--gold); text-transform: uppercase; }
     .report-box b { display: block; font-size: 14px; margin-top: 4px; }
 
-    .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
+    /* Card Box (Melebar Penuh) */
+    .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; width: 100%; }
+    
     input, textarea, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
+    input:focus, textarea:focus { outline: none !important; border-color: var(--gold); }
+
     .btn-main { background: linear-gradient(135deg, #F7E08C, #D4AF37); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; }
     
-    .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
+    /* Daftar Pesanan */
+    .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; width: 100%; }
     .btn-small { padding: 10px; border-radius: 8px; font-weight: 800; font-size: 10px; text-align: center; color: white; border: none; cursor: pointer; }
     
     .modal-foto { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; }
@@ -144,6 +113,7 @@ html, body {
     }
     .num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
 </style>
+
 </head>
 <body>
 
