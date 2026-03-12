@@ -25,30 +25,46 @@
         --wa: #25D366; 
     }
 
-    /* --- 2. ATURAN GLOBAL (KUNCI LAYAR & ANTI-BROWSER) --- */
-    * { 
-        box-sizing: border-box; 
-        margin: 0; 
-        padding: 0; 
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        -webkit-tap-highlight-color: transparent; /* Hapus kotak biru saat klik */
-        -webkit-user-select: none; /* Anti-Blok Teks */
-        user-select: none;
-        -webkit-touch-callout: none; /* Anti menu tekan lama */
-    }
+  /* --- 1. ATURAN GLOBAL (SCROLL 1 JARI LANCAR) --- */
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    
+    /* Kunci zoom tapi tetep bolehin scroll 1 jari */
+    touch-action: manipulation; 
+}
 
-    html, body { 
+html, body { 
     background: var(--bg); 
     color: var(--text-main); 
     width: 100%;
-    /* Gunakan min-height agar kalau data banyak tetap bisa di-scroll ke bawah */
-    min-height: 100vh;
     margin: 0;
-    padding: 12px; 
-    /* Hapus touch-action yang tadi biar scroll kembali normal */
-    overflow-x: hidden; /* Tetap kunci kiri-kanan agar tidak goyang */
-    -webkit-overflow-scrolling: touch; /* Biar scroll-nya halus/smooth di iPhone */
+    padding: 12px;
+    
+    /* Kunci agar tidak goyang kanan-kiri */
+    overflow-x: hidden; 
+    
+    /* Penting: Biarkan browser ngatur scroll atas bawah sendiri */
+    overflow-y: auto; 
+    
+    /* Hilangkan efek membal yang bikin risih */
+    overscroll-behavior-y: none; 
 }
+
+/* --- 2. ANTI-BLOK TEKS (Kecuali kolom ketikan) --- */
+body {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 
 /* Kunci zoom lewat cara yang lebih halus agar tidak mematikan scroll */
 * {
