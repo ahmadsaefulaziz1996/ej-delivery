@@ -38,16 +38,22 @@
     }
 
     html, body { 
-        background: var(--bg); 
-        color: var(--text-main); 
-        width: 100%;
-        min-height: 100vh;
-        margin: 0;
-        padding: 12px; /* Padding ideal: mepet tapi tetap elegan */
-        overflow-x: hidden; /* Kunci agar tidak goyang kanan-kiri */
-        overscroll-behavior: none; /* Anti membal/bounce saat scroll */
-        touch-action: pan-y; /* Kunci mati fitur Zooming */
-    }
+    background: var(--bg); 
+    color: var(--text-main); 
+    width: 100%;
+    /* Gunakan min-height agar kalau data banyak tetap bisa di-scroll ke bawah */
+    min-height: 100vh;
+    margin: 0;
+    padding: 12px; 
+    /* Hapus touch-action yang tadi biar scroll kembali normal */
+    overflow-x: hidden; /* Tetap kunci kiri-kanan agar tidak goyang */
+    -webkit-overflow-scrolling: touch; /* Biar scroll-nya halus/smooth di iPhone */
+}
+
+/* Kunci zoom lewat cara yang lebih halus agar tidak mematikan scroll */
+* {
+    touch-action: manipulation;
+}
 
     /* Pengecualian: Input & Textarea harus tetap bisa diketik & copas */
     input, textarea {
