@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>EJ DELIVERY - KURIR PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
    <style>
@@ -32,8 +32,13 @@
         min-height: 100vh;
         /* 4. Hilangkan efek membal/mentok saat scroll */
         overscroll-behavior: none;
-        touch-action: pan-x pan-y; /* Hanya boleh scroll, dilarang zoom pakai dua jari */
-    }
+        width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 15px; /* Sesuaikan padding agar tidak terlalu mepet teksnya */
+    overflow-x: hidden; /* Kunci agar tidak bisa geser kanan-kiri */
+    touch-action: pan-y; /* Hanya boleh scroll atas-bawah, dilarang zoom pinch */
+}
 
     /* PENGECUALIAN: Kolom ketikan harus tetap bisa diisi */
     input, textarea {
@@ -355,6 +360,7 @@ function updateStatusInternet() {
     </script>
 </body>
 </html>
+
 
 
 
