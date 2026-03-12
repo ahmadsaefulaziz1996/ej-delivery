@@ -483,29 +483,49 @@
         function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
 
         function tambah() {
-            const n = new Date();
-            const nohpVal = document.getElementById('nohp').value;
-            const d = { 
-                noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), 
-                namaPembeli: document.getElementById('pembeli').value, 
-                nohp: nohpVal, 
-                alamat: document.getElementById('alamat').value, 
-                mapLink: document.getElementById('mapLink').value, 
-                total: document.getElementById('total').value || 0, 
-                metode: document.getElementById('metodeBayar').value, 
-                status: 'Menunggu', 
-                tanggal: formatTglDB(n), 
-                waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
-            };
-            if(!d.namaPembeli || !d.nohp) return alert("Nama & WA wajib!");
-            
-            db.ref('pesanan').limitToLast(500).on('value', snap => {
-    const val = snap.val();
-    allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
-    updateAll(); // Pastikan dashboard langsung update
-});
-        }
+    const n = new Date();
+    const nohpVal = document.getElementById('nohp').value;
+    
+    // 1. Siapkan Data
+    const d = { 
+        noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), 
+        namaPembeli: document.getElementById('pembeli').value, 
+        nohp: nohpVal, 
+        alamat: document.getElementById('alamat').value, 
+        mapLink: document.getElementById('mapLink').value, 
+        total: document.getElementById('total').value || 0, 
+        metode: document.getElementById('metodeBayar').value, 
+        status: 'Menunggu', 
+        tanggal: formatTglDB(n), 
+        waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
+    };
 
+    // 2. Validasi
+    if(!d.namaPembeli || !d.nohp) return alert("Nama & WA wajib!");
+    
+    // 3. PROSES SIMPAN (Gunakan .push untuk mengirim data)
+    db.ref('pesanan').push(d).then(() => { 
+        lastOrder = d; 
+        executePrint(); // Cetak Resi
+        showWANotif(d); // Munculkan prompt WA
+        
+        // --- FITUR PEMBERSIHAN OTOMATIS ---
+        document.getElementById('noPesanan').value = ""; // Bersihkan No Pesanan
+        document.getElementById('pembeli').value = "";
+        document.getElementById('nohp').value = "";
+        document.getElementById('alamat').value = "";
+        document.getElementById('mapLink').value = "";
+        document.getElementById('total').value = "";
+        
+        // Fokuskan kembali ke input Nama Pembeli
+        document.getElementById('pembeli').focus();
+        
+        console.log("✅ Data berhasil disimpan dan input dibersihkan!");
+    }).catch((err) => {
+        alert("❌ Gagal menyimpan: " + err.message);
+    });
+}
+        
         function executePrint() {
             if(!lastOrder) return;
             const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
@@ -720,7 +740,7 @@ function updateStatusInternet() {
         delete dataBaru.id; 
 
         // 1. Simpan data baru ke Firebase
-        db.ref('pesanan').push(dataBaru).then(() => {
+        db.ref('pesanan').limitToLast(500).on('value', snap => {
             
             // 2. KUNCI UTAMA: Hapus data lama dari Firebase agar di tab Cancel hilang
             db.ref('pesanan/' + id).remove().then(() => {
@@ -757,6 +777,7 @@ function updateStatusInternet() {
     
 </body>
 </html>
+
 
 
 
