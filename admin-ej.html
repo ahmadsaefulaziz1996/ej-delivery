@@ -108,15 +108,73 @@
     .btn-small { padding: 10px; border-radius: 8px; font-weight: 800; font-size: 10px; text-align: center; color: white; border: none; cursor: pointer; }
 
     /* --- MODAL & LOGIN (TETAP FULL) --- */
-    .modal-foto, #loginOverlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 99999;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
-    .pin-display { font-size: 35px; letter-spacing: 12px; margin: 30px 0; color: var(--gold); font-weight: 700; }
-    .numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-    .num-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.1); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 24px; cursor: pointer; }
-    
-    #waPrompt { position:fixed; bottom:20px; left:20px; right:20px; background:var(--wa); color:white; padding:20px; border-radius:15px; text-align:center; z-index:10000; display:none; }
+   .modal-foto { 
+    display: none; /* Pastikan ini tertulis agar sembunyi di awal */
+    position: fixed; 
+    inset: 0; /* Mengunci semua sisi (Atas, Bawah, Kiri, Kanan) */
+    background: rgba(0,0,0,0.95); 
+    z-index: 100000; /* Harus lebih tinggi dari login overlay */
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    backdrop-filter: blur(10px); /* Efek blur biar mewah */
+}
+
+    /* --- LOGIN OVERLAY SYSTEM (REVISI GAHAR) --- */
+#loginOverlay {
+    position: fixed; 
+    inset: 0; 
+    background: #000; 
+    z-index: 999999; /* Paling atas dari segalanya */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+}
+
+.pin-container { 
+    text-align: center; 
+    width: 100%; 
+    max-width: 320px; 
+    padding: 20px; 
+}
+
+.pin-display { 
+    font-size: 40px; 
+    letter-spacing: 15px; 
+    margin: 30px 0; 
+    color: var(--gold); 
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); /* Efek nyala emas */
+}
+
+.numpad { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; 
+    gap: 20px; /* Jarak tombol biar nggak gampang salah pencet */
+    width: 100%; 
+}
+
+.num-btn { 
+    background: rgba(255,255,255,0.03); 
+    border: 1px solid rgba(212, 175, 55, 0.2); 
+    color: #fff; 
+    width: 75px; 
+    height: 75px; 
+    border-radius: 50%; 
+    font-size: 26px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: 0.2s;
+}
+
+/* Efek pas tombol ditekan */
+.num-btn:active { 
+    background: var(--gold); 
+    color: #000; 
+    transform: scale(0.9); 
+}
+
 </style>
 
 
