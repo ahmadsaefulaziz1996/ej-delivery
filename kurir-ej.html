@@ -22,6 +22,32 @@
     /* BARIS SAKTI PENGHILANG WARNA BIRU */
     -webkit-tap-highlight-color: transparent; 
 }
+        /* 2. Kunci agar teks tidak bisa di-blok/seleksi */
+        -webkit-user-select: none;
+        user-select: none;
+        
+        /* 3. Hilangkan menu klik kanan/tekan lama */
+        -webkit-touch-callout: none;
+    }
+
+    /* PENTING: Supaya kolom ketikan tetap bisa diklik/diisi */
+    input, textarea {
+        -webkit-user-select: text;
+        user-select: text;
+        outline: none !important;
+    }
+
+    html, body {
+        /* 4. Hilangkan efek membal/mentok saat scroll */
+        overscroll-behavior: none;
+    }
+
+    img {
+        /* 5. Logo tidak bisa ditarik/digeser */
+        pointer-events: none;
+        -webkit-user-drag: none;
+    }
+    /* --- SELESAI --- */
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
@@ -314,6 +340,7 @@ function updateStatusInternet() {
     </script>
 </body>
 </html>
+
 
 
 
