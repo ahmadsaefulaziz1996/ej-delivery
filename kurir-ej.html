@@ -201,10 +201,7 @@
         const filtered = allData.filter(o => {
             const match = (o.namaPembeli || "").toLowerCase().includes(search) || (o.noPesanan || "").toLowerCase().includes(search);
             if (currentTab === 'Gudang') return match && o.status === 'Gudang';
-            
-            // Kalau bukan Gudang, JANGAN TAMPILKAN MILIK KURIR LAIN
             if (o.kurir !== myName) return false;
-
             if (currentTab === 'Proses') return match && (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang');
             return match && (o.status === currentTab && o.tanggal === today);
         });
@@ -213,21 +210,40 @@
         
         filtered.forEach(o => {
             const badgeBg = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
+            
+            // --- 1. FITUR WA OTOMATIS (Format Rapih & Sopan) ---
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
+            const pesanWA = `Halo Kak *${o.namaPembeli}* 👋\n\nSaya kurir *${myName.toUpperCase()}* dari EJ TOBACCO.\nPosisi saya sudah dekat untuk mengantar paket pesanan Kakak.\n\nMohon siapkan uang pas *Rp ${Number(o.total || 0).toLocaleString('id-ID')}* ya Kak. Terima kasih! 🙏`;
+            const linkWA = `https://wa.me/${waNum}?text=${encodeURIComponent(pesanWA)}`;
+
+            // --- 2. FITUR MAPS LANGSUNG (Baca Link Asli dari Admin) ---
+            let btnMapsHTML = '';
+            if (o.mapLink && o.mapLink.trim() !== "") {
+                // Pastikan link memiliki 'http' agar bisa diklik. Jika belum ada, tambahkan.
+                let linkValid = o.mapLink.trim();
+                if (!linkValid.startsWith("http")) {
+                    linkValid = "https://" + linkValid; 
+                }
+                btnMapsHTML = `<button onclick="window.open('${linkValid}', '_blank')" class="btn btn-maps">🗺️ BUKA MAPS / RUTE</button>`;
+            }
+
             container.innerHTML += `
                 <div class="glass-card ${o.urgent ? 'card-urgent' : ''}">
                     <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
                     <span style="font-size:10px; color:var(--gold); font-weight:800;">${o.noPesanan}</span>
                     <h3 style="margin: 5px 0;">${o.namaPembeli}</h3>
                     <p style="font-size:12px; opacity:0.7; margin-bottom:10px;">📍 ${o.alamat}</p>
-                    <div style="font-weight:800; color:var(--safe); font-size:13px;">TAGIHAN: Rp ${Number(o.total).toLocaleString()} (${o.metode})</div>
+                    <div style="font-weight:800; color:var(--safe); font-size:13px; margin-bottom:10px;">TAGIHAN: Rp ${Number(o.total || 0).toLocaleString('id-ID')} (${o.metode})</div>
+                    
                     ${o.status === 'Gudang' ? `
                         <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="ambilPaket('${o.id}')">📦 KLAIM & AMBIL PAKET INI</button>
                     ` : (o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
-                        <a href="https://wa.me/${waNum}" class="btn btn-wa">💬 HUBUNGI PEMBELI</a>
-                        ${o.mapLink ? `<a href="${o.mapLink}" class="btn btn-maps" target="_blank">🗺️ PENUNJUK JALAN</a>` : ''}
+                        
+                        <button onclick="window.open('${linkWA}', '_blank')" class="btn btn-wa">💬 HUBUNGI PEMBELI (WA)</button>
+                        ${btnMapsHTML}
+                        
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
-                            <button class="btn btn-success" onclick="document.getElementById('f-${o.id}').click()">✅ SELESAI</button>
+                            <button class="btn btn-success" onclick="document.getElementById('f-${o.id}').click()">✅ SELESAI (FOTO)</button>
                             <button class="btn btn-warning" onclick="updateStat('${o.id}', 'Tunda')">⚠️ TUNDA</button>
                         </div>
                         <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')">❌ CANCEL / GAGAL</button>
@@ -237,7 +253,6 @@
             `;
         });
     }
-
     function setTab(tab) {
         currentTab = tab;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -340,4 +355,5 @@
 </script>
 </body>
 </html>
+
 
