@@ -105,7 +105,7 @@
             </div>
         </div>
         
-        <button onclick="tambahPengeluaran()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; width: 100%; padding: 12px; border-radius: 12px; margin-top: 15px; font-weight: 800; font-size: 10px; cursor: pointer;">✍️ CATAT PENGELUARAN (BENSIN / PARKIR)</button>
+        <button onclick="tambahPengeluaran()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; width: 100%; padding: 12px; border-radius: 12px; margin-top: 15px; font-weight: 800; font-size: 10px; cursor: pointer;">✍️ CATAT PENGELUARAN</button>
     </div>
 
     <button class="btn btn-scan" id="btnScanMain" onclick="toggleScanner()">📷 SCAN BARCODE (AMBIL DARI GUDANG)</button>
@@ -196,7 +196,7 @@
 
     // FUNGSI TOMBOL CATAT PENGELUARAN
     function tambahPengeluaran() {
-        const ket = prompt("Untuk apa pengeluaran ini?\n(Contoh: Bensin, Parkir, Tambal Ban)");
+        const ket = prompt("Untuk apa pengeluaran ini?\n(isi alasannya)");
         if (!ket) return;
         const nom = prompt("Berapa nominalnya? (HANYA ANGKA)\n(Contoh: 15000)");
         if (!nom || isNaN(nom)) return alert("⚠️ Nominal tidak valid! Masukkan angka saja.");
@@ -433,6 +433,7 @@
     </script>
 </body>
 </html>
+
 
 
 
