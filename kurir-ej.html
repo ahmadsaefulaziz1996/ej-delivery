@@ -171,12 +171,14 @@
         document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
     }
         
+    // --- 1. AMBIL PESANAN ---
     db.ref('pesanan').limitToLast(100).on('value', snap => {
         const val = snap.val();
         allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
         if (myName !== "") updateUI();
     });
 
+    // --- 2. AMBIL PENGELUARAN (BENSIN DLL) ---
     let totalPengeluaranKu = 0;
     db.ref('pengeluaran').on('value', snap => {
         const val = snap.val();
@@ -188,6 +190,21 @@
                     totalPengeluaranKu += Number(p.nominal || 0);
                 }
             });
+        }
+        if (myName !== "") updateUI();
+    });
+
+    // --- 3. AMBIL DATA SETORAN (YANG SUDAH DIKASIH KE ADMIN) ---
+    let setoranSaya = 0;
+    db.ref('setoran_kurir').on('value', snap => {
+        const allSetoran = snap.val() || {};
+        const todayKey = getTgl().replace(/\//g, '-');
+        
+        // Cek apakah ada data setoran untuk kurir ini di hari ini
+        if (allSetoran[todayKey] && allSetoran[todayKey][myName]) {
+            setoranSaya = Number(allSetoran[todayKey][myName]);
+        } else {
+            setoranSaya = 0;
         }
         if (myName !== "") updateUI();
     });
@@ -209,6 +226,7 @@
         }).catch(err => alert("Gagal mencatat: " + err.message));
     }
 
+    // --- FUNGSI UPDATE LAYAR HP KURIR ---
     function updateUI() {
         const today = getTgl();
         let gd=0, p=0, s=0, g=0, codDompetKu=0;
@@ -233,8 +251,8 @@
         document.getElementById('totalCOD').innerText = "Rp " + codDompetKu.toLocaleString('id-ID');
         document.getElementById('totalPengeluaran').innerText = "Rp " + totalPengeluaranKu.toLocaleString('id-ID');
         
-        // RUMUS: Total Uang yg harus diserahkan ke Bos
-        const bersih = codDompetKu - totalPengeluaranKu;
+        // RUMUS FINAL: Total COD - Pengeluaran Bensin - Uang yg sudah disetor ke Admin
+        const bersih = codDompetKu - totalPengeluaranKu - setoranSaya;
         document.getElementById('setoranBersih').innerText = "Rp " + (bersih < 0 ? 0 : bersih).toLocaleString('id-ID');
         
         renderOrders();
