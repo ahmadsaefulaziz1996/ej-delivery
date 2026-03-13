@@ -247,7 +247,7 @@
                             <button class="btn btn-warning" onclick="updateStat('${o.id}', 'Tunda')">⚠️ TUNDA</button>
                         </div>
                         <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')">❌ CANCEL / GAGAL</button>
-                    ` : (o.buktiFoto ? `<button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px solid var(--gold); color:var(--gold);" onclick="preview('${o.buktiFoto}')">👁️ LIHAT FOTO BUKTI</button>` : ''))}
+                    ` : ((o.adaFoto || o.buktiFoto) ? `<button class="btn" style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px solid var(--gold); color:var(--gold);" onclick="preview('${o.id}', '${o.buktiFoto || ''}')">👁️ LIHAT FOTO BUKTI</button>` : ''))}
                     <input type="file" id="f-${o.id}" accept="image/*" capture="environment" style="display:none;" onchange="uploadSelesai('${o.id}', this)">
                 </div>
             `;
@@ -303,17 +303,32 @@
                 const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                 const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
-                db.ref('pesanan/' + id).update({ status: 'Terkirim', buktiFoto: compressedDataUrl, catatanKurir: catatan, waktuSelesai: new Date().toLocaleTimeString() }).then(() => { 
-                    if(o) catatBukuKas(o.tanggal, 'Sukses', Number(o.total || 0), o.metode); 
-                    alert("✅ Berhasil Terkirim!"); input.value = ""; 
-                }).catch(err => alert("❌ Gagal Terkirim: " + err.message));
+                // 1. Simpan foto ke kamar terpisah dulu
+db.ref('foto_bukti/' + id).set(compressedDataUrl).then(() => {
+    // 2. Setelah foto tersimpan, baru update pesanan (tanpa teks foto yang berat)
+    db.ref('pesanan/' + id).update({ 
+        status: 'Terkirim', 
+        adaFoto: true, // Beri tanda kalau pesanan ini ada fotonya
+        catatanKurir: catatan, 
+        waktuSelesai: new Date().toLocaleTimeString() 
+    }).then(() => { 
+        if(o) catatBukuKas(o.tanggal, 'Sukses', Number(o.total || 0), o.metode); 
+        alert("✅ Berhasil Terkirim!"); input.value = ""; 
+    }).catch(err => alert("❌ Gagal Update Pesanan: " + err.message));
+}).catch(err => alert("❌ Gagal Upload Foto: " + err.message));
             }
             img.src = e.target.result;
         }
         reader.readAsDataURL(file);
     }
 
-    function preview(src) { document.getElementById('imgPreview').src = src; document.getElementById('modalView').style.display = 'flex'; }
+    function preview(id, oldSrc) { 
+    document.getElementById('modalView').style.display = 'flex'; 
+    const img = document.getElementById('imgPreview');
+    img.src = "";
+    if (oldSrc && oldSrc.length > 100) { img.src = oldSrc; } 
+    else { db.ref('foto_bukti/' + id).once('value').then(snap => { if(snap.exists()) img.src = snap.val(); }); }
+}
     function toggleScanner() { const r = document.getElementById('reader'); if (r.style.display === 'block') stopScanner(); else startScanner(); }
 
     function startScanner() {
@@ -355,5 +370,6 @@
 </script>
 </body>
 </html>
+
 
 
