@@ -364,17 +364,54 @@
         function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
         function tambah() {
             const n = new Date();
-            const d = { noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), namaPembeli: document.getElementById('pembeli').value, nohp: document.getElementById('nohp').value, alamat: document.getElementById('alamat').value, mapLink: document.getElementById('mapLink').value, total: document.getElementById('total').value || 0, metode: document.getElementById('metodeBayar').value, urgent: document.getElementById('isUrgent').checked, status: 'Gudang', kurir: "", tanggal: formatTglDB(n), waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) };
+            const d = { 
+                noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), 
+                namaPembeli: document.getElementById('pembeli').value, 
+                nohp: document.getElementById('nohp').value, 
+                alamat: document.getElementById('alamat').value, 
+                mapLink: document.getElementById('mapLink').value, 
+                total: document.getElementById('total').value || 0, 
+                metode: document.getElementById('metodeBayar').value, 
+                urgent: document.getElementById('isUrgent').checked, 
+                status: 'Gudang', 
+                kurir: "", 
+                tanggal: formatTglDB(n), 
+                waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
+            };
+            
             if(!d.namaPembeli || !d.nohp) return alert("Nama & WA wajib!");
+            
             db.ref('pesanan').push(d).then(() => { 
-                lastOrder = d; executePrint(); 
+                lastOrder = d; 
+                executePrint(); 
+                
+                // === FITUR KIRIM WA KE PELANGGAN ===
+                const waNumber = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62'); 
+                const linkMaps = d.mapLink ? `\n📍 Map: ${d.mapLink}` : "";
+                const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang kami proses dan segera diambil kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp ${Number(d.total).toLocaleString('id-ID')}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang pas kalau COD ya Kak. Terima kasih! 🙏`;
+                const urlWA = `https://wa.me/${waNumber}?text=${encodeURIComponent(teksWA)}`;
+                
+                // Munculkan Pop-up WA
                 document.getElementById('waPrompt').style.display = 'block';
+                // Aktifkan tombol WA
+                document.getElementById('btnWAOpen').onclick = () => { 
+                    window.open(urlWA, '_blank'); 
+                    document.getElementById('waPrompt').style.display = 'none'; 
+                };
+                
+                // Bersihkan form setelah input
                 ['noPesanan','pembeli','nohp','alamat','mapLink','total'].forEach(id => document.getElementById(id).value = "");
+                document.getElementById('isUrgent').checked = false;
             });
         }
+
+        // === FITUR STRUK / LABEL PRINT THERMAL LENGKAP ===
         function executePrint() {
-            if(!lastOrder) return; const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
-            const teks80mm = `[C]<font size="big"><b>EJ TOBACCO</b></font>\n[C]NO. RESI : ${lastOrder.noPesanan}\n[L]PENERIMA: ${lastOrder.namaPembeli}\n[L]TOTAL: Rp${Number(lastOrder.total).toLocaleString()}\n[C][b]code128,3,80,${cleanNo},yes\n\n`;
+            if(!lastOrder) return; 
+            const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
+            
+            const teks80mm = `[C]<font size="big"><b>EJ TOBACCO DELIVERY</b></font>\n[C]"belanja semakin nyaman menggunakan aplikasi toko ej"\n[C]================================================\n[C]<font size="big"><b>NO. RESI : ${lastOrder.noPesanan}</b></font>\n[C]================================================\n[L]<b>PENERIMA:</b>\n[L]${lastOrder.namaPembeli}\n[L]No. HP : ${lastOrder.nohp}\n\n[L]<b>ALAMAT PENGIRIMAN:</b>\n[L]${lastOrder.alamat}\n[C]================================================\n[L]METODE PEMBAYARAN: ${lastOrder.metode}\n[L]TOTAL TAGIHAN    : Rp ${Number(lastOrder.total).toLocaleString('id-ID')}\n[C]================================================\n[C][b]code128,3,80,${cleanNo},yes\n\n[C]------------------------------------------------\n[C]Tgl: ${lastOrder.tanggal} ${lastOrder.waktu}\n[C]HARAP VIDIO WAKTU UNBOXING PAKET\n\n\n\n\n`;
+            
             window.location.href = "rawbt:" + encodeURI(teks80mm);
         }
         function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
