@@ -9,33 +9,47 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
     <style>
         :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --warning: #F59E0B; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text-main); padding: 12px; overflow-x: hidden; user-select: none; }
-        input, textarea, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--text-main); width: 100%; margin: 0; padding: 12px; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
+        ::-webkit-scrollbar { display: none; }
+        input, textarea, select { -webkit-user-select: text; user-select: text; width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
+        img { pointer-events: none; -webkit-user-drag: none; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; z-index: 9999; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
-        .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; text-transform: uppercase; animation: goldBreathe 3s ease-in-out infinite; }
-        @keyframes goldBreathe { 0%, 100% { opacity: 1; text-shadow: 0 0 5px var(--gold); } 50% { opacity: 0.7; text-shadow: 0 0 20px var(--gold); } }
+        .logo-text-container { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
+        .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; animation: goldBreathe 3s ease-in-out infinite; }
+        @keyframes goldBreathe { 0% { opacity: 1; text-shadow: 0 0 5px var(--gold); } 50% { opacity: 0.7; text-shadow: 0 0 20px var(--gold); } 100% { opacity: 1; text-shadow: 0 0 5px var(--gold); } }
         .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
         .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 10px 5px; border-radius: 12px; text-align: center; cursor: pointer; font-size: 11px; }
         .report-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
-        .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
+        .report-box b { display: block; font-size: 14px; margin-top: 4px; }
+        .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; width: 100%; }
         .btn-main { background: linear-gradient(135deg, #F7E08C, #D4AF37); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; }
-        .modal-foto { display: none; position: fixed; z-index: 1000000; inset: 0; background: rgba(0,0,0,0.9); flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
+        .btn-small { padding: 10px; border-radius: 8px; font-weight: 800; font-size: 10px; text-align: center; color: white; border: none; cursor: pointer; }
+        .modal-foto { display: none; position: fixed; z-index: 2000000 !important; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .modal-foto img { max-width: 90%; max-height: 75vh; border: 2px solid var(--gold); border-radius: 15px; object-fit: contain; box-shadow: 0 0 30px rgba(212, 175, 55, 0.3); }
         #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .pin-display { font-size: 40px; letter-spacing: 15px; margin: 30px 0; color: var(--gold); font-weight: 800; }
-        .numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-        .num-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 70px; height: 70px; border-radius: 50%; font-size: 24px; font-weight: 600; }
-        @keyframes blinkUrgent { 0%, 100% { border-color: var(--danger); } 50% { border-color: #fff; background: rgba(239, 68, 68, 0.2); } }
-        .card-urgent { animation: blinkUrgent 0.8s infinite !important; border: 2px solid var(--danger) !important; }
+        .pin-container { text-align: center; width: 100%; max-width: 320px; padding: 20px; }
+        .pin-display { font-size: 40px; letter-spacing: 15px; margin: 30px 0; color: var(--gold); font-weight: 800; text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+        .numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; }
+        .num-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 26px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
+        #waPrompt { position: fixed; bottom: 30px; left: 20px; right: 20px; background: var(--wa); color: white; padding: 20px; border-radius: 20px; text-align: center; z-index: 2000000; box-shadow: 0 15px 40px rgba(0,0,0,0.6); display: none; }
+        
+        /* EFEK KEDAP-KEDIP URGENT DI ADMIN */
+        @keyframes blinkUrgent { 0% { border-color: var(--danger); } 50% { border-color: #fff; background: rgba(239, 68, 68, 0.2); } 100% { border-color: var(--danger); } }
+        .card-urgent { animation: blinkUrgent 0.8s infinite !important; border: 2px solid var(--danger) !important; border-radius: 12px; }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
-        <div style="text-align: center;">
-            <h2 style="color:#fff;">EJ ACCESS</h2>
+        <div class="pin-container">
+            <div style="margin-bottom: 20px;"><h2 style="color:#fff; font-size:22px;">EJ ACCESS</h2><p style="color:var(--gold); font-size:11px; letter-spacing:2px;">SECURITY VERIFICATION</p></div>
             <div class="pin-display" id="pinDisplay">****</div>
             <div class="numpad">
                 <button class="num-btn" onclick="pressPin('1')">1</button><button class="num-btn" onclick="pressPin('2')">2</button><button class="num-btn" onclick="pressPin('3')">3</button>
@@ -47,88 +61,118 @@
     </div>
     
     <div class="header">
-        <div><div class="main-logo-text">EJ TOBACCO</div><div style="font-size:9px;">DELIVERY SYSTEM</div></div>
+        <div class="logo-text-container" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+            <div class="main-logo-text">EJ TOBACCO</div>
+            <div class="sub-logo-text" style="font-size:9px; letter-spacing:1px; color:#fff;">DELIVERY SYSTEM</div>
+        </div>
         <div style="text-align: right;">
             <div id="runningClock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
             <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">LOADING...</div>
-            <div style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 3px;">
-                <div id="lampuKoneksi" style="width: 6px; height: 6px; background: var(--safe); border-radius: 50%;"></div>
-                <span id="teksKoneksi" style="font-size: 8px; font-weight: 800;">ONLINE</span>
+            <div id="statusKoneksi" style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 3px;">
+                <div id="lampuKoneksi" style="width: 6px; height: 6px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 10px var(--safe);"></div>
+                <span id="teksKoneksi" style="font-size: 8px; font-weight: 800; color: var(--safe);">ONLINE</span>
             </div>
         </div>
     </div>
 
     <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-        <input type="date" id="datePicker" onchange="changeDate()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; flex: 1; margin:0;">
-        <button onclick="goToToday()" style="background: var(--gold); border: none; border-radius: 12px; padding: 0 15px; font-weight: 800; font-size: 10px;">HARI INI</button>
+        <input type="date" id="datePicker" onchange="changeDate()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; font-weight: 800; flex: 1; margin:0;">
+        <button onclick="goToToday()" style="background: var(--gold); border: none; border-radius: 12px; padding: 0 15px; font-weight: 800; font-size: 10px; color: black; cursor: pointer;">HARI INI</button>
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:15px;">
-        <button onclick="bukaLaporan()" style="background:var(--glass); border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:12px; font-weight:800; font-size:9px;">📊 LAPORAN BULANAN</button>
-        <button onclick="bukaRadar()" style="background:var(--glass); border:1px solid var(--blue); color:var(--blue); padding:10px; border-radius:12px; font-weight:800; font-size:9px;">📡 RADAR KURIR LIVE</button>
+        <button onclick="bukaLaporan()" style="background:var(--glass); border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:12px; font-weight:800; font-size:9px; cursor: pointer;">📊 LAPORAN BULANAN</button>
+        <button onclick="bukaRadar()" style="background:var(--glass); border:1px solid var(--blue); color:var(--blue); padding:10px; border-radius:12px; font-weight:800; font-size:9px; cursor: pointer;">📡 RADAR KURIR LIVE</button>
     </div>
 
-    <div id="radarOverlay" class="modal-foto">
-        <div style="width: 95%; height: 80vh; background: #000; border: 1px solid var(--blue); border-radius: 15px; display: flex; flex-direction: column;">
-            <div style="background: var(--blue); padding: 15px; display: flex; justify-content: space-between;">
-                <span>📡 RADAR KURIR</span>
-                <button onclick="document.getElementById('radarOverlay').style.display='none'">TUTUP</button>
+    <div id="radarOverlay" class="modal-foto" style="padding: 10px; flex-direction: column;">
+        <div style="width: 100%; max-width: 600px; background: #000; border: 1px solid var(--blue); border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; height: 80vh;">
+            <div style="background: var(--blue); color: #fff; padding: 15px; text-align: center; font-weight: 800; display: flex; justify-content: space-between; align-items: center;">
+                <span>📡 RADAR KURIR REAL-TIME</span>
+                <button onclick="document.getElementById('radarOverlay').style.display='none'" style="background: #000; color: #fff; border: none; padding: 5px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;">TUTUP</button>
             </div>
-            <div id="mapRadar" style="flex: 1;"></div>
+            <div id="mapRadar" style="flex: 1; width: 100%; z-index: 1; background: #111;"></div>
         </div>
     </div>
     
     <div class="report-grid">
-        <div class="report-box" id="f-Gudang" onclick="setFilter('Gudang')">Gudang<b id="countGudang" style="display:block;">0</b></div>
-        <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')">Tas Kurir<b id="countProses" style="display:block;">0</b></div>
-        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')">Sukses<b id="countSukses" style="display:block;">0</b></div>
-        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')">Gagal<b id="countGagal" style="display:block;">0</b></div>
+        <div class="report-box" id="f-Gudang" onclick="setFilter('Gudang')" style="border-color: var(--blue);"><span>Gudang</span><b id="countGudang">0</b></div>
+        <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa Jalan</span><b id="countProses">0</b></div>
+        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
+        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Cancel</span><b id="countGagal">0</b></div>
     </div>
 
-    <h3 style="font-size:11px; color:var(--gold); margin-bottom:10px;">💸 KEUANGAN PER KURIR HARI INI</h3>
-    <div id="keuanganKurirContainer" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;"></div>
+    <h3 style="font-size:11px; color:var(--gold); margin-top:20px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">💸 KEUANGAN PER KURIR HARI INI</h3>
+    <div id="keuanganKurirContainer" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+        </div>
 
     <div class="glass-card">
-        <input type="text" id="noPesanan" placeholder="No Pesanan (#001)">
-        <input type="text" id="pembeli" placeholder="Nama Pembeli">
-        <input type="text" id="nohp" placeholder="WhatsApp">
-        <textarea id="alamat" placeholder="Alamat"></textarea>
-        <input type="text" id="mapLink" placeholder="Link Map">
-        <select id="metodeBayar" onchange="toggleTotal()"><option value="COD">COD</option><option value="Transfer">Transfer</option></select>
-        <input type="number" id="total" placeholder="Harga Rp">
-        <label><input type="checkbox" id="isUrgent"> 🔥 PESANAN URGENT</label>
-        <button class="btn-main" onclick="tambah()" style="margin-top:10px;">SIMPAN & PRINT</button>
+        <h3 style="font-size:11px; color:#fff; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">📦 INPUT PESANAN BARU</h3>
+        <input type="text" id="noPesanan" placeholder="No Pesanan (#001)" autocomplete="off">
+        <input type="text" id="pembeli" placeholder="Nama Pembeli" autocomplete="off">
+        <input type="text" id="nohp" placeholder="WhatsApp (08xx)" autocomplete="off">
+        <textarea id="alamat" placeholder="Alamat Lengkap" autocomplete="off"></textarea>
+        <input type="text" id="mapLink" placeholder="Link Google Maps Asli (Opsional)" autocomplete="off">
+        
+        <select id="metodeBayar" onchange="toggleTotal()"><option value="COD">Metode: COD</option><option value="Transfer">Metode: Transfer</option></select>
+        <input type="number" id="total" placeholder="Harga COD (Rp)" autocomplete="off" inputmode="numeric">
+
+        <label style="color: var(--danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; background: rgba(239, 68, 68, 0.05); padding: 10px; border-radius: 10px; border: 1px dashed var(--danger); cursor: pointer;">
+            <input type="checkbox" id="isUrgent" style="width: 18px; height: 18px; accent-color: var(--danger);"> 🔥 TANDAI SEBAGAI PESANAN URGENT
+        </label>
+        <button class="btn-main" onclick="tambah()">SIMPAN & PRINT</button>
     </div>
 
-    <input type="text" id="searchBar" placeholder="🔍 Cari nama/resi..." oninput="renderList()" style="border:1px solid var(--gold);">
-    <div id="adminList"></div>
+    <input type="text" id="searchBar" placeholder="🔍 Cari nama/resi..." oninput="renderList()" style="width:100%; border:1px solid var(--gold); margin-top:10px;">
+    <div id="adminList" class="glass-card" style="margin-top:15px; border:none; padding:0; background:transparent;">Memuat data...</div>
 
-    <div id="laporanOverlay" class="modal-foto" style="padding: 20px; overflow-y: auto;">
-        <div class="glass-card" style="width: 100%; background: #0A0A0A; border: 1px solid var(--gold);">
-            <h2 style="color: var(--gold); text-align: center;">REKAPITULASI</h2>
-            <input type="month" id="bulanLaporan" onchange="hitungLaporan()">
-            <div id="isiLaporan" style="font-size: 14px; line-height: 2;"></div>
-            <button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'">TUTUP</button>
+    <div id="modalFoto" class="modal-foto" onclick="this.style.display='none'">
+        <img id="imgBukti" src="">
+        <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">KLIK MANA SAJA UNTUK TUTUP</p>
+    </div>
+
+    <div id="waPrompt">
+        <p style="font-size:12px; margin-bottom:10px;">✅ Data Tersimpan!</p>
+        <button id="btnWAOpen" style="background:white; color:black; border:none; padding:10px 20px; border-radius:10px; font-weight:800; width:100%;">KIRIM WA SEKARANG</button>
+        <p onclick="document.getElementById('waPrompt').style.display='none'" style="margin-top:10px; font-size:10px; opacity:0.7; cursor:pointer;">Nanti Saja</p>
+    </div>
+
+    <div id="laporanOverlay" class="modal-foto" style="padding: 20px; overflow-y: auto; backdrop-filter: blur(15px);">
+        <div class="glass-card" style="width: 100%; max-width: 450px; background: #0A0A0A; border: 1px solid var(--gold);">
+            <h2 style="color: var(--gold); text-align: center; margin-bottom: 15px; font-weight: 800;">REKAPITULASI BULANAN</h2>
+            <input type="month" id="bulanLaporan" onchange="hitungLaporan()" style="width: 100%; background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 12px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 14px; margin-bottom: 20px; outline: none; cursor: pointer;">
+            <div id="isiLaporan" style="line-height: 2.5; font-size: 14px;">Memuat data...</div>
+            <button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 30px;">TUTUP LAPORAN</button>
         </div>
-    </div>
-
-    <div id="waPrompt" style="position:fixed; bottom:20px; left:20px; right:20px; background:var(--wa); padding:20px; border-radius:20px; display:none; z-index:9999999;">
-        <p>✅ Tersimpan! Kirim rincian ke pelanggan?</p>
-        <button id="btnWAOpen" style="width:100%; padding:10px; margin-top:10px; background:#fff; color:#000; border-radius:10px; font-weight:800;">KIRIM WA</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyCP6q75dxdWmsvXlAU-ON0KyvzqGXeCaUg", authDomain: "ejtobacco-v2.firebaseapp.com", databaseURL: "https://ejtobacco-v2-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "ejtobacco-v2", storageBucket: "ejtobacco-v2.firebasestorage.app", messagingSenderId: "366973371317", appId: "1:366973371317:web:c5ec32460cd9cf0f6c8ffc" };
+        const firebaseConfig = {
+          apiKey: "AIzaSyCP6q75dxdWmsvXlAU-ON0KyvzqGXeCaUg",
+          authDomain: "ejtobacco-v2.firebaseapp.com",
+          databaseURL: "https://ejtobacco-v2-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "ejtobacco-v2",
+          storageBucket: "ejtobacco-v2.firebasestorage.app",
+          messagingSenderId: "366973371317",
+          appId: "1:366973371317:web:c5ec32460cd9cf0f6c8ffc"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
-        let allOrders = [], semuaPengeluaran = {}, semuaSetoranKurir = {}, currentFilter = "Semua", lastOrder = null;
+        let allOrders = [];
+        let semuaPengeluaran = {};
+        let semuaSetoranKurir = {};
+        let currentFilter = "Semua", lastOrder = null, lastDateString = "";
 
         function formatTglDB(date) { const d = new Date(date); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
-        function initDate() { const n = new Date(); document.getElementById('datePicker').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
+        function initDate() { const n = new Date(); document.getElementById('datePicker').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; lastDateString = formatTglDB(n); }
         initDate();
+
+        function changeDate() { updateAll(); }
+        function goToToday() { initDate(); updateAll(); }
+        function setFilter(f) { currentFilter = f; document.querySelectorAll('.report-box').forEach(el => el.classList.remove('active')); document.getElementById('f-'+f).classList.add('active'); renderList(); }
 
         setInterval(() => {
             const now = new Date();
@@ -137,128 +181,228 @@
         }, 1000);
 
         let inputPin = "";
+        const PIN_RAHASIA = "1234";
         function pressPin(val) {
-            if (val === 'C') inputPin = ""; 
-            else if (val === 'OK') { if (inputPin === "1234") document.getElementById('loginOverlay').style.display = 'none'; else inputPin = ""; }
-            else { if (inputPin.length < 4) inputPin += val; }
+            if (val === 'C') { inputPin = ""; } 
+            else if (val === 'OK') {
+                if (inputPin === PIN_RAHASIA) document.getElementById('loginOverlay').style.display = 'none';
+                else { alert("⚠️ PIN SALAH!"); inputPin = ""; }
+            } else { if (inputPin.length < 4) inputPin += val; }
             document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
         }
 
-        db.ref('pesanan').limitToLast(200).on('value', s => { allOrders = s.val() ? Object.keys(s.val()).map(k => ({id:k, ...s.val()[k]})).reverse() : []; updateAll(); });
-        db.ref('pengeluaran').on('value', s => { semuaPengeluaran = s.val() || {}; updateAll(); });
-        db.ref('setoran_kurir').on('value', s => { semuaSetoranKurir = s.val() || {}; updateAll(); });
+        db.ref('pesanan').limitToLast(100).on('value', snap => {
+            const val = snap.val();
+            allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
+            updateAll();
+        });
+
+        db.ref('pengeluaran').on('value', snap => {
+            semuaPengeluaran = snap.val() || {};
+            updateAll();
+        });
+
+        db.ref('setoran_kurir').on('value', snap => {
+            semuaSetoranKurir = snap.val() || {}; 
+            updateAll();
+        });
 
         function updateAll() {
-            const tgl = document.getElementById('datePicker').value.split('-').reverse().join('/');
-            let gd=0, p=0, s=0, g=0, dataK = {};
+            const pickerVal = document.getElementById('datePicker').value; 
+            if(!pickerVal) return;
+            const tglTarget = pickerVal.split('-').reverse().join('/');
             
+            let s=0, g=0, p=0, gd=0;
+            let dataKurir = {}; 
+
             allOrders.forEach(o => {
                 if (o.status === 'Gudang') gd++;
                 if (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang') p++;
-                if (o.tanggal === tgl) {
-                    if (o.status === 'Terkirim') { s++; if(o.metode === 'COD' && o.kurir) { if(!dataK[o.kurir]) dataK[o.kurir] = {cod:0, keluar:0, rincian:[]}; dataK[o.kurir].cod += Number(o.total || 0); } }
-                    else if (o.status === 'Gagal') g++;
+                if (o.tanggal === tglTarget) { 
+                    if (o.status === 'Terkirim') { 
+                        s++; 
+                        if(o.metode === 'COD' && o.kurir) {
+                            if (!dataKurir[o.kurir]) dataKurir[o.kurir] = { cod: 0, keluar: 0, rincianKeluar: [] };
+                            dataKurir[o.kurir].cod += Number(o.total || 0);
+                        }
+                    }
+                    else if (o.status === 'Gagal') g++; 
                 }
             });
 
-            Object.values(semuaPengeluaran).forEach(i => {
-                if (i.tanggal === tgl && i.kurir) {
-                    if(!dataK[i.kurir]) dataK[i.kurir] = {cod:0, keluar:0, rincian:[]};
-                    dataK[i.kurir].keluar += Number(i.nominal || 0);
-                    dataK[i.kurir].rincian.push(`- ${i.keterangan} (Rp ${Number(i.nominal).toLocaleString()})`);
+            Object.values(semuaPengeluaran).forEach(item => {
+                if (item.tanggal === tglTarget && item.kurir) {
+                    if (!dataKurir[item.kurir]) dataKurir[item.kurir] = { cod: 0, keluar: 0, rincianKeluar: [] };
+                    if (!dataKurir[item.kurir].rincianKeluar) dataKurir[item.kurir].rincianKeluar = [];
+                    
+                    dataKurir[item.kurir].keluar += Number(item.nominal || 0);
+                    dataKurir[item.kurir].rincianKeluar.push(`- ${item.keterangan || 'Tanpa keterangan'} (Rp ${Number(item.nominal).toLocaleString('id-ID')})`);
                 }
             });
 
-            document.getElementById('countGudang').innerText = gd; document.getElementById('countProses').innerText = p; document.getElementById('countSukses').innerText = s; document.getElementById('countGagal').innerText = g;
+            document.getElementById('countGudang').innerText = gd; 
+            document.getElementById('countProses').innerText = p;
+            document.getElementById('countSukses').innerText = s; 
+            document.getElementById('countGagal').innerText = g;
+            
+            const keyTgl = tglTarget.replace(/\//g, '-');
+            const dataSetoranHariIni = semuaSetoranKurir[keyTgl] || {};
+            let htmlKeuangan = "";
+            let adaData = false;
 
-            let h = "";
-            const keyTgl = tgl.replace(/\//g, '-');
-            for (let n in dataK) {
-                const k = dataK[n], sdh = Number((semuaSetoranKurir[keyTgl] || {})[n] || 0), sisa = k.cod - k.keluar - sdh;
-                const clr = sisa > 0 ? 'var(--warning)' : 'var(--safe)';
-                h += `<div class="glass-card" style="border-color:${clr}">
-                    <b>🛵 ${n.toUpperCase()}</b>
-                    <div style="font-size:11px; margin:5px 0;">COD: Rp ${k.cod.toLocaleString()} | Keluar: -Rp ${k.keluar.toLocaleString()}</div>
-                    <div style="font-size:10px; color:var(--danger); margin-bottom:5px;">${k.rincian.join('<br>')}</div>
-                    <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:8px; display:flex; justify-content:space-between;">
-                        <span style="color:${clr}">SISA: Rp ${Math.max(0, sisa).toLocaleString()}</span>
-                        ${sisa > 0 ? `<button onclick="terimaSetoran('${n}', ${sisa})" style="background:var(--safe); border:none; padding:2px 8px; border-radius:4px; color:#fff; font-size:10px;">TERIMA</button>` : '✅'}
+            for (let nama in dataKurir) {
+                adaData = true;
+                const k = dataKurir[nama];
+                const sudahSetor = Number(dataSetoranHariIni[nama] || 0);
+                const sisaSetor = k.cod - k.keluar - sudahSetor;
+
+                const warnaBorder = sisaSetor > 0 ? 'var(--warning)' : 'var(--safe)';
+                const badgeStatus = sisaSetor > 0 
+                    ? `<span style="background:var(--warning); color:#000; padding:4px 8px; border-radius:6px; font-size:9px; font-weight:800;">BELUM SETOR</span>`
+                    : `<span style="background:var(--safe); color:#fff; padding:4px 8px; border-radius:6px; font-size:9px; font-weight:800;">LUNAS ✅</span>`;
+
+                const tulisanRincian = (k.rincianKeluar && k.rincianKeluar.length > 0) 
+                    ? `<div style="font-size:10px; color:var(--danger); opacity:0.8; margin-top:-4px; margin-bottom:8px; padding-left:5px; border-left:2px solid var(--danger);"><i>${k.rincianKeluar.join('<br>')}</i></div>` 
+                    : '';
+
+                htmlKeuangan += `
+                <div class="glass-card" style="padding: 15px; margin-bottom: 0; border-color: ${warnaBorder}; background: rgba(255,255,255,0.02);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <b style="color:var(--gold); font-size:15px;">🛵 ${nama.toUpperCase()}</b>
+                        ${badgeStatus}
                     </div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px; color:#ccc;">
+                        <span>💰 Total COD Masuk:</span> <b>Rp ${k.cod.toLocaleString('id-ID')}</b>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; color:#ccc;">
+                        <span>📉 Potong Pengeluaran:</span> <b style="color:var(--danger)">-Rp ${k.keluar.toLocaleString('id-ID')}</b>
+                    </div>
+                    ${tulisanRincian}
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:12px; color:#ccc;">
+                        <span>💸 Uang Sudah Diterima:</span> <b style="color:var(--gold)">Rp ${sudahSetor.toLocaleString('id-ID')}</b>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warnaBorder};">
+                        <span style="font-size:11px; font-weight:800; color:#fff;">SISA WAJIB SETOR:</span>
+                        <b style="font-size:15px; color:${warnaBorder};">Rp ${(sisaSetor < 0 ? 0 : sisaSetor).toLocaleString('id-ID')}</b>
+                    </div>
+                    ${sisaSetor > 0 ? `<button onclick="terimaSetoranKurir('${nama}', ${sisaSetor})" style="width:100%; margin-top:12px; background:var(--safe); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:800; font-size:11px; cursor:pointer;">✅ TERIMA UANG DARI ${nama.toUpperCase()}</button>` : ''}
                 </div>`;
             }
-            document.getElementById('keuanganKurirContainer').innerHTML = h || "<p style='text-align:center; opacity:0.5; font-size:10px;'>Belum ada aktivitas hari ini.</p>";
+
+            if (!adaData) {
+                htmlKeuangan = `<div style="text-align:center; padding:20px; opacity:0.5; font-size:11px; border:1px dashed var(--glass-border); border-radius:12px;">Belum ada pesanan COD atau pengeluaran hari ini.</div>`;
+            }
+            document.getElementById('keuanganKurirContainer').innerHTML = htmlKeuangan;
+
             renderList();
         }
 
-        function terimaSetoran(n, j) {
-            const t = document.getElementById('datePicker').value.split('-').reverse().join('-');
-            if(confirm(`Terima Rp ${j.toLocaleString()} dari ${n}?`)) {
-                db.ref(`setoran_kurir/${t}/${n}`).transaction(cv => (Number(cv) || 0) + j);
+        function terimaSetoranKurir(namaKurir, jumlah) {
+            const keyTgl = document.getElementById('datePicker').value.split('-').reverse().join('-');
+            if(confirm(`Yakin sudah menerima uang pas sebesar Rp ${jumlah.toLocaleString('id-ID')} dari ${namaKurir.toUpperCase()}?`)) {
+                db.ref(`setoran_kurir/${keyTgl}/${namaKurir}`).transaction(cv => (Number(cv) || 0) + jumlah).then(() => { 
+                    alert(`✅ Uang dari ${namaKurir.toUpperCase()} berhasil diterima!`); 
+                }).catch(e => alert("Gagal: " + e.message));
             }
         }
 
         function renderList() {
-            const k = document.getElementById('searchBar').value.toLowerCase(), t = document.getElementById('datePicker').value.split('-').reverse().join('/');
-            let h = "";
-            const f = allOrders.filter(o => {
-                const m = (o.namaPembeli||"").toLowerCase().includes(k) || (o.noPesanan||"").toLowerCase().includes(k);
-                let st;
-                if (currentFilter === "Semua") st = (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang');
-                else if (currentFilter === "Gudang") st = (o.status === 'Gudang');
-                else st = (o.status === currentFilter && o.tanggal === t);
-                return m && st;
+            const keyword = document.getElementById('searchBar').value.toLowerCase();
+            const tglAktif = document.getElementById('datePicker').value.split('-').reverse().join('/');
+            let html = "";
+            const filtered = allOrders.filter(o => {
+                const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword) || (o.noPesanan || "").toLowerCase().includes(keyword);
+                let matchStatus;
+                if (currentFilter === "Semua") matchStatus = (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang');
+                else if (currentFilter === "Gudang") matchStatus = (o.status === 'Gudang');
+                else matchStatus = (o.status === currentFilter && o.tanggal === tglAktif);
+                return matchSearch && matchStatus;
             });
-            f.forEach(o => {
-                h += `<div class="glass-card ${o.urgent?'card-urgent':''}">
-                    <div style="font-size:10px; color:var(--gold);">${o.tanggal} | ${o.status}</div>
-                    <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
-                    <small>Rp ${Number(o.total).toLocaleString()} | ${o.metode} ${o.kurir?'| 🛵 '+o.kurir:''}</small>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:10px;">
-                        <button onclick="reprint('${o.id}')" style="background:var(--gold); border:none; padding:8px; border-radius:8px; font-size:10px;">PRINT</button>
-                        <button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); border:1px solid var(--danger); color:var(--danger); border-radius:8px; font-size:10px;">HAPUS</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('adminList').innerHTML = h || "<p style='text-align:center; padding:20px; opacity:0.3;'>Kosong.</p>";
+
+            if(filtered.length === 0) { html = `<p style="text-align:center; opacity:0.5; padding:20px;">Kosong.</p>`; } 
+            else {
+                filtered.forEach(o => {
+                    const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
+                    const infoKurir = o.kurir && o.status !== 'Gudang' ? `<div style="font-size:10px; color:var(--blue); font-weight:800; margin-top:3px; display:inline-block; padding:2px 8px; background:rgba(37,99,235,0.1); border-radius:4px;">🛵 Dibawa oleh: ${o.kurir}</div>` : '';
+                    
+                    // CEK APAKAH INI PESANAN URGENT UNTUK KASIH EFEK BLINKING
+                    const classUrgent = o.urgent ? 'card-urgent' : '';
+
+                    html += `<div class="glass-card order-item ${classUrgent}">
+                        <span style="font-size:9px; color:var(--gold)">${o.tanggal} | ${o.waktu}</span><br>
+                        <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
+                        <small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString('id-ID')}</small><br>
+                        ${infoKurir}
+                        ${o.catatanKurir ? `<div style="font-size:11px; color:var(--safe); margin-top:5px; font-style:italic;">📝 Bukti: ${o.catatanKurir}</div>` : ''}
+                        ${o.alasanTunda ? `<div style="font-size:11px; color:var(--danger); margin-top:5px;">⚠️ Alasan: ${o.alasanTunda}</div>` : ''}
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px;">
+                            <a href="https://wa.me/${waNum}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
+                            <button style="background:var(--gold); color:black; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="reprint('${o.id}')">REPRINT</button>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
+                            ${(o.adaFoto || o.buktiFoto) ? `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.id}', '${o.buktiFoto || ''}')">LIHAT FOTO</button>` : `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px; border:1px solid rgba(255,255,255,0.05);">TANPA FOTO</div>`}
+                            ${o.status === 'Terkirim' ? `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 TERKUNCI</div>` : 
+                                (o.status === 'Gagal' ? `<button onclick="kirimUlang('${o.id}')" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">KIRIM ULANG</button>` : `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">HAPUS</button>`)
+                            }
+                        </div>
+                    </div>`;
+                });
+            }
+            document.getElementById('adminList').innerHTML = html;
         }
 
+        function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
+        
+        // FUNGSI INPUT BARU (DENGAN STRUK THERMAL & TOMBOL WA)
         function tambah() {
-            const n = new Date(), d = { noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), namaPembeli: document.getElementById('pembeli').value, nohp: document.getElementById('nohp').value, alamat: document.getElementById('alamat').value, mapLink: document.getElementById('mapLink').value, total: document.getElementById('total').value || 0, metode: document.getElementById('metodeBayar').value, urgent: document.getElementById('isUrgent').checked, status: 'Gudang', kurir: "", tanggal: formatTglDB(n), waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) };
+            const n = new Date();
+            const d = { 
+                noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), 
+                namaPembeli: document.getElementById('pembeli').value, 
+                nohp: document.getElementById('nohp').value, 
+                alamat: document.getElementById('alamat').value, 
+                mapLink: document.getElementById('mapLink').value, 
+                total: document.getElementById('total').value || 0, 
+                metode: document.getElementById('metodeBayar').value, 
+                urgent: document.getElementById('isUrgent').checked, 
+                status: 'Gudang', 
+                kurir: "", 
+                tanggal: formatTglDB(n), 
+                waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
+            };
             if(!d.namaPembeli || !d.nohp) return alert("Nama & WA wajib!");
             db.ref('pesanan').push(d).then(() => { 
-                lastOrder = d; executePrint(); 
+                lastOrder = d; 
+                executePrint(); 
+                
+                const waNumber = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62'); 
+                const linkMaps = d.mapLink ? `\n📍 Map: ${d.mapLink}` : "";
+                const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang kami proses dan segera diambil kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp ${Number(d.total).toLocaleString('id-ID')}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang pas kalau COD ya Kak. Terima kasih! 🙏`;
+                const urlWA = `https://wa.me/${waNumber}?text=${encodeURIComponent(teksWA)}`;
+                
                 document.getElementById('waPrompt').style.display = 'block';
-                document.getElementById('btnWAOpen').onclick = () => { window.open(`https://wa.me/${d.nohp.replace(/\D/g,'').replace(/^0/,'62')}?text=${encodeURIComponent('*EJ TOBACCO* 📦\nHalo Kak *'+d.namaPembeli+'*\nPesanan Anda sedang diproses.\nTotal: *Rp '+Number(d.total).toLocaleString()+'*')}`, '_blank'); document.getElementById('waPrompt').style.display='none'; };
+                document.getElementById('btnWAOpen').onclick = () => { 
+                    window.open(urlWA, '_blank'); 
+                    document.getElementById('waPrompt').style.display = 'none'; 
+                };
+
                 ['noPesanan','pembeli','nohp','alamat','mapLink','total'].forEach(id => document.getElementById(id).value = "");
                 document.getElementById('isUrgent').checked = false;
             });
         }
 
         function executePrint() {
-            if(!lastOrder) return; const cleanNo = (lastOrder.noPesanan || "").replace(/\W/g, "");
-            const teks = `[C]<font size="big"><b>EJ TOBACCO DELIVERY</b></font>\n[C]================================================\n[C]<font size="big"><b>RESI : ${lastOrder.noPesanan}</b></font>\n[C]================================================\n[L]PENERIMA: ${lastOrder.namaPembeli}\n[L]ALAMAT: ${lastOrder.alamat}\n[L]TOTAL: Rp ${Number(lastOrder.total).toLocaleString()}\n[C][b]code128,3,80,${cleanNo},yes\n\n\n\n`;
-            window.location.href = "rawbt:" + encodeURI(teks);
+            if(!lastOrder) return; 
+            const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
+            const teks80mm = `[C]<font size="big"><b>EJ TOBACCO DELIVERY</b></font>\n[C]"belanja semakin nyaman menggunakan aplikasi toko ej"\n[C]================================================\n[C]<font size="big"><b>NO. RESI : ${lastOrder.noPesanan}</b></font>\n[C]================================================\n[L]<b>PENERIMA:</b>\n[L]${lastOrder.namaPembeli}\n[L]No. HP : ${lastOrder.nohp}\n\n[L]<b>ALAMAT PENGIRIMAN:</b>\n[L]${lastOrder.alamat}\n[C]================================================\n[L]METODE PEMBAYARAN: ${lastOrder.metode}\n[L]TOTAL TAGIHAN    : Rp ${Number(lastOrder.total).toLocaleString('id-ID')}\n[C]================================================\n[C][b]code128,3,80,${cleanNo},yes\n\n[C]------------------------------------------------\n[C]Tgl: ${lastOrder.tanggal} ${lastOrder.waktu}\n[C]HARAP VIDIO WAKTU UNBOXING PAKET\n\n\n\n\n`;
+            window.location.href = "rawbt:" + encodeURI(teks80mm);
         }
 
         function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
-        function hapus(id) { if(confirm("Hapus?")) db.ref('pesanan/'+id).remove(); }
-        function setFilter(f) { currentFilter = f; document.querySelectorAll('.report-box').forEach(el => el.classList.remove('active')); document.getElementById('f-'+f).classList.add('active'); renderList(); }
-        function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
-        function goToToday() { initDate(); updateAll(); }
+        function hapus(id) { if (confirm("Hapus pesanan?")) db.ref('pesanan/' + id).remove(); }
+        function viewFoto(id, oldSrc) { document.getElementById('modalFoto').style.display = 'flex'; const img = document.getElementById('imgBukti'); img.src = oldSrc || ""; if(!oldSrc) db.ref('foto_bukti/'+id).once('value', s => img.src = s.val()); }
         function bukaLaporan() { document.getElementById('laporanOverlay').style.display = 'flex'; }
         
-        function hitungLaporan() {
-            const bln = document.getElementById('bulanLaporan').value; if(!bln) return;
-            let s=0, c=0, t=0, g=0;
-            allOrders.forEach(o => {
-                if(o.tanggal && o.tanggal.includes(bln.split('-')[1]+'/'+bln.split('-')[0])) {
-                    if(o.status === 'Terkirim') { s++; if(o.metode==='COD') c+=Number(o.total||0); else t+=Number(o.total||0); }
-                    else if(o.status === 'Gagal') g++;
-                }
-            });
-            document.getElementById('isiLaporan').innerHTML = `📦 Sukses: ${s}<br>❌ Gagal: ${g}<br>💰 COD: Rp ${c.toLocaleString()}<br>💳 Transfer: Rp ${t.toLocaleString()}<br>💎 TOTAL: Rp ${(c+t).toLocaleString()}`;
-        }
-
         let map, markers = {};
         function bukaRadar() {
             document.getElementById('radarOverlay').style.display = 'flex';
@@ -277,19 +421,29 @@
             setTimeout(() => { map.invalidateSize(); }, 500);
         }
 
+        // FITUR AUTO-DELETE DATA 90 HARI
         function bersihkanDataLama() {
-            const BATAS = 90 * 24 * 60 * 60 * 1000, skrg = new Date().getTime();
-            db.ref('pesanan').once('value', s => {
-                const d = s.val(); if(!d) return;
-                for (let id in d) {
-                    const o = d[id]; if (o.tanggal) {
-                        const p = o.tanggal.split('/'), tglP = new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime();
-                        if (skrg - tglP > BATAS) { db.ref('pesanan/'+id).remove(); db.ref('foto_bukti/'+id).remove(); }
+            const BATAS_WAKTU_MS = 90 * 24 * 60 * 60 * 1000; 
+            const waktuSekarang = new Date().getTime();
+            db.ref('pesanan').once('value', snap => {
+                const data = snap.val(); if (!data) return;
+                for (let id in data) {
+                    const o = data[id];
+                    if (o.tanggal) { 
+                        const p = o.tanggal.split('/'); 
+                        if (p.length === 3) { 
+                            const waktuPesanan = new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime(); 
+                            if (waktuSekarang - waktuPesanan > BATAS_WAKTU_MS) {
+                                db.ref('pesanan/' + id).remove(); 
+                                db.ref('foto_bukti/' + id).remove();
+                            }
+                        } 
                     }
                 }
             });
         }
-        setTimeout(bersihkanDataLama, 10000);
+        setTimeout(bersihkanDataLama, 10000); 
+
     </script>
 </body>
 </html>
