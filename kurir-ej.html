@@ -150,7 +150,8 @@
                 myName = namaPilihan; 
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('namaKurirHeader').innerText = myName;
-                updateUI(); 
+                updateUI();
+                aktifkanRadar();
             } else { alert("⚠️ PIN SALAH! Pastikan nama dan PIN sesuai."); inputPin = ""; }
         } 
         else { if (inputPin.length < 4) inputPin += val; }
@@ -350,9 +351,31 @@
         else { db.goOffline(); if(lampu) lampu.style.background = "var(--danger)"; if(teks) teks.innerText = "OFFLINE"; }
     }
     window.addEventListener('online', updateStatusInternet); window.addEventListener('offline', updateStatusInternet); updateStatusInternet();
+   
+    // === FITUR RADAR KURIR ===
+    function aktifkanRadar() {
+        if (navigator.geolocation) {
+            // Minta HP terus-terusan kirim lokasi akurat
+            navigator.geolocation.watchPosition(
+                (posisi) => {
+                    db.ref('tracking/' + myName).set({
+                        lat: posisi.coords.latitude,
+                        lng: posisi.coords.longitude,
+                        waktu: new Date().toLocaleTimeString('id-ID')
+                    });
+                },
+                (error) => { console.log("GPS Error: ", error.message); },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            alert("⚠️ HP ini tidak mendukung GPS Radar.");
+        }
+    }
+        
     </script>
 </body>
 </html>
+
 
 
 
