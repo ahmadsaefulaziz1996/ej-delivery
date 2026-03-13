@@ -223,14 +223,14 @@
         // HANYA MENGAMBIL 100 DATA (SUPER NGEBUT!)
         db.ref('pesanan').limitToLast(100).on('value', snap => {
             const val = snap.val(); allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
-            // Ambil Data Setoran (Biar Live)
+            // 1. Ambil Data Setoran (Biar Live)
         let dataSetoranSemua = {};
         db.ref('setoran').on('value', sSnap => {
             dataSetoranSemua = sSnap.val() || {};
             updateAll();
         });
 
-        // ADMIN PANTAU PENGELUARAN LIVE
+        // 2. Ambil Data Pengeluaran (Biar Live)
         let globalPengeluaran = 0;
         db.ref('pengeluaran').on('value', snap => {
             const val = snap.val();
@@ -238,7 +238,6 @@
             const pickerVal = document.getElementById('datePicker').value;
             const p = pickerVal.split('-');
             const tglTarget = `${p[2]}/${p[1]}/${p[0]}`;
-
             if (val) {
                 Object.values(val).forEach(item => {
                     if (item.tanggal === tglTarget) {
@@ -246,19 +245,28 @@
                     }
                 });
             }
-            updateAll(); // Refresh tampilan
+            updateAll();
+        });
+
+        // 3. Ambil Data Pesanan (Limit 100)
+        db.ref('pesanan').limitToLast(100).on('value', snap => {
+            const val = snap.val(); 
+            allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
+            updateAll();
         });
 
         function updateAll() {
-            const pickerVal = document.getElementById('datePicker').value; if(!pickerVal) return;
-            const p = pickerVal.split('-'); const tglTarget = `${p[2]}/${p[1]}/${p[0]}`;
-            updateDashboard(tglTarget); renderList();
+            const pickerVal = document.getElementById('datePicker').value; 
+            if(!pickerVal) return;
+            const p = pickerVal.split('-'); 
+            const tglTarget = `${p[2]}/${p[1]}/${p[0]}`;
+            updateDashboard(tglTarget); 
+            renderList();
         }
 
         function updateDashboard(tglTarget) {
             let s=0, g=0, p=0, gd=0, codSuksesHariIni=0;
             
-            // 1. Hitung Pesanan
             allOrders.forEach(o => {
                 if (o.status === 'Gudang') gd++;
                 if (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang') p++;
@@ -269,11 +277,9 @@
                 }
             });
 
-            // 2. Ambil Setoran khusus tanggal yang dipilih
-            const keyTgl = tglTarget.replace(/\//g, '-'); // Ubah 14/03/2026 jadi 14-03-2026
+            const keyTgl = tglTarget.replace(/\//g, '-');
             const setoranHariIni = dataSetoranSemua[keyTgl] || 0;
 
-            // 3. Update Angka di Dashboard
             document.getElementById('countGudang').innerText = gd; 
             document.getElementById('countProses').innerText = p;
             document.getElementById('countSukses').innerText = s; 
@@ -282,7 +288,6 @@
             document.getElementById('adminTotalCOD').innerText = "Rp" + codSuksesHariIni.toLocaleString();
             document.getElementById('adminTotalKeluar').innerText = "Rp" + globalPengeluaran.toLocaleString();
             
-            // RUMUS SAKTI: COD - Pengeluaran Kurir - Setoran yang sudah diterima Admin
             const kasBersih = codSuksesHariIni - globalPengeluaran - setoranHariIni;
             document.getElementById('adminKasBersih').innerText = "Rp" + (kasBersih < 0 ? 0 : kasBersih).toLocaleString();
         }
