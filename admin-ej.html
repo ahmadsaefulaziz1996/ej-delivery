@@ -403,36 +403,73 @@
         function bukaSaldoKurir() {
             document.getElementById('saldoOverlay').style.display = 'flex';
             const pickerVal = document.getElementById('datePicker').value; 
-            const p = pickerVal.split('-'); const tglAktif = `${p[2]}/${p[1]}/${p[0]}`;
-            let saldoKurir = {}; let totalSemua = 0;
+            const p = pickerVal.split('-'); 
+            const tglAktif = `${p[2]}/${p[1]}/${p[0]}`;
+            
+            let dataKurir = {}; 
 
+            // 1. Hitung COD Sukses per Kurir dari data pesanan yang sudah ada
             allOrders.forEach(o => {
                 if (o.tanggal === tglAktif && o.status === 'Terkirim' && o.metode === 'COD' && o.kurir) {
-                    if (!saldoKurir[o.kurir]) saldoKurir[o.kurir] = 0;
-                    saldoKurir[o.kurir] += Number(o.total || 0); totalSemua += Number(o.total || 0);
+                    if (!dataKurir[o.kurir]) dataKurir[o.kurir] = { cod: 0, keluar: 0 };
+                    dataKurir[o.kurir].cod += Number(o.total || 0);
                 }
             });
 
-            let html = "";
-            for (let namaKurir in saldoKurir) {
-                html += `
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:15px 0; align-items:center;">
-                    <span style="font-size:14px; font-weight:800; color:#fff;">🛵 ${namaKurir.toUpperCase()}</span>
-                    <b style="color:var(--safe); font-size:18px;">Rp ${saldoKurir[namaKurir].toLocaleString('id-ID')}</b>
-                </div>`;
-            }
+            // 2. Ambil Data Pengeluaran dari Firebase secara Live
+            db.ref('pengeluaran').once('value', snap => {
+                const exps = snap.val();
+                if (exps) {
+                    Object.values(exps).forEach(item => {
+                        // Jika tanggal pengeluaran cocok, masukkan ke hitungan kurir terkait
+                        if (item.tanggal === tglAktif && dataKurir[item.kurir]) {
+                            dataKurir[item.kurir].keluar += Number(item.nominal || 0);
+                        }
+                    });
+                }
 
-            if (html === "") { html = `<p style="text-align:center; opacity:0.5; padding:20px;">Belum ada pesanan COD yang selesai hari ini.</p>`; } 
-            else {
-                html += `
-                <div style="margin-top:20px; padding:15px; background:var(--safe); border-radius:12px; text-align:center; color:#000;">
-                    <div style="font-size:11px; font-weight:800; margin-bottom:5px;">TOTAL UANG DI TANGAN SEMUA KURIR</div>
-                    <div style="font-size:24px; font-weight:900;">Rp ${totalSemua.toLocaleString('id-ID')}</div>
-                </div>`;
-            }
-            document.getElementById('isiSaldoKurir').innerHTML = html;
+                // 3. Gambar Tampilan Detail per Kurir
+                let html = "";
+                let totalFisikSemua = 0;
+
+                for (let nama in dataKurir) {
+                    const k = dataKurir[nama];
+                    const bersih = k.cod - k.keluar; // Ini Rumus Setoran Bersihnya
+                    totalFisikSemua += bersih;
+                    
+                    html += `
+                    <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <b style="color:var(--gold); font-size:14px;">🛵 ${nama.toUpperCase()}</b>
+                            <span style="font-size:10px; opacity:0.6;">${tglAktif}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                            <span>Total COD Masuk:</span>
+                            <span>Rp ${k.cod.toLocaleString()}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--danger); margin-bottom:8px;">
+                            <span>Potong Pengeluaran:</span>
+                            <span>- Rp ${k.keluar.toLocaleString()}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; color:var(--safe); background:rgba(34,197,94,0.1); padding:10px; border-radius:10px; border: 1px dashed var(--safe);">
+                            <span>WAJIB SETOR:</span>
+                            <span>Rp ${bersih.toLocaleString()}</span>
+                        </div>
+                    </div>`;
+                }
+
+                if (html === "") {
+                    html = `<p style="text-align:center; opacity:0.5; padding:20px;">Belum ada pesanan COD sukses hari ini.</p>`;
+                } else {
+                    html += `
+                    <div style="margin-top:20px; padding:15px; background:var(--gold); border-radius:12px; text-align:center; color:#000;">
+                        <div style="font-size:10px; font-weight:800; margin-bottom:5px;">TOTAL UANG FISIK DI SEMUA KURIR</div>
+                        <div style="font-size:22px; font-weight:900;">Rp ${totalFisikSemua.toLocaleString()}</div>
+                    </div>`;
+                }
+                document.getElementById('isiSaldoKurir').innerHTML = html;
+            });
         }
-
         function bersihkanDataLama() {
             const BATAS_WAKTU_MS = 90 * 24 * 60 * 60 * 1000; const waktuSekarang = new Date().getTime();
             db.ref('pesanan').once('value', snap => {
