@@ -171,14 +171,14 @@
         document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
     }
         
-    // HANYA MENGAMBIL 100 DATA BIAR RINGAN!
+    // --- 1. AMBIL PESANAN ---
     db.ref('pesanan').limitToLast(100).on('value', snap => {
         const val = snap.val();
         allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
         if (myName !== "") updateUI();
     });
 
-        // 1. MENGAMBIL DATA PENGELUARAN (BENSIN)
+    // --- 2. AMBIL PENGELUARAN ---
     let totalPengeluaranKu = 0;
     db.ref('pengeluaran').on('value', snap => {
         const val = snap.val();
@@ -194,13 +194,11 @@
         if (myName !== "") updateUI();
     });
 
-    // 2. MENGAMBIL DATA SETORAN (UANG YANG SUDAH DIKASIH KE BOS)
+    // --- 3. AMBIL SETORAN (Sinkron dengan Admin) ---
     let setoranSaya = 0;
     db.ref('setoran').on('value', snap => {
         const allSetoran = snap.val() || {};
         const todayKey = getTgl().replace(/\//g, '-');
-        
-        // Cek apakah hari ini kurir ini sudah setor uang ke Bos
         if (allSetoran[todayKey] && allSetoran[todayKey][myName]) {
             setoranSaya = Number(allSetoran[todayKey][myName]);
         } else {
@@ -209,7 +207,6 @@
         if (myName !== "") updateUI();
     });
 
-    // FUNGSI TOMBOL CATAT PENGELUARAN
     function tambahPengeluaran() {
         const ket = prompt("Untuk apa pengeluaran ini?\n(isi alasannya)");
         if (!ket) return;
@@ -227,7 +224,7 @@
         }).catch(err => alert("Gagal mencatat: " + err.message));
     }
 
-    // 3. FUNGSI UPDATE LAYAR HP KURIR
+    // --- FUNGSI UPDATE LAYAR KURIR (CUMA ADA SATU SEKARANG) ---
     function updateUI() {
         const today = getTgl();
         let gd=0, p=0, s=0, g=0, codDompetKu=0;
@@ -249,11 +246,10 @@
         document.getElementById('c-Terkirim').innerText = s;
         document.getElementById('c-Gagal').innerText = g;
         
-        // UPDATE DOMPET KURIR
         document.getElementById('totalCOD').innerText = "Rp " + codDompetKu.toLocaleString('id-ID');
         document.getElementById('totalPengeluaran').innerText = "Rp " + totalPengeluaranKu.toLocaleString('id-ID');
         
-        // RUMUS SAKTI: Total COD - Pengeluaran Bensin - Uang yang sudah dikasih ke Bos EJ
+        // RUMUS SAKTI KURIR (Otomatis 0 kalau sudah diterima Admin)
         const bersih = codDompetKu - totalPengeluaranKu - setoranSaya;
         document.getElementById('setoranBersih').innerText = "Rp " + (bersih < 0 ? 0 : bersih).toLocaleString('id-ID');
         
@@ -280,7 +276,6 @@
             const badgeBg = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
             
-            // --- KODE PESAN OTW (Dipindahkan ke luar HTML agar tidak error) ---
             const pesanOTW = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\n\nSaya kurir *${myName.toUpperCase()}* sedang meluncur ke arah Kakak. Estimasi sampai sekitar *5-15 menit* lagi.\n\nMohon siapkan uang pas *Rp${Number(o.total || 0).toLocaleString('id-ID')}* ya Kak, biar prosesnya cepat. Terima kasih! 🙏`;
             const linkOTW = `https://wa.me/${waNum}?text=${encodeURIComponent(pesanOTW)}`;
 
@@ -349,7 +344,6 @@
         }
     }
 
-    // PISAH KAMAR FOTO ADA DI SINI
     function uploadSelesai(id, input) {
         const file = input.files[0]; if (!file) return;
         const o = allData.find(x => x.id === id);
@@ -429,7 +423,6 @@
     // === FITUR RADAR KURIR ===
     function aktifkanRadar() {
         if (navigator.geolocation) {
-            // Minta HP terus-terusan kirim lokasi akurat
             navigator.geolocation.watchPosition(
                 (posisi) => {
                     db.ref('tracking/' + myName).set({
@@ -445,10 +438,10 @@
             alert("⚠️ HP ini tidak mendukung GPS Radar.");
         }
     }
-        
     </script>
 </body>
 </html>
+
 
 
 
