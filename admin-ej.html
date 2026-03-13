@@ -263,7 +263,6 @@
 
             const keyTgl = tglTarget.replace(/\//g, '-');
             const dataSetoranHariIni = dataSetoranSemua[keyTgl] || {};
-            // Hitung total semua setoran kurir di tanggal itu
             const totalSetoranHariIni = Object.values(dataSetoranHariIni).reduce((a, b) => a + b, 0);
 
             document.getElementById('countGudang').innerText = gd; 
@@ -274,24 +273,7 @@
             document.getElementById('adminTotalCOD').innerText = "Rp" + codSuksesHariIni.toLocaleString();
             document.getElementById('adminTotalKeluar').innerText = "Rp" + globalPengeluaran.toLocaleString();
             
-            // KAS BERSIH = Uang yang belum disetor ke Bos (Masih di jalan)
             const kasBersih = codSuksesHariIni - globalPengeluaran - totalSetoranHariIni;
-            document.getElementById('adminKasBersih').innerText = "Rp" + (kasBersih < 0 ? 0 : kasBersih).toLocaleString();
-        }
-            });
-
-            const keyTgl = tglTarget.replace(/\//g, '-');
-            const setoranHariIni = dataSetoranSemua[keyTgl] || 0;
-
-            document.getElementById('countGudang').innerText = gd; 
-            document.getElementById('countProses').innerText = p;
-            document.getElementById('countSukses').innerText = s; 
-            document.getElementById('countGagal').innerText = g;
-            
-            document.getElementById('adminTotalCOD').innerText = "Rp" + codSuksesHariIni.toLocaleString();
-            document.getElementById('adminTotalKeluar').innerText = "Rp" + globalPengeluaran.toLocaleString();
-            
-            const kasBersih = codSuksesHariIni - globalPengeluaran - setoranHariIni;
             document.getElementById('adminKasBersih').innerText = "Rp" + (kasBersih < 0 ? 0 : kasBersih).toLocaleString();
         }
 
@@ -356,22 +338,22 @@
             window.location.href = "rawbt:" + encodeURI(teks80mm);
         }
         function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
-        // Fungsi setor sekarang butuh Nama Kurir & Nominal
+        
+        // FUNGSI SETORAN PER KURIR
         function setor(nama, jumlah) {
             if (!jumlah || jumlah <= 0) return alert("Jumlah tidak valid!");
-            
             const pickerVal = document.getElementById('datePicker').value;
             const p = pickerVal.split('-');
             const keyTgl = `${p[2]}-${p[1]}-${p[0]}`;
 
             if (confirm(`Terima setoran dari ${nama.toUpperCase()} sebesar Rp ${jumlah.toLocaleString()}?`)) {
-                // Simpan setoran spesifik per kurir per tanggal
                 db.ref(`setoran/${keyTgl}/${nama}`).transaction(cv => (cv || 0) + Number(jumlah)).then(() => {
                     alert("✅ Setoran berhasil diterima!");
-                    bukaSaldoKurir(); // Refresh tampilan dompet
+                    bukaSaldoKurir(); 
                 });
             }
         }
+
         function hapus(id) { if (confirm("Hapus pesanan?")) db.ref('pesanan/' + id).remove(); }
         function viewFoto(id, oldSrc) { document.getElementById('modalFoto').style.display = 'flex'; const img = document.getElementById('imgBukti'); img.src = oldSrc || ""; if(!oldSrc) db.ref('foto_bukti/'+id).once('value', s => img.src = s.val()); }
         function bukaLaporan() { document.getElementById('laporanOverlay').style.display = 'flex'; }
@@ -386,12 +368,11 @@
 
             allOrders.forEach(o => {
                 if (o.tanggal === tglAktif && o.status === 'Terkirim' && o.metode === 'COD' && o.kurir) {
-                    if (!dataKurir[o.kurir]) dataKurir[o.kurir] = { cod: 0, keluar: 0, setor: 0 };
+                    if (!dataKurir[o.kurir]) dataKurir[o.kurir] = { cod: 0, keluar: 0 };
                     dataKurir[o.kurir].cod += Number(o.total || 0);
                 }
             });
 
-            // Ambil data Pengeluaran & Setoran yang sudah masuk
             db.ref().once('value', mainSnap => {
                 const dbAll = mainSnap.val() || {};
                 const allExps = dbAll.pengeluaran || {};
