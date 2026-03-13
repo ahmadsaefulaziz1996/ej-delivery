@@ -17,34 +17,27 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; z-index: 9999; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
         .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
         .wallet-card { background: rgba(34, 197, 94, 0.05); border: 1px solid var(--safe); border-radius: 20px; padding: 20px; margin-bottom: 15px; text-align: center; }
-        .wallet-card span { font-size: 10px; font-weight: 800; color: var(--safe); text-transform: uppercase; letter-spacing: 1.5px; }
         #totalCOD { display: block; font-size: 26px; font-weight: 800; color: var(--safe); margin-top: 5px; }
         .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 15px; }
         .tab-btn { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px 2px; border-radius: 12px; color: #fff; font-weight: 800; font-size: 9px; text-align: center; cursor: pointer; }
         .tab-btn.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); color: var(--gold); }
-        .count-badge { display: block; font-size: 14px; margin-top: 2px; }
         .search-box { width: 100%; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 15px; }
         .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; overflow: hidden; transition: 0.3s; }
         .status-badge { position: absolute; top: 0; right: 0; padding: 6px 15px; font-size: 9px; font-weight: 800; border-radius: 0 0 0 15px; text-transform: uppercase; color: #000; }
-        .btn { border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn { border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; color: white; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
         .btn-success { background: var(--safe); }
         .btn-warning { background: var(--warning); color: #000; }
         .btn-danger { background: var(--danger); }
         .btn-wa { background: var(--wa); width: 100%; margin-top: 12px; color: white; }
         .btn-maps { background: var(--blue); width: 100%; margin-top: 8px; }
         .btn-scan { background: var(--gold); color: #000; width: 100%; margin-bottom: 15px; }
-        #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; display: none; border: 2px solid var(--gold); }
         .modal-view { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100000; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        #imgPreview { max-width: 90%; max-height: 75vh; border-radius: 15px; border: 2px solid var(--gold); object-fit: contain; }
-        @keyframes blinkUrgent { 0% { border-color: var(--danger); } 50% { border-color: #fff; background: rgba(239, 68, 68, 0.2); } 100% { border-color: var(--danger); } }
+        #imgPreview { max-width: 90%; max-height: 70vh; border-radius: 15px; border: 2px solid var(--gold); }
+        @keyframes blinkUrgent { 0%, 100% { border-color: var(--danger); } 50% { border-color: #fff; background: rgba(239, 68, 68, 0.2); } }
         .card-urgent { animation: blinkUrgent 0.8s infinite !important; border: 2px solid var(--danger) !important; }
         #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .pin-container { text-align: center; width: 100%; max-width: 320px; padding: 20px; }
-        .pin-display { font-size: 40px; letter-spacing: 15px; margin: 30px 0; color: var(--gold); font-weight: 800; text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
-        .numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; }
-        .num-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 26px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
-        select.kurir-select { background: #111; color: var(--gold); border: 2px solid var(--gold); padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 800; margin-bottom: 10px; outline: none; text-align: center; }
+        .pin-display { font-size: 40px; letter-spacing: 15px; margin: 30px 0; color: var(--gold); font-weight: 800; }
+        .num-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 26px; }
     </style>
 </head>
 <body>
@@ -53,16 +46,15 @@
     <audio id="errorSound" src="https://assets.mixkit.co/active_storage/sfx/2180/2180-preview.mp3" preload="auto"></audio> 
     
     <div id="loginOverlay">
-        <div class="pin-container">
-            <h2 style="color:#fff; font-size:22px; margin-bottom:5px;">EJ ACCESS</h2>
-            <p style="color:var(--gold); font-size:11px; letter-spacing:2px; margin-bottom:20px;">PILIH IDENTITAS KURIR</p>
-            <select id="namaKurirInput" class="kurir-select">
+        <div style="text-align: center; width: 320px;">
+            <h2 style="color:#fff;">EJ ACCESS</h2>
+            <select id="namaKurirInput" style="background:#111; color:var(--gold); border:2px solid var(--gold); padding:15px; border-radius:12px; margin-bottom:10px; font-weight:800; text-align:center;">
                 <option value="kurirA">👦 KURIR - kurirA</option>
                 <option value="kurirB">👦 KURIR - kurirB</option>
                 <option value="kurirC">👦 KURIR - kurirC</option>
             </select>
             <div class="pin-display" id="pinDisplay">****</div>
-            <div class="numpad">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px;">
                 <button class="num-btn" onclick="pressPin('1')">1</button><button class="num-btn" onclick="pressPin('2')">2</button><button class="num-btn" onclick="pressPin('3')">3</button>
                 <button class="num-btn" onclick="pressPin('4')">4</button><button class="num-btn" onclick="pressPin('5')">5</button><button class="num-btn" onclick="pressPin('6')">6</button>
                 <button class="num-btn" onclick="pressPin('7')">7</button><button class="num-btn" onclick="pressPin('8')">8</button><button class="num-btn" onclick="pressPin('9')">9</button>
@@ -72,47 +64,72 @@
     </div>
 
     <div class="header">
-        <div class="logo-text">EJ DELIVERY | <span id="namaKurirHeader">KURIR</span></div>
+        <div class="logo-text">EJ DELIVERY | <span id="namaKurirHeader">...</span></div>
         <div style="text-align: right;">
-            <div id="currentDate" style="font-size: 9px; color: var(--gold); font-weight: 800;">LOADING...</div>
+            <div id="currentDate" style="font-size: 9px; color: var(--gold); font-weight: 800;">...</div>
             <div id="clock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
         </div>
     </div>
 
     <div class="wallet-card">
-        <span>💰 UANG COD HARI INI</span>
+        <span style="font-size:10px; color:var(--safe); font-weight:800;">💰 UANG COD HARI INI</span>
         <b id="totalCOD">Rp 0</b>
         <div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.2);">
-            <div style="text-align: left;">
-                <span style="font-size: 8px; color: var(--danger); font-weight: 800;">📉 PENGELUARAN</span>
-                <b id="totalPengeluaran" style="display: block; font-size: 14px; color: var(--danger);">Rp 0</b>
-            </div>
-            <div style="text-align: right;">
-                <span style="font-size: 8px; color: var(--gold); font-weight: 800;">💎 SISA WAJIB SETOR</span>
-                <b id="setoranBersih" style="display: block; font-size: 14px; color: var(--gold);">Rp 0</b>
-            </div>
+            <div style="text-align: left;"><span style="font-size: 8px; color: var(--danger); font-weight: 800;">📉 PENGELUARAN</span><b id="totalPengeluaran" style="display: block; font-size: 14px; color: var(--danger);">Rp 0</b></div>
+            <div style="text-align: right;"><span style="font-size: 8px; color: var(--gold); font-weight: 800;">💎 SISA WAJIB SETOR</span><b id="setoranBersih" style="display: block; font-size: 14px; color: var(--gold);">Rp 0</b></div>
         </div>
-        <button onclick="tambahPengeluaran()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; width: 100%; padding: 12px; border-radius: 12px; margin-top: 15px; font-weight: 800; font-size: 10px; cursor: pointer;">✍️ CATAT PENGELUARAN</button>
+        <button onclick="tambahPengeluaran()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; width: 100%; padding: 12px; border-radius: 12px; margin-top: 15px; font-weight: 800; font-size: 10px;">✍️ CATAT PENGELUARAN</button>
     </div>
 
     <button class="btn btn-scan" id="btnScanMain" onclick="toggleScanner()">📷 SCAN BARCODE (PICKUP)</button>
-    <div id="reader"></div>
+    <div id="reader" style="width:100%; display:none; border-radius:15px; overflow:hidden; margin-bottom:15px;"></div>
 
     <input type="text" id="searchOrder" class="search-box" placeholder="🔍 Cari nama pembeli atau resi..." oninput="renderOrders()">
 
     <div class="tab-menu">
-        <div class="tab-btn" id="t-Gudang" onclick="setTab('Gudang')">GUDANG <span class="count-badge" id="c-Gudang">0</span></div>
-        <div class="tab-btn active" id="t-Proses" onclick="setTab('Proses')">TAS SAYA <span class="count-badge" id="c-Proses">0</span></div>
-        <div class="tab-btn" id="t-Terkirim" onclick="setTab('Terkirim')">SUKSES <span class="count-badge" id="c-Terkirim">0</span></div>
-        <div class="tab-btn" id="t-Gagal" onclick="setTab('Gagal')">CANCEL <span class="count-badge" id="c-Gagal">0</span></div>
+        <div class="tab-btn" id="t-Gudang" onclick="setTab('Gudang')">GUDANG <span id="c-Gudang">0</span></div>
+        <div class="tab-btn active" id="t-Proses" onclick="setTab('Proses')">TAS SAYA <span id="c-Proses">0</span></div>
+        <div class="tab-btn" id="t-Terkirim" onclick="setTab('Terkirim')">SUKSES <span id="c-Terkirim">0</span></div>
+        <div class="tab-btn" id="t-Gagal" onclick="setTab('Gagal')">CANCEL <span id="c-Gagal">0</span></div>
     </div>
 
-    <div id="orderContainer">Memuat data...</div>
+    <div id="orderContainer"></div>
 
     <div id="modalView" class="modal-view" onclick="this.style.display='none'"><img id="imgPreview" src=""><p style="color:var(--gold); margin-top:15px; font-weight:800;">TAP UNTUK TUTUP</p></div>
-    <div id="modalExpense" class="modal-view"><div class="glass-card" style="width:320px; background:#0A0A0A; border:1px solid var(--gold);"><h2>✍️ PENGELUARAN</h2><input type="text" id="expKet" placeholder="Keterangan..."><input type="number" id="expNom" placeholder="Nominal Rp..." style="margin-top:10px;"><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;"><button class="btn" onclick="document.getElementById('modalExpense').style.display='none'">BATAL</button><button class="btn btn-success" onclick="prosesSimpanExpense()">SIMPAN</button></div></div></div>
-    <div id="modalAlasan" class="modal-view"><div class="glass-card" style="width:320px; background:#0A0A0A; border:1px solid var(--warning);"><h2 id="judulAlasan">ALASAN</h2><textarea id="textAlasan" style="width:100%; height:80px; background:rgba(255,255,255,0.05); color:white; border-radius:10px; padding:10px; border:1px solid var(--glass-border);"></textarea><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;"><button class="btn" onclick="document.getElementById('modalAlasan').style.display='none'">BATAL</button><button class="btn btn-warning" onclick="prosesSimpanAlasan()">SIMPAN</button></div></div></div>
-    <div id="modalPenerima" class="modal-view"><div class="glass-card" style="width:320px; background:#0A0A0A; border:1px solid var(--safe);"><h2>✅ PENERIMA</h2><input type="text" id="inputNamaPenerima" placeholder="Nama Penerima..."><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;"><button class="btn" onclick="batalUploadSelesai()">BATAL</button><button class="btn btn-success" onclick="eksekusiUploadSelesai()">UPLOAD</button></div></div></div>
+    
+    <div id="modalExpense" class="modal-view">
+        <div class="glass-card" style="width:320px; background:#0A0A0A; border:1px solid var(--gold);">
+            <h2 style="color:var(--gold); text-align:center;">✍️ PENGELUARAN</h2>
+            <input type="text" id="expKet" placeholder="Keterangan (Bensin/Parkir)">
+            <input type="number" id="expNom" placeholder="Nominal Rp" style="margin-top:10px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+                <button class="btn" onclick="document.getElementById('modalExpense').style.display='none'">BATAL</button>
+                <button class="btn btn-success" onclick="prosesSimpanExpense()">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalAlasan" class="modal-view">
+        <div class="glass-card" style="width:320px; background:#0A0A0A; border:1px solid var(--warning);">
+            <h2 id="judulAlasan" style="text-align:center;">ALASAN</h2>
+            <textarea id="textAlasan" style="height:80px; margin-top:10px;"></textarea>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+                <button class="btn" onclick="document.getElementById('modalAlasan').style.display='none'">BATAL</button>
+                <button class="btn btn-warning" onclick="prosesSimpanAlasan()">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalPenerima" class="modal-view">
+        <div class="glass-card" style="width:320px; background:#0A0A0A; border:1px solid var(--safe);">
+            <h2 style="color:var(--safe); text-align:center;">✅ PENERIMA</h2>
+            <input type="text" id="inputNamaPenerima" placeholder="Nama Penerima Paket..." style="margin-top:10px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+                <button class="btn" onclick="batalUploadSelesai()">BATAL</button>
+                <button class="btn btn-success" onclick="eksekusiUploadSelesai()">UPLOAD</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
@@ -128,177 +145,110 @@
 
     const dataPIN = { "kurirA": "1111", "kurirB": "2222", "kurirC": "3333" };
     function pressPin(val) {
-        let display = document.getElementById('pinDisplay');
-        let inputPin = display.getAttribute('data-val') || "";
-        if (val === 'C') inputPin = "";
+        let disp = document.getElementById('pinDisplay'); let v = disp.getAttribute('data-v') || "";
+        if (val === 'C') v = "";
         else if (val === 'OK') {
-            const namaPilihan = document.getElementById('namaKurirInput').value;
-            if (inputPin === dataPIN[namaPilihan]) {
-                myName = namaPilihan;
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('namaKurirHeader').innerText = myName;
-                updateUI(); aktifkanRadar();
-            } else { alert("PIN SALAH!"); inputPin = ""; }
-        } else { if (inputPin.length < 4) inputPin += val; }
-        display.setAttribute('data-val', inputPin);
-        display.innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
+            const sel = document.getElementById('namaKurirInput').value;
+            if (v === dataPIN[sel]) { myName = sel; document.getElementById('loginOverlay').style.display='none'; document.getElementById('namaKurirHeader').innerText=myName.toUpperCase(); updateUI(); aktifkanRadar(); }
+            else { alert("PIN SALAH!"); v = ""; }
+        } else { if (v.length < 4) v += val; }
+        disp.setAttribute('data-v', v); disp.innerText = v.length > 0 ? "*".repeat(v.length) : "****";
     }
 
-    db.ref('pesanan').limitToLast(200).on('value', snap => {
-        const val = snap.val();
-        allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
-        if (myName) updateUI();
-    });
-
-    db.ref('pengeluaran').on('value', snap => { allPengeluaranData = snap.val() || {}; if (myName) updateUI(); });
-    db.ref('setoran_kurir').on('value', snap => { allSetoranData = snap.val() || {}; if (myName) updateUI(); });
+    db.ref('pesanan').limitToLast(200).on('value', snap => { allData = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).reverse() : []; if(myName) updateUI(); });
+    db.ref('pengeluaran').on('value', snap => { allPengeluaranData = snap.val() || {}; if(myName) updateUI(); });
+    db.ref('setoran_kurir').on('value', snap => { allSetoranData = snap.val() || {}; if(myName) updateUI(); });
 
     function updateUI() {
-        const today = getTgl();
-        let gd=0, p=0, s=0, g=0, codDompetKu=0;
-        const me = myName.toLowerCase().trim();
-
+        const today = getTgl(); let gd=0, p=0, s=0, g=0, codK=0; const me = myName.toLowerCase();
         allData.forEach(o => {
-            const okurir = String(o.kurir || "").toLowerCase().trim();
+            const ok = String(o.kurir || "").toLowerCase();
             if (o.status === 'Gudang') gd++;
-            if (okurir === me) {
+            if (ok === me) {
                 if (o.status === 'Proses' || o.status === 'Menunggu' || o.status === 'Tunda') p++;
-                else if (o.status === 'Terkirim' && o.tanggal === today) {
-                    s++; if (o.metode === 'COD') codDompetKu += Number(o.total || 0);
-                }
+                else if (o.status === 'Terkirim' && o.tanggal === today) { s++; if(o.metode==='COD') codK += Number(o.total || 0); }
                 else if (o.status === 'Gagal' && o.tanggal === today) g++;
             }
         });
-
-        let expKu = 0;
-        Object.values(allPengeluaranData).forEach(exp => {
-            if (String(exp.kurir || "").toLowerCase().trim() === me && exp.tanggal === today) expKu += Number(exp.nominal || 0);
-        });
-
-        let setKu = 0;
-        const key = today.replace(/\//g, '-');
-        if (allSetoranData[key] && allSetoranData[key][myName]) setKu = Number(allSetoranData[key][myName]);
-
-        document.getElementById('c-Gudang').innerText = gd;
-        document.getElementById('c-Proses').innerText = p;
-        document.getElementById('c-Terkirim').innerText = s;
-        document.getElementById('c-Gagal').innerText = g;
-        document.getElementById('totalCOD').innerText = "Rp " + codDompetKu.toLocaleString('id-ID');
-        document.getElementById('totalPengeluaran').innerText = "Rp " + expKu.toLocaleString('id-ID');
-        const bersih = codDompetKu - expKu - setKu;
-        document.getElementById('setoranBersih').innerText = "Rp " + (bersih < 0 ? 0 : bersih).toLocaleString('id-ID');
+        let expK = 0; Object.values(allPengeluaranData).forEach(e => { if(String(e.kurir||"").toLowerCase() === me && e.tanggal === today) expK += Number(e.nominal || 0); });
+        let setK = 0; const key = today.replace(/\//g, '-'); if(allSetoranData[key] && allSetoranData[key][myName]) setK = Number(allSetoranData[key][myName]);
+        document.getElementById('c-Gudang').innerText=gd; document.getElementById('c-Proses').innerText=p; document.getElementById('c-Terkirim').innerText=s; document.getElementById('c-Gagal').innerText=g;
+        document.getElementById('totalCOD').innerText="Rp "+codK.toLocaleString(); document.getElementById('totalPengeluaran').innerText="Rp "+expK.toLocaleString();
+        const bersih = codK - expK - setK; document.getElementById('setoranBersih').innerText="Rp "+Math.max(0, bersih).toLocaleString();
         renderOrders();
     }
 
     function renderOrders() {
         const container = document.getElementById('orderContainer');
         const search = document.getElementById('searchOrder').value.toLowerCase().trim();
-        const today = getTgl();
-        const me = myName.toLowerCase().trim();
+        const today = getTgl(); const me = myName.toLowerCase();
         container.innerHTML = "";
 
         const filtered = allData.filter(o => {
             const match = (o.namaPembeli || "").toLowerCase().includes(search) || (o.noPesanan || "").toLowerCase().includes(search);
-            const okurir = String(o.kurir || "").toLowerCase().trim();
-            
-            // 1. Jika tab Gudang, abaikan cek nama kurir
+            const ok = String(o.kurir || "").toLowerCase();
             if (currentTab === 'Gudang') return match && o.status === 'Gudang';
-            
-            // 2. Untuk tab lain, nama kurir WAJIB sama
-            if (okurir !== me) return false;
-            
-            // 3. Filter berdasarkan tab
+            if (ok !== me) return false;
             if (currentTab === 'Proses') return match && (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang');
             return match && (o.status === currentTab && o.tanggal === today);
         });
 
-        if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.3;">Kosong...</div>`; return; }
-
         filtered.forEach(o => {
-            const badgeBg = o.status === 'Terkirim' ? 'var(--safe)' : (o.status === 'Gagal' ? 'var(--danger)' : 'var(--gold)');
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
-            const username = "ahmadsaefulaziz1996", repo = "ej-delivery";
-            const linkTrack = `https://${username}.github.io/${repo}/tracking.html?n=${myName}`;
-            const msg = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\n\nSaya kurir *${myName.toUpperCase()}* sedang meluncur.\n\n*PANTAU POSISI:* \n${linkTrack}\n\nMohon siapkan uang pas *Rp${Number(o.total || 0).toLocaleString('id-ID')}*. 🙏`;
+            const trackLink = `https://ahmadsaefulaziz1996.github.io/ej-delivery/tracking.html?n=${myName}`;
+            const msg = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\nSaya kurir *${myName.toUpperCase()}* sedang meluncur.\n*PANTAU POSISI:* \n${trackLink}\nTagihan: *Rp${Number(o.total || 0).toLocaleString()}* 🙏`;
+            
+            let btnMaps = "";
+            if (o.mapLink && o.mapLink.trim() !== "") {
+                let lv = o.mapLink.trim(); if (!lv.startsWith("http")) lv = "https://" + lv;
+                btnMaps = `<button onclick="window.open('${lv}', '_blank')" class="btn btn-maps">🗺️ BUKA MAPS / RUTE</button>`;
+            }
 
-            container.innerHTML += `<div class="glass-card ${o.urgent ? 'card-urgent' : ''}">
-                <div class="status-badge" style="background:${badgeBg}">${o.status}</div>
+            container.innerHTML += `<div class="glass-card ${o.urgent?'card-urgent':''}">
+                <div class="status-badge" style="background:${o.status==='Terkirim'?'var(--safe)':(o.status==='Gagal'?'var(--danger)':'var(--gold)')}">${o.status}</div>
                 <span style="font-size:10px; color:var(--gold); font-weight:800;">${o.noPesanan}</span>
                 <h3>${o.namaPembeli}</h3>
                 <p style="font-size:12px; opacity:0.7;">📍 ${o.alamat}</p>
-                <div style="font-weight:800; color:var(--safe); margin:10px 0;">TAGIHAN: Rp ${Number(o.total || 0).toLocaleString('id-ID')}</div>
+                <div style="font-weight:800; color:var(--safe); margin:10px 0;">TAGIHAN: Rp ${Number(o.total).toLocaleString()}</div>
                 ${o.status === 'Gudang' ? `<button class="btn btn-success" style="width:100%" onclick="ambilPaket('${o.id}')">📦 AMBIL PAKET</button>` : 
                 (o.status !== 'Terkirim' && o.status !== 'Gagal' ? `<button onclick="window.open('https://wa.me/${waNum}?text=${encodeURIComponent(msg)}', '_blank')" class="btn btn-wa">🚀 MELUNCUR (WA)</button>
+                ${btnMaps}
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;"><button class="btn btn-success" onclick="document.getElementById('f-${o.id}').click()">✅ SELESAI</button><button class="btn btn-warning" onclick="updateStat('${o.id}', 'Tunda')">⚠️ TUNDA</button></div>
                 <button class="btn btn-danger" style="width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')">❌ CANCEL</button>` : '')}
                 <input type="file" id="f-${o.id}" accept="image/*" capture="environment" style="display:none;" onchange="uploadSelesai('${o.id}', this)">
             </div>`;
         });
+        if (filtered.length === 0) container.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.3;">Kosong...</div>`;
     }
 
-    function ambilPaket(id) {
-        db.ref('pesanan/' + id).update({ status: 'Proses', kurir: myName, waktuAmbil: new Date().toLocaleTimeString() })
-          .then(() => { alert("✅ Berhasil Pickup!"); document.getElementById('searchOrder').value = ""; setTab('Proses'); });
-    }
-
+    function ambilPaket(id) { db.ref('pesanan/'+id).update({ status:'Proses', kurir:myName, waktuAmbil:new Date().toLocaleTimeString() }).then(() => { document.getElementById('searchOrder').value=""; setTab('Proses'); }); }
     function uploadSelesai(id, input) { if (input.files[0]) { tempFileSukses = input.files[0]; tempIdSukses = id; document.getElementById('modalPenerima').style.display='flex'; input.value=""; } }
-    function batalUploadSelesai() { document.getElementById('modalPenerima').style.display='none'; tempFileSukses = null; }
     function eksekusiUploadSelesai() {
-        let nama = document.getElementById('inputNamaPenerima').value || "Keluarga/Pihak Rumah";
-        const id = tempIdSukses, file = tempFileSukses;
-        document.getElementById('modalPenerima').style.display='none';
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                let w = img.width, h = img.height;
+        let n = document.getElementById('inputNamaPenerima').value || "Keluarga/Pihak Rumah";
+        const id = tempIdSukses, file = tempFileSukses; document.getElementById('modalPenerima').style.display='none';
+        const reader = new FileReader(); reader.onload = function(e) {
+            const img = new Image(); img.onload = function() {
+                const canvas = document.createElement('canvas'); let w = img.width, h = img.height;
                 if (w > h) { if (w > 600) { h *= 600 / w; w = 600; } } else { if (h > 800) { w *= 800 / h; h = 800; } }
-                canvas.width = w; canvas.height = h;
-                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
-                db.ref('foto_bukti/' + id).set(dataUrl).then(() => {
-                    db.ref('pesanan/' + id).update({ status: 'Terkirim', adaFoto: true, catatanKurir: "Diterima: " + nama, waktuSelesai: new Date().toLocaleTimeString() });
+                canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                db.ref('foto_bukti/'+id).set(canvas.toDataURL('image/jpeg', 0.5)).then(() => {
+                    db.ref('pesanan/'+id).update({ status:'Terkirim', adaFoto:true, catatanKurir:"Diterima: "+n, waktuSelesai:new Date().toLocaleTimeString() });
                 });
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+            }; img.src = e.target.result;
+        }; reader.readAsDataURL(file);
     }
-
-    function setTab(t) { currentTab = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('t-' + t).classList.add('active'); renderOrders(); }
-    function toggleScanner() { const r = document.getElementById('reader'); r.style.display = r.style.display === 'block' ? 'none' : 'block'; if(r.style.display==='block') startScanner(); }
-    function startScanner() {
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
-            const target = allData.find(o => o.noPesanan.replace(/\W/g, "") === txt.replace(/\W/g, ""));
-            if (target) {
-                if (target.status === 'Gudang') ambilPaket(target.id);
-                else { document.getElementById('searchOrder').value = target.noPesanan; renderOrders(); }
-                html5QrCode.stop(); document.getElementById('reader').style.display='none';
-            }
-        });
-    }
-
+    function batalUploadSelesai() { document.getElementById('modalPenerima').style.display='none'; tempFileSukses=null; }
+    function setTab(t) { currentTab = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('t-'+t).classList.add('active'); renderOrders(); }
+    function toggleScanner() { const r = document.getElementById('reader'); r.style.display = r.style.display==='block'?'none':'block'; if(r.style.display==='block') startScanner(); }
+    function startScanner() { html5QrCode = new Html5Qrcode("reader"); html5QrCode.start({ facingMode:"environment" }, { fps:10, qrbox:250 }, (txt) => {
+        const target = allData.find(o => o.noPesanan.replace(/\W/g, "") === txt.replace(/\W/g, ""));
+        if (target) { if (target.status==='Gudang') ambilPaket(target.id); else { document.getElementById('searchOrder').value=target.noPesanan; renderOrders(); } html5QrCode.stop(); document.getElementById('reader').style.display='none'; }
+    }); }
     function tambahPengeluaran() { document.getElementById('modalExpense').style.display='flex'; }
-    function prosesSimpanExpense() {
-        const k = document.getElementById('expKet').value, n = document.getElementById('expNom').value;
-        if (k && n) db.ref('pengeluaran').push({ kurir: myName, keterangan: k, nominal: Number(n), tanggal: getTgl(), waktu: new Date().toLocaleTimeString() }).then(() => document.getElementById('modalExpense').style.display='none');
-    }
-
+    function prosesSimpanExpense() { const k=document.getElementById('expKet').value, n=document.getElementById('expNom').value; if(k && n) db.ref('pengeluaran').push({ kurir:myName, keterangan:k, nominal:Number(n), tanggal:getTgl(), waktu:new Date().toLocaleTimeString() }).then(()=>document.getElementById('modalExpense').style.display='none'); }
     function updateStat(id, s) { tempId = id; tempStat = s; document.getElementById('modalAlasan').style.display='flex'; }
-    function prosesSimpanAlasan() {
-        const a = document.getElementById('textAlasan').value;
-        if (a) db.ref('pesanan/' + tempId).update({ status: tempStat, alasanTunda: a, waktuUpdate: new Date().toLocaleTimeString() }).then(() => document.getElementById('modalAlasan').style.display='none');
-    }
-
-    function aktifkanRadar() {
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(pos => {
-                db.ref('tracking/' + myName).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, waktu: new Date().toLocaleTimeString() });
-            }, null, { enableHighAccuracy: true });
-        }
-    }
+    function prosesSimpanAlasan() { const a=document.getElementById('textAlasan').value; if(a) db.ref('pesanan/'+tempId).update({ status:tempStat, alasanTunda:a, waktuUpdate:new Date().toLocaleTimeString() }).then(()=>document.getElementById('modalAlasan').style.display='none'); }
+    function aktifkanRadar() { if (navigator.geolocation) { navigator.geolocation.watchPosition(pos => { db.ref('tracking/'+myName).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, waktu: new Date().toLocaleTimeString() }); }, null, { enableHighAccuracy:true }); } }
     </script>
 </body>
 </html>
