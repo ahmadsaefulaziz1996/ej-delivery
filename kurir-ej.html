@@ -142,8 +142,13 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-    let currentTab = 'Proses', allData = [], html5QrCode = null;
+    let currentTab = 'Proses', html5QrCode = null;
     let myName = ""; 
+    
+    // Variabel Penampung Data Mentah
+    let allData = []; 
+    let allPengeluaranData = {};
+    let allSetoranData = {};
 
     function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
     setInterval(() => { 
@@ -163,7 +168,7 @@
                 myName = namaPilihan; 
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('namaKurirHeader').innerText = myName;
-                updateUI();
+                updateUI(); // Panggil rumus setelah nama kurir resmi terdaftar
                 aktifkanRadar();
             } else { alert("⚠️ PIN SALAH! Pastikan nama dan PIN sesuai."); inputPin = ""; }
         } 
@@ -178,34 +183,15 @@
         if (myName !== "") updateUI();
     });
 
-    // --- 2. AMBIL PENGELUARAN (BENSIN DLL) ---
-    let totalPengeluaranKu = 0;
+    // --- 2. AMBIL PENGELUARAN MENTAH ---
     db.ref('pengeluaran').on('value', snap => {
-        const val = snap.val();
-        totalPengeluaranKu = 0;
-        const today = getTgl();
-        if (val) {
-            Object.values(val).forEach(p => {
-                if (p.kurir === myName && p.tanggal === today) {
-                    totalPengeluaranKu += Number(p.nominal || 0);
-                }
-            });
-        }
+        allPengeluaranData = snap.val() || {};
         if (myName !== "") updateUI();
     });
 
-    // --- 3. AMBIL DATA SETORAN (YANG SUDAH DIKASIH KE ADMIN) ---
-    let setoranSaya = 0;
+    // --- 3. AMBIL DATA SETORAN MENTAH ---
     db.ref('setoran_kurir').on('value', snap => {
-        const allSetoran = snap.val() || {};
-        const todayKey = getTgl().replace(/\//g, '-');
-        
-        // Cek apakah ada data setoran untuk kurir ini di hari ini
-        if (allSetoran[todayKey] && allSetoran[todayKey][myName]) {
-            setoranSaya = Number(allSetoran[todayKey][myName]);
-        } else {
-            setoranSaya = 0;
-        }
+        allSetoranData = snap.val() || {};
         if (myName !== "") updateUI();
     });
 
@@ -226,11 +212,12 @@
         }).catch(err => alert("Gagal mencatat: " + err.message));
     }
 
-    // --- FUNGSI UPDATE LAYAR HP KURIR ---
+    // --- OTAK HITUNGAN HP KURIR (PASTI AKURAT) ---
     function updateUI() {
         const today = getTgl();
         let gd=0, p=0, s=0, g=0, codDompetKu=0;
         
+        // A. Hitung Pesanan
         allData.forEach(o => {
             if (o.status === 'Gudang') gd++;
             if (o.kurir === myName) {
@@ -242,6 +229,21 @@
                 else if (o.status === 'Gagal' && o.tanggal === today) g++;
             }
         });
+
+        // B. Hitung Pengeluaran Khusus Kurir Ini
+        let totalPengeluaranKu = 0;
+        Object.values(allPengeluaranData).forEach(exp => {
+            if (exp.kurir === myName && exp.tanggal === today) {
+                totalPengeluaranKu += Number(exp.nominal || 0);
+            }
+        });
+
+        // C. Hitung Setoran Khusus Kurir Ini
+        let setoranSaya = 0;
+        const todayKey = today.replace(/\//g, '-');
+        if (allSetoranData[todayKey] && allSetoranData[todayKey][myName]) {
+            setoranSaya = Number(allSetoranData[todayKey][myName]);
+        }
         
         document.getElementById('c-Gudang').innerText = gd;
         document.getElementById('c-Proses').innerText = p;
