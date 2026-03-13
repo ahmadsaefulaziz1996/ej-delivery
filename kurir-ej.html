@@ -13,7 +13,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text-main); padding: 12px; padding-bottom: 100px; overflow-x: hidden; user-select: none; }
         ::-webkit-scrollbar { display: none; }
-        input, select { -webkit-user-select: text; user-select: text; width: 100%; }
+        input, select, textarea { -webkit-user-select: text; user-select: text; width: 100%; outline: none; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; z-index: 9999; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
         .logo-text { color: var(--gold); font-weight: 800; font-size: 18px; letter-spacing: 1px; }
         .wallet-card { background: rgba(34, 197, 94, 0.05); border: 1px solid var(--safe); border-radius: 20px; padding: 20px; margin-bottom: 15px; text-align: center; }
@@ -23,7 +23,7 @@
         .tab-btn { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px 2px; border-radius: 12px; color: #fff; font-weight: 800; font-size: 9px; text-align: center; cursor: pointer; }
         .tab-btn.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); color: var(--gold); }
         .count-badge { display: block; font-size: 14px; margin-top: 2px; }
-        .search-box { width: 100%; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 15px; outline: none; }
+        .search-box { width: 100%; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 15px; }
         .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; position: relative; overflow: hidden; transition: 0.3s; }
         .status-badge { position: absolute; top: 0; right: 0; padding: 6px 15px; font-size: 9px; font-weight: 800; border-radius: 0 0 0 15px; text-transform: uppercase; color: #000; }
         .btn { border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
@@ -46,7 +46,6 @@
         .numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; }
         .num-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 26px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
-        
         select.kurir-select { background: #111; color: var(--gold); border: 2px solid var(--gold); padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 800; margin-bottom: 10px; outline: none; text-align: center; }
     </style>
 </head>
@@ -127,6 +126,44 @@
         <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">TAP MANA SAJA UNTUK TUTUP</p>
     </div>
 
+    <div id="modalExpense" class="modal-view" style="display: none; padding: 20px;">
+        <div class="glass-card" style="width: 100%; max-width: 350px; background: #0A0A0A; border: 1px solid var(--gold); position: relative;">
+            <h2 style="color: var(--gold); font-size: 18px; margin-bottom: 20px; text-align: center;">✍️ CATAT PENGELUARAN</h2>
+            <label style="font-size: 10px; color: gray; margin-bottom: 5px; display: block;">KETERANGAN / ALASAN</label>
+            <input type="text" id="expKet" placeholder="Contoh: Bensin, Parkir..." style="margin-bottom: 15px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); padding:10px; border-radius:8px; color:white;">
+            <label style="font-size: 10px; color: gray; margin-bottom: 5px; display: block;">NOMINAL (RP)</label>
+            <input type="number" id="expNom" placeholder="Contoh: 15000" inputmode="numeric" style="margin-bottom: 20px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); padding:10px; border-radius:8px; color:white;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="document.getElementById('modalExpense').style.display='none'">BATAL</button>
+                <button class="btn btn-success" onclick="prosesSimpanExpense()">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalAlasan" class="modal-view" style="display: none; padding: 20px;">
+        <div class="glass-card" style="width: 100%; max-width: 350px; background: #0A0A0A; border: 1px solid var(--warning); position: relative;">
+            <h2 id="judulAlasan" style="color: var(--warning); font-size: 18px; margin-bottom: 20px; text-align: center;">⚠️ MASUKKAN ALASAN</h2>
+            <textarea id="textAlasan" placeholder="Ketik alasan di sini..." style="width: 100%; height: 100px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: white; padding: 12px; margin-bottom: 20px; outline: none;"></textarea>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="document.getElementById('modalAlasan').style.display='none'">BATAL</button>
+                <button class="btn btn-warning" onclick="prosesSimpanAlasan()">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalPenerima" class="modal-view" style="display: none; padding: 20px;">
+        <div class="glass-card" style="width: 100%; max-width: 350px; background: #0A0A0A; border: 1px solid var(--safe); position: relative;">
+            <h2 style="color: var(--safe); font-size: 18px; margin-bottom: 10px; text-align: center;">✅ PAKET DITERIMA</h2>
+            <p style="text-align:center; font-size:10px; color:gray; margin-bottom:20px;">Foto berhasil dipilih. Siapa yang menerima paket ini?</p>
+            <label style="font-size: 10px; color: gray; margin-bottom: 5px; display: block;">NAMA PENERIMA</label>
+            <input type="text" id="inputNamaPenerima" placeholder="Contoh: Mas Budi / Dititip Satpam" style="margin-bottom: 20px; background:rgba(255,255,255,0.05); border:1px solid var(--safe); padding:12px; border-radius:8px; color:white; font-weight:800;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn" style="background: rgba(255,255,255,0.05); color: #fff;" onclick="batalUploadSelesai()">BATAL</button>
+                <button class="btn btn-success" onclick="eksekusiUploadSelesai()">UPLOAD FOTO</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
     <script>
@@ -145,10 +182,13 @@
     let currentTab = 'Proses', html5QrCode = null;
     let myName = ""; 
     
-    // Variabel Penampung Data Mentah
     let allData = []; 
     let allPengeluaranData = {};
     let allSetoranData = {};
+    
+    // Variabel Penampung Upload Foto Sementara
+    let tempFileSukses = null;
+    let tempIdSukses = "";
 
     function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
     setInterval(() => { 
@@ -168,7 +208,7 @@
                 myName = namaPilihan; 
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('namaKurirHeader').innerText = myName;
-                updateUI(); // Panggil update pertama kali setelah login
+                updateUI(); 
                 aktifkanRadar();
             } else { alert("⚠️ PIN SALAH! Pastikan nama dan PIN sesuai."); inputPin = ""; }
         } 
@@ -176,30 +216,32 @@
         document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
     }
         
-    // --- 1. AMBIL PESANAN ---
     db.ref('pesanan').limitToLast(100).on('value', snap => {
         const val = snap.val();
         allData = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
         if (myName !== "") updateUI();
     });
 
-    // --- 2. AMBIL PENGELUARAN ---
     db.ref('pengeluaran').on('value', snap => {
         allPengeluaranData = snap.val() || {};
         if (myName !== "") updateUI();
     });
 
-    // --- 3. AMBIL DATA SETORAN DARI ADMIN ---
     db.ref('setoran_kurir').on('value', snap => {
         allSetoranData = snap.val() || {};
         if (myName !== "") updateUI();
     });
 
     function tambahPengeluaran() {
-        const ket = prompt("Untuk apa pengeluaran ini?\n(isi alasannya)");
-        if (!ket) return;
-        const nom = prompt("Berapa nominalnya? (HANYA ANGKA)\n(Contoh: 15000)");
-        if (!nom || isNaN(nom)) return alert("⚠️ Nominal tidak valid! Masukkan angka saja.");
+        document.getElementById('modalExpense').style.display = 'flex';
+        document.getElementById('expKet').value = "";
+        document.getElementById('expNom').value = "";
+    }
+    
+    function prosesSimpanExpense() {
+        const ket = document.getElementById('expKet').value;
+        const nom = document.getElementById('expNom').value;
+        if (!ket || !nom) return alert("⚠️ Keterangan dan Nominal wajib diisi!");
         
         db.ref('pengeluaran').push({
             kurir: myName,
@@ -208,16 +250,34 @@
             tanggal: getTgl(),
             waktu: new Date().toLocaleTimeString('id-ID')
         }).then(() => {
-            alert("✅ Pengeluaran berhasil dicatat!");
+            document.getElementById('modalExpense').style.display = 'none';
         }).catch(err => alert("Gagal mencatat: " + err.message));
     }
 
-    // --- OTAK HITUNGAN HP KURIR ---
+    let tempId = "", tempStat = "";
+    function updateStat(id, stat) {
+        tempId = id; tempStat = stat;
+        const judul = document.getElementById('judulAlasan');
+        if(stat === 'Tunda') { judul.innerText = "⚠️ ALASAN TUNDA"; judul.style.color = "var(--warning)"; }
+        else { judul.innerText = "❌ ALASAN CANCEL"; judul.style.color = "var(--danger)"; }
+        document.getElementById('modalAlasan').style.display = 'flex';
+        document.getElementById('textAlasan').value = "";
+    }
+
+    function prosesSimpanAlasan() {
+        const alasan = document.getElementById('textAlasan').value;
+        if(!alasan) return alert("⚠️ Alasan wajib diisi!");
+        const o = allData.find(x => x.id === tempId);
+        db.ref('pesanan/' + tempId).update({ status: tempStat, alasanTunda: alasan, waktuUpdate: new Date().toLocaleTimeString() }).then(() => {
+            if(tempStat === 'Gagal' && o) catatBukuKas(o.tanggal, 'Gagal'); 
+            document.getElementById('modalAlasan').style.display = 'none';
+        });
+    }
+
     function updateUI() {
         const today = getTgl();
         let gd=0, p=0, s=0, g=0, codDompetKu=0;
         
-        // A. Hitung Pesanan
         allData.forEach(o => {
             if (o.status === 'Gudang') gd++;
             if (o.kurir === myName) {
@@ -230,7 +290,6 @@
             }
         });
 
-        // B. Hitung Pengeluaran Khusus Kurir Ini Hari Ini
         let totalPengeluaranKu = 0;
         Object.values(allPengeluaranData).forEach(exp => {
             if (exp.kurir === myName && exp.tanggal === today) {
@@ -238,7 +297,6 @@
             }
         });
 
-        // C. Hitung Setoran yang Sudah Diterima Admin
         let setoranSaya = 0;
         const todayKey = today.replace(/\//g, '-');
         if (allSetoranData[todayKey] && allSetoranData[todayKey][myName]) {
@@ -253,7 +311,6 @@
         document.getElementById('totalCOD').innerText = "Rp " + codDompetKu.toLocaleString('id-ID');
         document.getElementById('totalPengeluaran').innerText = "Rp " + totalPengeluaranKu.toLocaleString('id-ID');
         
-        // RUMUS SISA SETOR (Akurat & Langsung Lunas Kalau Admin Udah Terima)
         const bersih = codDompetKu - totalPengeluaranKu - setoranSaya;
         document.getElementById('setoranBersih').innerText = "Rp " + (bersih < 0 ? 0 : bersih).toLocaleString('id-ID');
         
@@ -338,22 +395,44 @@
         } else if (jenis === 'Gagal') ref.child('gagalCount').set(firebase.database.ServerValue.increment(1));
     }
 
-    function updateStat(id, stat, autoAlasan) {
-        const o = allData.find(x => x.id === id);
-        const alasan = autoAlasan || prompt("Masukkan Alasan/Catatan:");
-        if (alasan) {
-            db.ref('pesanan/' + id).update({ status: stat, alasanTunda: alasan, waktuUpdate: new Date().toLocaleTimeString() }).then(() => {
-                if(stat === 'Gagal' && o) catatBukuKas(o.tanggal, 'Gagal'); 
-            });
-        }
+    // --- ALUR BARU: FOTO DULU, LALU MUNCUL POPUP NAMA PENERIMA ---
+    function uploadSelesai(id, input) {
+        const file = input.files[0]; 
+        if (!file) return;
+        
+        // Simpan file dan ID ke variabel sementara
+        tempFileSukses = file;
+        tempIdSukses = id;
+        
+        // Buka Modal Penerima
+        document.getElementById('modalPenerima').style.display = 'flex';
+        document.getElementById('inputNamaPenerima').value = ""; // Kosongkan inputan sebelumnya
+        document.getElementById('inputNamaPenerima').focus();
+        
+        // Reset file input biar bisa dipencet lagi kalau batal
+        input.value = ""; 
     }
 
-    function uploadSelesai(id, input) {
-        const file = input.files[0]; if (!file) return;
-        const o = allData.find(x => x.id === id);
-        const catatan = prompt("Catatan Tambahan (Contoh: Titip Satpam):") || "-";
-        const reader = new FileReader();
+    function batalUploadSelesai() {
+        document.getElementById('modalPenerima').style.display = 'none';
+        tempFileSukses = null;
+        tempIdSukses = "";
+    }
+
+    function eksekusiUploadSelesai() {
+        let namaPenerima = document.getElementById('inputNamaPenerima').value;
+        if(!namaPenerima) namaPenerima = "Pihak Rumah/Keluarga"; // Default kalau kurir males ngetik
         
+        const catatan = "Diterima oleh: " + namaPenerima;
+        const id = tempIdSukses;
+        const file = tempFileSukses;
+        const o = allData.find(x => x.id === id);
+
+        // Tutup Modal Penerima
+        document.getElementById('modalPenerima').style.display = 'none';
+        
+        // Mulai proses kompresi & upload
+        const reader = new FileReader();
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
@@ -369,7 +448,7 @@
                         status: 'Terkirim', adaFoto: true, catatanKurir: catatan, waktuSelesai: new Date().toLocaleTimeString() 
                     }).then(() => { 
                         if(o) catatBukuKas(o.tanggal, 'Sukses', Number(o.total || 0), o.metode); 
-                        alert("✅ Berhasil Terkirim!"); input.value = ""; 
+                        // Alert sukses
                     }).catch(err => alert("❌ Gagal Update Pesanan: " + err.message));
                 }).catch(err => alert("❌ Gagal Upload Foto: " + err.message));
             }
@@ -438,7 +517,7 @@
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         } else {
-            alert("⚠️ HP ini tidak mendukung GPS Radar.");
+            // Silently fail if no GPS
         }
     }
     </script>
