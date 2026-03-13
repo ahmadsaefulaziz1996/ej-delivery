@@ -100,7 +100,7 @@
                 <b id="totalPengeluaran" style="display: block; font-size: 14px; color: var(--danger);">Rp 0</b>
             </div>
             <div style="text-align: right;">
-                <span style="font-size: 8px; color: var(--gold); font-weight: 800; letter-spacing: 1px;">💎 WAJIB SETOR</span>
+                <span style="font-size: 8px; color: var(--gold); font-weight: 800; letter-spacing: 1px;">💎 SISA WAJIB SETOR</span>
                 <b id="setoranBersih" style="display: block; font-size: 14px; color: var(--gold);">Rp 0</b>
             </div>
         </div>
@@ -168,7 +168,7 @@
                 myName = namaPilihan; 
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('namaKurirHeader').innerText = myName;
-                updateUI(); // Panggil rumus setelah nama kurir resmi terdaftar
+                updateUI(); // Panggil update pertama kali setelah login
                 aktifkanRadar();
             } else { alert("⚠️ PIN SALAH! Pastikan nama dan PIN sesuai."); inputPin = ""; }
         } 
@@ -183,13 +183,13 @@
         if (myName !== "") updateUI();
     });
 
-    // --- 2. AMBIL PENGELUARAN MENTAH ---
+    // --- 2. AMBIL PENGELUARAN ---
     db.ref('pengeluaran').on('value', snap => {
         allPengeluaranData = snap.val() || {};
         if (myName !== "") updateUI();
     });
 
-    // --- 3. AMBIL DATA SETORAN MENTAH ---
+    // --- 3. AMBIL DATA SETORAN DARI ADMIN ---
     db.ref('setoran_kurir').on('value', snap => {
         allSetoranData = snap.val() || {};
         if (myName !== "") updateUI();
@@ -212,7 +212,7 @@
         }).catch(err => alert("Gagal mencatat: " + err.message));
     }
 
-    // --- OTAK HITUNGAN HP KURIR (PASTI AKURAT) ---
+    // --- OTAK HITUNGAN HP KURIR ---
     function updateUI() {
         const today = getTgl();
         let gd=0, p=0, s=0, g=0, codDompetKu=0;
@@ -230,7 +230,7 @@
             }
         });
 
-        // B. Hitung Pengeluaran Khusus Kurir Ini
+        // B. Hitung Pengeluaran Khusus Kurir Ini Hari Ini
         let totalPengeluaranKu = 0;
         Object.values(allPengeluaranData).forEach(exp => {
             if (exp.kurir === myName && exp.tanggal === today) {
@@ -238,7 +238,7 @@
             }
         });
 
-        // C. Hitung Setoran Khusus Kurir Ini
+        // C. Hitung Setoran yang Sudah Diterima Admin
         let setoranSaya = 0;
         const todayKey = today.replace(/\//g, '-');
         if (allSetoranData[todayKey] && allSetoranData[todayKey][myName]) {
@@ -253,7 +253,7 @@
         document.getElementById('totalCOD').innerText = "Rp " + codDompetKu.toLocaleString('id-ID');
         document.getElementById('totalPengeluaran').innerText = "Rp " + totalPengeluaranKu.toLocaleString('id-ID');
         
-        // RUMUS FINAL: Total COD - Pengeluaran Bensin - Uang yg sudah disetor ke Admin
+        // RUMUS SISA SETOR (Akurat & Langsung Lunas Kalau Admin Udah Terima)
         const bersih = codDompetKu - totalPengeluaranKu - setoranSaya;
         document.getElementById('setoranBersih').innerText = "Rp " + (bersih < 0 ? 0 : bersih).toLocaleString('id-ID');
         
