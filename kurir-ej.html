@@ -91,8 +91,21 @@
     </div>
 
     <div class="wallet-card">
-        <span>💰 UANG COD KAMU HARI INI</span>
+        <span>💰 UANG COD HARI INI</span>
         <b id="totalCOD">Rp 0</b>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.2);">
+            <div style="text-align: left;">
+                <span style="font-size: 8px; color: var(--danger); font-weight: 800; letter-spacing: 1px;">📉 PENGELUARAN</span>
+                <b id="totalPengeluaran" style="display: block; font-size: 14px; color: var(--danger);">Rp 0</b>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 8px; color: var(--gold); font-weight: 800; letter-spacing: 1px;">💎 SETORAN BERSIH</span>
+                <b id="setoranBersih" style="display: block; font-size: 14px; color: var(--gold);">Rp 0</b>
+            </div>
+        </div>
+        
+        <button onclick="tambahPengeluaran()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; width: 100%; padding: 12px; border-radius: 12px; margin-top: 15px; font-weight: 800; font-size: 10px; cursor: pointer;">✍️ CATAT PENGELUARAN (BENSIN / PARKIR)</button>
     </div>
 
     <button class="btn btn-scan" id="btnScanMain" onclick="toggleScanner()">📷 SCAN BARCODE (AMBIL DARI GUDANG)</button>
@@ -165,6 +178,40 @@
         if (myName !== "") updateUI();
     });
 
+        // MENGAMBIL DATA PENGELUARAN
+    let totalPengeluaranKu = 0;
+    db.ref('pengeluaran').on('value', snap => {
+        const val = snap.val();
+        totalPengeluaranKu = 0;
+        const today = getTgl();
+        if (val) {
+            Object.values(val).forEach(p => {
+                if (p.kurir === myName && p.tanggal === today) {
+                    totalPengeluaranKu += Number(p.nominal || 0);
+                }
+            });
+        }
+        if (myName !== "") updateUI();
+    });
+
+    // FUNGSI TOMBOL CATAT PENGELUARAN
+    function tambahPengeluaran() {
+        const ket = prompt("Untuk apa pengeluaran ini?\n(Contoh: Bensin, Parkir, Tambal Ban)");
+        if (!ket) return;
+        const nom = prompt("Berapa nominalnya? (HANYA ANGKA)\n(Contoh: 15000)");
+        if (!nom || isNaN(nom)) return alert("⚠️ Nominal tidak valid! Masukkan angka saja.");
+        
+        db.ref('pengeluaran').push({
+            kurir: myName,
+            keterangan: ket,
+            nominal: Number(nom),
+            tanggal: getTgl(),
+            waktu: new Date().toLocaleTimeString('id-ID')
+        }).then(() => {
+            alert("✅ Pengeluaran berhasil dicatat!");
+        }).catch(err => alert("Gagal mencatat: " + err.message));
+    }
+
     function updateUI() {
         const today = getTgl();
         let gd=0, p=0, s=0, g=0, codDompetKu=0;
@@ -183,7 +230,13 @@
         document.getElementById('c-Proses').innerText = p;
         document.getElementById('c-Terkirim').innerText = s;
         document.getElementById('c-Gagal').innerText = g;
+        
+        // Update Dompet
         document.getElementById('totalCOD').innerText = "Rp " + codDompetKu.toLocaleString('id-ID');
+        document.getElementById('totalPengeluaran').innerText = "Rp " + totalPengeluaranKu.toLocaleString('id-ID');
+        const bersih = codDompetKu - totalPengeluaranKu;
+        document.getElementById('setoranBersih').innerText = "Rp " + bersih.toLocaleString('id-ID');
+        
         renderOrders();
     }
 
@@ -380,6 +433,7 @@
     </script>
 </body>
 </html>
+
 
 
 
