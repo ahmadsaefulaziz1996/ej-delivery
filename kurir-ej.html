@@ -208,11 +208,7 @@
             
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
             
-            // --- KODE PESAN WA BIASA ---
-            const pesanWA = `Halo Kak *${o.namaPembeli}* 👋\n\nSaya kurir *${myName.toUpperCase()}* dari EJ TOBACCO.\nPosisi saya sudah dekat untuk mengantar paket pesanan Kakak.\n\nMohon siapkan uang pas *Rp ${Number(o.total || 0).toLocaleString('id-ID')}* ya Kak. Terima kasih! 🙏`;
-            const linkWA = `https://wa.me/${waNum}?text=${encodeURIComponent(pesanWA)}`;
-
-            // --- KODE PESAN OTW BARU ---
+            // --- KODE PESAN OTW (Satu-satunya jalur WA sekarang) ---
             const pesanOTW = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\n\nSaya kurir *${myName.toUpperCase()}* sedang meluncur ke arah Kakak. Estimasi sampai sekitar *5-15 menit* lagi.\n\nMohon siapkan uang pas *Rp${Number(o.total || 0).toLocaleString('id-ID')}* ya Kak, biar prosesnya cepat. Terima kasih! 🙏`;
             const linkOTW = `https://wa.me/${waNum}?text=${encodeURIComponent(pesanOTW)}`;
 
@@ -235,9 +231,7 @@
                         <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="ambilPaket('${o.id}')">📦 KLAIM & AMBIL PAKET INI</button>
                     ` : (o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
                         
-                        <button onclick="window.open('${linkWA}', '_blank')" class="btn btn-wa">💬 HUBUNGI PEMBELI (WA)</button>
-                        
-                        <button onclick="window.open('${linkOTW}', '_blank')" class="btn" style="background: #FF5722; width: 100%; margin-top: 8px; color: white;">🚀 SAYA MELUNCUR (OTW)</button>
+                        <button onclick="window.open('${linkOTW}', '_blank')" class="btn btn-wa" style="font-size: 12px; padding: 16px;">🚀 SAYA MELUNCUR (WA)</button>
                         
                         ${btnMapsHTML}
                         
@@ -386,6 +380,7 @@
     </script>
 </body>
 </html>
+
 
 
 
