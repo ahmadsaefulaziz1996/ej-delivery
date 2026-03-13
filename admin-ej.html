@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>EJ ADMIN PRO - FULL SYSTEM</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
@@ -74,9 +76,20 @@
         <button onclick="goToToday()" style="background: var(--gold); border: none; border-radius: 12px; padding: 0 15px; font-weight: 800; font-size: 10px; color: black; cursor: pointer;">HARI INI</button>
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-        <button onclick="bukaLaporan()" style="background:var(--glass); border:1px solid var(--gold); color:var(--gold); padding:12px; border-radius:12px; font-weight:800; font-size:10px; cursor: pointer;">📊 LAPORAN BULANAN</button>
-        <button onclick="bukaSaldoKurir()" style="background:var(--glass); border:1px solid var(--safe); color:var(--safe); padding:12px; border-radius:12px; font-weight:800; font-size:10px; cursor: pointer;">💸 SALDO KURIR HARI INI</button>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-bottom:15px;">
+        <button onclick="bukaLaporan()" style="background:var(--glass); border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:12px; font-weight:800; font-size:9px; cursor: pointer;">📊 LAPORAN</button>
+        <button onclick="bukaSaldoKurir()" style="background:var(--glass); border:1px solid var(--safe); color:var(--safe); padding:10px; border-radius:12px; font-weight:800; font-size:9px; cursor: pointer;">💸 DOMPET</button>
+        <button onclick="bukaRadar()" style="background:var(--glass); border:1px solid var(--blue); color:var(--blue); padding:10px; border-radius:12px; font-weight:800; font-size:9px; cursor: pointer;">📡 RADAR KURIR</button>
+    </div>
+
+    <div id="radarOverlay" class="modal-foto" style="padding: 10px; flex-direction: column;">
+        <div style="width: 100%; max-width: 600px; background: #000; border: 1px solid var(--blue); border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; height: 80vh;">
+            <div style="background: var(--blue); color: #fff; padding: 15px; text-align: center; font-weight: 800; display: flex; justify-content: space-between; align-items: center;">
+                <span>📡 RADAR KURIR REAL-TIME</span>
+                <button onclick="document.getElementById('radarOverlay').style.display='none'" style="background: #000; color: #fff; border: none; padding: 5px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;">TUTUP</button>
+            </div>
+            <div id="mapRadar" style="flex: 1; width: 100%; z-index: 1; background: #111;"></div>
+        </div>
     </div>
     
     <div class="report-grid">
@@ -394,6 +407,40 @@
             });
         }
         setTimeout(bersihkanDataLama, 5000);
+
+        // === FITUR RADAR ADMIN ===
+        let map, markers = {};
+        function bukaRadar() {
+            document.getElementById('radarOverlay').style.display = 'flex';
+            if (!map) {
+                // Pusatkan peta di area Brebes (Bisa digeser otomatis nanti)
+                map = L.map('mapRadar').setView([-6.8694, 109.0435], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap EJ Tobacco'
+                }).addTo(map);
+
+                // Tarik data dari Firebase secara Live
+                db.ref('tracking').on('value', snap => {
+                    const data = snap.val();
+                    if (!data) return;
+                    for (let kurir in data) {
+                        const k = data[kurir];
+                        if (markers[kurir]) {
+                            markers[kurir].setLatLng([k.lat, k.lng]);
+                            markers[kurir].bindPopup(`<b>🛵 ${kurir.toUpperCase()}</b><br>Update: ${k.waktu}`);
+                        } else {
+                            markers[kurir] = L.marker([k.lat, k.lng]).addTo(map)
+                                .bindPopup(`<b>🛵 ${kurir.toUpperCase()}</b><br>Update: ${k.waktu}`).openPopup();
+                        }
+                        // Pusatkan peta ke kurir terakhir yang update
+                        map.setView([k.lat, k.lng], 15);
+                    }
+                });
+            }
+            // Pancing petanya biar ukurannya pas saat jendela dibuka
+            setTimeout(() => { map.invalidateSize(); }, 500);
+        }
+        
     </script>
 </body>
 </html>
