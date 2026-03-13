@@ -133,8 +133,8 @@
     </div>
 
     <div class="glass-card">
-        <input type="number" id="jumlahSetoran" placeholder="Input Setoran (Rp)">
-        <button class="btn-main" style="background:var(--safe); color:white" onclick="setor()">TERIMA SETORAN GLOBAL</button>
+        <input type="number" id="jumlahSetoran" placeholder="Input Setoran (Rp)" inputmode="numeric">
+        <button class="btn-main" style="background:var(--safe); color:white; margin-top:10px;" onclick="setorGlobal()">TERIMA SETORAN GLOBAL</button>
     </div>
 
     <input type="text" id="searchBar" placeholder="🔍 Cari nama/resi..." oninput="renderList()" style="width:100%; border:1px solid var(--gold);">
@@ -184,7 +184,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
-        let allOrders = [], dataSetoranSemua = {}, globalPengeluaran = 0;
+        let allOrders = [], globalPengeluaran = 0, totalSetoranGlobal = 0;
         let currentFilter = "Semua", lastOrder = null, lastDateString = "";
 
         function formatTglDB(date) { const d = new Date(date); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
@@ -212,76 +212,120 @@
             document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
         }
 
-        // --- 1. LISTENER SETORAN ---
-        db.ref('setoran').on('value', snap => {
-            dataSetoranSemua = snap.val() || {};
-            updateAll();
-        });
-
-        // --- 2. LISTENER PENGELUARAN ---
-        db.ref('pengeluaran').on('value', snap => {
-            const val = snap.val();
-            const pickerVal = document.getElementById('datePicker').value;
-            const p = pickerVal.split('-');
-            const tglTarget = `${p[2]}/${p[1]}/${p[0]}`;
-            globalPengeluaran = 0;
-            if (val) {
-                Object.values(val).forEach(item => {
-                    if (item.tanggal === tglTarget) globalPengeluaran += Number(item.nominal || 0);
-                });
-            }
-            updateAll();
-        });
-
-        // --- 3. LISTENER PESANAN ---
+        // --- SISTEM SEDERHANA: AMBIL SEMUA DATA PESANAN ---
         db.ref('pesanan').limitToLast(100).on('value', snap => {
             const val = snap.val();
             allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
             updateAll();
         });
 
+        // --- SISTEM SEDERHANA: AMBIL PENGELUARAN ---
+        db.ref('pengeluaran').on('value', snap => {
+            const val = snap.val();
+            globalPengeluaran = 0;
+            const targetTgl = document.getElementById('datePicker').value.split('-').reverse().join('/');
+            if (val) {
+                Object.values(val).forEach(item => {
+                    if (item.tanggal === targetTgl) globalPengeluaran += Number(item.nominal || 0);
+                });
+            }
+            updateAll();
+        });
+
+        // --- SISTEM SEDERHANA: AMBIL SETORAN GLOBAL ---
+        db.ref('setoran_global').on('value', snap => {
+            const val = snap.val() || {};
+            const keyTgl = document.getElementById('datePicker').value.split('-').reverse().join('-');
+            totalSetoranGlobal = Number(val[keyTgl]) || 0;
+            updateAll();
+        });
+
         function updateAll() {
             const pickerVal = document.getElementById('datePicker').value; 
             if(!pickerVal) return;
-            const p = pickerVal.split('-'); 
-            const tglTarget = `${p[2]}/${p[1]}/${p[0]}`;
-            updateDashboard(tglTarget); 
-            renderList();
-        }
-
-        function updateDashboard(tglTarget) {
+            const tglTarget = pickerVal.split('-').reverse().join('/');
+            
             let s=0, g=0, p=0, gd=0, codSuksesHariIni=0;
             allOrders.forEach(o => {
                 if (o.status === 'Gudang') gd++;
                 if (o.status !== 'Terkirim' && o.status !== 'Gagal' && o.status !== 'Gudang') p++;
                 if (o.tanggal === tglTarget) { 
-                    if (o.status === 'Terkirim') s++; 
+                    if (o.status === 'Terkirim') { s++; if(o.metode === 'COD') codSuksesHariIni += Number(o.total || 0); }
                     else if (o.status === 'Gagal') g++; 
-                    if (o.status === 'Terkirim' && o.metode === 'COD') codSuksesHariIni += Number(o.total || 0);
                 }
             });
-
-            const keyTgl = tglTarget.replace(/\//g, '-');
-            const dataSetoranHariIni = dataSetoranSemua[keyTgl] || {};
-            const totalSetoranHariIni = Object.values(dataSetoranHariIni).reduce((a, b) => a + b, 0);
 
             document.getElementById('countGudang').innerText = gd; 
             document.getElementById('countProses').innerText = p;
             document.getElementById('countSukses').innerText = s; 
             document.getElementById('countGagal').innerText = g;
             
-            document.getElementById('adminTotalCOD').innerText = "Rp" + codSuksesHariIni.toLocaleString();
-            document.getElementById('adminTotalKeluar').innerText = "Rp" + globalPengeluaran.toLocaleString();
+            document.getElementById('adminTotalCOD').innerText = "Rp " + codSuksesHariIni.toLocaleString('id-ID');
+            document.getElementById('adminTotalKeluar').innerText = "Rp " + globalPengeluaran.toLocaleString('id-ID');
             
-            const kasBersih = codSuksesHariIni - globalPengeluaran - totalSetoranHariIni;
-            document.getElementById('adminKasBersih').innerText = "Rp" + (kasBersih < 0 ? 0 : kasBersih).toLocaleString();
+            // KAS BERSIH = UANG YANG MASIH DIBAWA KURIR DI JALAN
+            const kasBersih = codSuksesHariIni - globalPengeluaran - totalSetoranGlobal;
+            document.getElementById('adminKasBersih').innerText = "Rp " + (kasBersih < 0 ? 0 : kasBersih).toLocaleString('id-ID');
+            
+            renderList();
+        }
+
+        // FUNGSI TOMBOL TERIMA SETORAN GLOBAL
+        function setorGlobal() {
+            const inputVal = document.getElementById('jumlahSetoran').value;
+            const j = Number(inputVal);
+            if(j <= 0 || !inputVal) return alert("⚠️ Masukkan angka setoran yang benar!");
+            
+            const keyTgl = document.getElementById('datePicker').value.split('-').reverse().join('-');
+            
+            if(confirm(`Terima setoran sebesar Rp ${j.toLocaleString('id-ID')}?`)) {
+                db.ref('setoran_global/' + keyTgl).transaction(cv => (Number(cv) || 0) + j).then(() => { 
+                    alert("✅ Setoran Diterima! Kas Bersih berkurang."); 
+                    document.getElementById('jumlahSetoran').value = ""; 
+                }).catch(e => alert("Gagal: " + e.message));
+            }
+        }
+
+        function bukaSaldoKurir() {
+            document.getElementById('saldoOverlay').style.display = 'flex';
+            const tglAktif = document.getElementById('datePicker').value.split('-').reverse().join('/');
+            let dataKurir = {}; 
+
+            allOrders.forEach(o => {
+                if (o.tanggal === tglAktif && o.status === 'Terkirim' && o.metode === 'COD' && o.kurir) {
+                    if (!dataKurir[o.kurir]) dataKurir[o.kurir] = { cod: 0, keluar: 0 };
+                    dataKurir[o.kurir].cod += Number(o.total || 0);
+                }
+            });
+
+            db.ref('pengeluaran').once('value', snap => {
+                const exps = snap.val();
+                if (exps) {
+                    Object.values(exps).forEach(item => {
+                        if (item.tanggal === tglAktif && dataKurir[item.kurir]) {
+                            dataKurir[item.kurir].keluar += Number(item.nominal || 0);
+                        }
+                    });
+                }
+
+                let html = "";
+                for (let nama in dataKurir) {
+                    const k = dataKurir[nama];
+                    const bersih = k.cod - k.keluar;
+                    html += `<div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0;">
+                        <b style="color:var(--gold); font-size:14px;">🛵 ${nama.toUpperCase()}</b><br>
+                        <div style="font-size:12px; margin:5px 0;">Total COD: Rp ${k.cod.toLocaleString('id-ID')}</div>
+                        <div style="font-size:12px; color:var(--danger); margin-bottom:8px;">Pengeluaran: -Rp ${k.keluar.toLocaleString('id-ID')}</div>
+                        <div style="background:rgba(34,197,94,0.1); color:var(--safe); padding:8px; border-radius:8px; font-weight:800; border:1px solid var(--safe);">WAJIB SETOR: Rp ${bersih.toLocaleString('id-ID')}</div>
+                    </div>`;
+                }
+                document.getElementById('isiSaldoKurir').innerHTML = html || "Belum ada data sukses hari ini.";
+            });
         }
 
         function renderList() {
             const keyword = document.getElementById('searchBar').value.toLowerCase();
-            const pickerVal = document.getElementById('datePicker').value; 
-            const p = pickerVal.split('-'); 
-            const tglAktif = `${p[2]}/${p[1]}/${p[0]}`;
+            const tglAktif = document.getElementById('datePicker').value.split('-').reverse().join('/');
             let html = "";
             const filtered = allOrders.filter(o => {
                 const matchSearch = (o.namaPembeli || "").toLowerCase().includes(keyword) || (o.noPesanan || "").toLowerCase().includes(keyword);
@@ -292,7 +336,7 @@
                 return matchSearch && matchStatus;
             });
 
-            if(filtered.length === 0) { html = `<p style="text-align:center; opacity:0.5; padding:20px;">Data tidak ditemukan.</p>`; } 
+            if(filtered.length === 0) { html = `<p style="text-align:center; opacity:0.5; padding:20px;">Kosong.</p>`; } 
             else {
                 filtered.forEach(o => {
                     const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
@@ -301,7 +345,7 @@
                     html += `<div class="order-item">
                         <span style="font-size:9px; color:var(--gold)">${o.tanggal} | ${o.waktu}</span><br>
                         <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
-                        <small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString()}</small><br>
+                        <small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString('id-ID')}</small><br>
                         ${infoKurir}
                         ${o.catatanKurir ? `<div style="font-size:11px; color:var(--safe); margin-top:5px; font-style:italic;">📝 Bukti: ${o.catatanKurir}</div>` : ''}
                         ${o.alasanTunda ? `<div style="font-size:11px; color:var(--danger); margin-top:5px;">⚠️ Alasan: ${o.alasanTunda}</div>` : ''}
@@ -338,74 +382,10 @@
             window.location.href = "rawbt:" + encodeURI(teks80mm);
         }
         function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
-        
-        // FUNGSI SETORAN PER KURIR
-        function setor(nama, jumlah) {
-            if (!jumlah || jumlah <= 0) return alert("Jumlah tidak valid!");
-            const pickerVal = document.getElementById('datePicker').value;
-            const p = pickerVal.split('-');
-            const keyTgl = `${p[2]}-${p[1]}-${p[0]}`;
-
-            if (confirm(`Terima setoran dari ${nama.toUpperCase()} sebesar Rp ${jumlah.toLocaleString()}?`)) {
-                db.ref(`setoran/${keyTgl}/${nama}`).transaction(cv => (cv || 0) + Number(jumlah)).then(() => {
-                    alert("✅ Setoran berhasil diterima!");
-                    bukaSaldoKurir(); 
-                });
-            }
-        }
-
         function hapus(id) { if (confirm("Hapus pesanan?")) db.ref('pesanan/' + id).remove(); }
         function viewFoto(id, oldSrc) { document.getElementById('modalFoto').style.display = 'flex'; const img = document.getElementById('imgBukti'); img.src = oldSrc || ""; if(!oldSrc) db.ref('foto_bukti/'+id).once('value', s => img.src = s.val()); }
         function bukaLaporan() { document.getElementById('laporanOverlay').style.display = 'flex'; }
         
-        function bukaSaldoKurir() {
-            document.getElementById('saldoOverlay').style.display = 'flex';
-            const pickerVal = document.getElementById('datePicker').value; 
-            const p = pickerVal.split('-'); const tglAktif = `${p[2]}/${p[1]}/${p[0]}`;
-            const keyTgl = `${p[2]}-${p[1]}-${p[0]}`;
-            
-            let dataKurir = {}; 
-
-            allOrders.forEach(o => {
-                if (o.tanggal === tglAktif && o.status === 'Terkirim' && o.metode === 'COD' && o.kurir) {
-                    if (!dataKurir[o.kurir]) dataKurir[o.kurir] = { cod: 0, keluar: 0 };
-                    dataKurir[o.kurir].cod += Number(o.total || 0);
-                }
-            });
-
-            db.ref().once('value', mainSnap => {
-                const dbAll = mainSnap.val() || {};
-                const allExps = dbAll.pengeluaran || {};
-                const allSetors = dbAll.setoran ? (dbAll.setoran[keyTgl] || {}) : {};
-
-                Object.values(allExps).forEach(item => {
-                    if (item.tanggal === tglAktif && dataKurir[item.kurir]) {
-                        dataKurir[item.kurir].keluar += Number(item.nominal || 0);
-                    }
-                });
-
-                let html = "";
-                for (let nama in dataKurir) {
-                    const k = dataKurir[nama];
-                    const sudahSetor = allSetors[nama] || 0;
-                    const sisaDiTangan = k.cod - k.keluar - sudahSetor;
-                    
-                    html += `<div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0;">
-                        <b style="color:var(--gold); font-size:16px;">🛵 ${nama.toUpperCase()}</b><br>
-                        <div style="font-size:11px; opacity:0.7; margin: 5px 0;">
-                            COD: Rp ${k.cod.toLocaleString()} | Keluar: Rp ${k.keluar.toLocaleString()}<br>
-                            Sudah Setor: <span style="color:var(--safe)">Rp ${sudahSetor.toLocaleString()}</span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; border:1px solid var(--safe);">
-                            <span style="font-size:12px; font-weight:800;">SISA: Rp ${sisaDiTangan.toLocaleString()}</span>
-                            ${sisaDiTangan > 0 ? `<button onclick="setor('${nama}', ${sisaDiTangan})" style="background:var(--safe); color:white; border:none; padding:5px 12px; border-radius:6px; font-weight:800; cursor:pointer; font-size:10px;">TERIMA</button>` : `<span style="color:var(--safe); font-size:10px; font-weight:800;">LUNAS ✅</span>`}
-                        </div>
-                    </div>`;
-                }
-                document.getElementById('isiSaldoKurir').innerHTML = html || "Belum ada data.";
-            });
-        }
-
         let map, markers = {};
         function bukaRadar() {
             document.getElementById('radarOverlay').style.display = 'flex';
