@@ -502,16 +502,26 @@
                 forceFallback: true,    
                 fallbackTolerance: 5, // Dinaikkan dikit biar jari gemetar aman
                 
-                // === FITUR TAHAN & GETAR (LONG PRESS) ===
-                delay: 400, // Harus DITAHAN selama 400 milidetik (hampir setengah detik)
-                delayOnTouchOnly: true, // Cuma berlaku kalau disentuh pakai jari di HP
+                // === FITUR TAHAN & VISUAL HAPTIC ===
+                delay: 400, 
+                delayOnTouchOnly: true, 
                 
                 onChoose: function (evt) {
-                    // Begitu ditahan 400ms, HP langsung GETAR tandanya siap digeser!
-                    if(navigator.vibrate) navigator.vibrate([50]); 
+                    // 1. Perkuat getaran jadi 100ms (Biar Android kerasa banget)
+                    if(navigator.vibrate) navigator.vibrate(100); 
+                    
+                    // 2. EFEK VISUAL: Kartu membesar dan nyala emas (Biar iPhone/iOS tetap tahu)
+                    evt.item.style.transform = "scale(1.03)";
+                    evt.item.style.boxShadow = "0 0 20px rgba(212, 175, 55, 0.6)";
+                    evt.item.style.transition = "0.2s";
+                },
+                
+                onUnchoose: function(evt) {
+                    // 3. Kalau kurir cuma nahan tapi nggak jadi narik, balikin ke ukuran normal
+                    evt.item.style.transform = "";
+                    evt.item.style.boxShadow = "";
                 },
                 // =========================================
-
                 // --- MESIN LIVE-UPDATE ANGKA SAAT DIGESER ---
                 onChange: function(evt) {
                     const urutanEls = container.querySelectorAll('.nomor-urut');
