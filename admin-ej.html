@@ -382,6 +382,9 @@
                     <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Potong Pengeluaran:</span> <b style="color:var(--danger)">-Rp ${k.keluar.toLocaleString('id-ID')}</b></div>
                     ${rincian}
                     <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warna};"><span style="font-size:10px;">WAJIB SETOR:</span><b style="font-size:14px; color:${warna};">Rp ${Math.max(0, sisaSetor).toLocaleString('id-ID')}</b></div>
+                    ${sisaSetor > 0 ? `<button onclick="bukaPopupSetoran('${nama}', ${sisaSetor})" class="btn-main" style="margin-top:10px; padding:10px; background:var(--safe); color:white;"><i class="fa-solid fa-check"></i> TERIMA UANG</button>` : ''}
+                    <button onclick="printManifest('${nama}')" class="btn-main" style="margin-top:8px; padding:10px; background:rgba(255,255,255,0.05); color:white; border:1px dashed rgba(255,255,255,0.3); box-shadow:none;"><i class="fa-solid fa-file-invoice"></i> CETAK SURAT JALAN</button>
+                </div>`;
                     ${sisaSetor > 0 ? `<button onclick="bukaPopupSetoran('${nama}', ${sisaSetor})" class="btn-main" style="margin-top:10px; padding:10px; background:var(--safe); color:white;">TERIMA UANG</button>` : ''}
                 </div>`;
             }
@@ -719,6 +722,61 @@
 
         function onScanFailureAdmin(error) {
             // Biarkan diam, mesin akan meradar terus sampai dapat barcode
+        }
+
+        // ==========================================
+        // MESIN CETAK MANIFEST (SURAT JALAN KURIR)
+        // ==========================================
+        function printManifest(namaKurir) {
+            // Ambil tanggal yang lagi dipilih di layar Admin
+            const tglAktif = document.getElementById('datePicker').value.split('-').reverse().join('/');
+            
+            // Saring: Cari paket yang dibawa KURIR INI, di TANGGAL INI, dan BUKAN Gagal/Gudang
+            const paketKurir = allOrders.filter(o => 
+                o.kurir === namaKurir && 
+                o.tanggal === tglAktif &&
+                (o.status === 'Proses' || o.status === 'Tunda' || o.status === 'Terkirim')
+            );
+
+            if(paketKurir.length === 0) {
+                alert("⚠️ Kurir belum bawa paket apapun hari ini!");
+                return;
+            }
+
+            // Format Kertas Struk 80mm
+            let teks80mm = `[C]<font size="big"><b>SURAT JALAN KURIR</b></font>\n`;
+            teks80mm += `[C]EJ TOBACCO DELIVERY\n`;
+            teks80mm += `[C]================================================\n`;
+            teks80mm += `[L]NAMA KURIR : <b>${namaKurir.toUpperCase()}</b>\n`;
+            teks80mm += `[L]TANGGAL    : ${tglAktif}\n`;
+            teks80mm += `[C]================================================\n`;
+            
+            let totalCOD = 0;
+            let totalPaket = 0;
+
+            // Loop / Susun Daftar Barangnya
+            paketKurir.forEach((o, i) => {
+                totalPaket++;
+                // Bikin Kotak Centang (Biar Kurir bisa nyentang pakai pulpen di jalan)
+                let statusMark = o.status === 'Terkirim' ? '[V]' : (o.status === 'Tunda' ? '[X]' : '[ ]');
+                let tagihan = o.metode === 'COD' ? `Rp ${Number(o.total||0).toLocaleString('id-ID')}` : 'TRANSFER';
+                
+                if (o.metode === 'COD') totalCOD += Number(o.total || 0);
+
+                teks80mm += `[L]${i+1}. ${statusMark} <b>${o.namaPembeli}</b>\n`;
+                teks80mm += `[L]   Resi: ${o.noPesanan} | ${tagihan}\n`;
+            });
+
+            // Bagian Bawah Struk (Rekap)
+            teks80mm += `[C]------------------------------------------------\n`;
+            teks80mm += `[L]TOTAL BAWA  : <b>${totalPaket} PAKET</b>\n`;
+            teks80mm += `[L]TOTAL TAGIH : <b>Rp ${totalCOD.toLocaleString('id-ID')}</b>\n`;
+            teks80mm += `[C]================================================\n`;
+            teks80mm += `[C]Dibawa Oleh,          Diserahkan Oleh,\n\n\n\n`;
+            teks80mm += `[C]( ${namaKurir.toUpperCase()} )             ( ADMIN )\n\n\n\n\n`;
+
+            // Lempar ke RawBT
+            window.location.href = "rawbt:" + encodeURI(teks80mm);
         }
     </script>
 </body>
