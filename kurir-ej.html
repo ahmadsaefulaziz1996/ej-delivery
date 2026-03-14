@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
     <style>
         :root { 
@@ -29,6 +30,10 @@
         
         body { background: var(--bg); color: var(--text-main); padding: 15px; padding-bottom: 100px; overflow-x: hidden; user-select: none; transition: 0.3s; }
         ::-webkit-scrollbar { display: none; }
+        /* EFEK DRAG & DROP */
+        .sortable-ghost { opacity: 0.4; border: 2px dashed var(--gold) !important; transform: scale(0.98); }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
         
         /* HEADER PREMIUM */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: sticky; top: 0; z-index: 9999; background: rgba(5,5,5,0.85); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -381,7 +386,7 @@
         const today = getTgl(); const me = myName.toLowerCase();
         container.innerHTML = "";
 
-        const filtered = allData.filter(o => {
+        let filtered = allData.filter(o => {
             const match = (o.namaPembeli || "").toLowerCase().includes(search) || (o.noPesanan || "").toLowerCase().includes(search);
             const ok = String(o.kurir || "").toLowerCase();
             if (currentTab === 'Gudang') return match && o.status === 'Gudang';
@@ -390,7 +395,21 @@
             return match && (o.status === currentTab && o.tanggal === today);
         });
 
-        filtered.forEach(o => {
+        // --- MESIN PENGURUT RUTE (DRAG & DROP) ---
+        if (currentTab === 'Proses') {
+            let customOrder = JSON.parse(localStorage.getItem('rute_'+myName)) || [];
+            filtered.sort((a, b) => {
+                let indexA = customOrder.indexOf(a.id);
+                let indexB = customOrder.indexOf(b.id);
+                if (indexA === -1) indexA = 9999; // Kalau paket baru masuk, taruh bawah
+                if (indexB === -1) indexB = 9999;
+                return indexA - indexB;
+            });
+        }
+        // ------------------------------------------
+
+        // 1. Tambahkan (o, index) di sini
+        filtered.forEach((o, index) => {
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
             const trackLink = `https://ejtobacco.github.io/ej-delivery/tracking.html?n=${myName}`;
             const msg = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\n\nSaya kurir *${myName.toUpperCase()}* sedang meluncur mengantar paket kakak.\n\n*PANTAU POSISI SAYA:* \n${trackLink}\n\nTagihan: *Rp${Number(o.total || 0).toLocaleString()}* 🙏`;
@@ -407,12 +426,18 @@
             else if(o.status === 'Gagal') { badgeClass = "badge-gagal"; iconStatus = "fa-triangle-exclamation"; }
             else { badgeClass = "badge-proses"; iconStatus = "fa-motorcycle"; }
 
-            // Bikin Label COD atau Transfer
             let payBadge = o.metode === 'COD' ? `<span style="background:var(--warning); color:black; padding:2px 5px; border-radius:4px; font-size:8px; font-weight:800;">COD</span>` : `<span style="background:var(--blue); color:white; padding:2px 5px; border-radius:4px; font-size:8px; font-weight:800;">TF</span>`;
 
+            // 2. GAGANG TARIKAN BARU DENGAN NOMOR URUT BULAT EMAS
+            let dragBar = currentTab === 'Proses' ? `
+            <div class="drag-handle" style="background:rgba(212,175,55,0.1); display:flex; align-items:center; padding:8px 15px; color:var(--gold); font-size:10px; font-weight:800; letter-spacing:1px; border-bottom:1px solid rgba(212,175,55,0.2);">
+                <div class="nomor-urut" style="background:var(--gold); color:black; width:22px; height:22px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:12px; margin-right:10px;">${index + 1}</div>
+                <div style="flex:1; text-align:center;"><i class="fa-solid fa-grip-lines"></i> GESER ATUR RUTE</div>
+            </div>` : '';
+
             container.innerHTML += `
-            <div class="glass-card ${o.urgent?'card-urgent':''}" style="padding:0; overflow:hidden; ${o.status === 'Gudang' ? 'border-color:gray; opacity:0.8;' : 'border-color:var(--gold);'}">
-                
+            <div class="glass-card sortable-item ${o.urgent?'card-urgent':''}" data-id="${o.id}" style="padding:0; overflow:hidden; ${o.status === 'Gudang' ? 'border-color:gray; opacity:0.8;' : 'border-color:var(--gold);'}">
+                ${dragBar}
                 <div onclick="toggleDetail('${o.id}')" style="padding:15px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
                     <div style="display:flex; align-items:center; gap:12px;">
                         <div style="width:35px; height:35px; border-radius:10px; display:flex; justify-content:center; align-items:center; font-size:14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
@@ -427,17 +452,14 @@
                 </div>
 
                 <div id="detail-${o.id}" style="display:none; padding:0 15px 15px 15px; border-top:1px dashed rgba(255,255,255,0.1); background:rgba(0,0,0,0.2);">
-                    
                     <div style="display:flex; justify-content:space-between; align-items:center; margin:12px 0;">
                         <div class="order-badge ${badgeClass}"><i class="fa-solid ${iconStatus}"></i> ${o.status.toUpperCase()}</div>
                         <div style="font-size:10px; color:gray;"><i class="fa-regular fa-clock"></i> ${o.tanggal}</div>
                     </div>
-                    
                     <div style="font-size:12px; color:#ddd; margin-bottom:15px; background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; border-left:2px solid ${o.status==='Gudang'?'gray':'var(--gold)'}; line-height:1.4;">
                         <b style="color:var(--danger); font-size:10px; display:block; margin-bottom:3px;">ALAMAT PENGIRIMAN:</b>
                         ${o.alamat}
                     </div>
-
                     ${o.status === 'Gudang' ? `<button class="btn-main" onclick="ambilPaket('${o.id}')"><i class="fa-solid fa-box-open"></i> KLAIM & MASUKKAN TAS SAYA</button>` : 
                     (o.status !== 'Terkirim' && o.status !== 'Gagal' ? `
                     <div style="display:grid; grid-template-columns: ${btnMaps !== '' ? '1fr 1fr' : '1fr'}; gap:8px; margin-bottom:8px;">
@@ -449,15 +471,48 @@
                         <button class="action-btn" style="background:var(--warning); color:black;" onclick="updateStat('${o.id}', 'Tunda')"><i class="fa-solid fa-clock"></i> TUNDA</button>
                     </div>
                     <button class="action-btn" style="background:rgba(239,68,68,0.1); border: 1px solid var(--danger); color:var(--danger); width:100%; margin-top:8px;" onclick="updateStat('${o.id}', 'Gagal')"><i class="fa-solid fa-xmark"></i> CANCEL / GAGAL</button>
-                    ` : `
-                    <div style="font-size:11px; text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px; color:gray;"><i class="fa-solid fa-lock"></i> PESANAN SELESAI / TERKUNCI</div>
-                    `)}
+                    ` : `<div style="font-size:11px; text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px; color:gray;"><i class="fa-solid fa-lock"></i> PESANAN SELESAI / TERKUNCI</div>`)}
                     
                     <input type="file" id="f-${o.id}" accept="image/*" capture="environment" style="display:none;" onchange="uploadSelesai('${o.id}', '${o.metode}', ${o.total}, this)">
                 </div>
             </div>`;
         });
+        
         if (filtered.length === 0) container.innerHTML = `<div style="text-align:center; padding:50px 20px; opacity:0.3;"><i class="fa-solid fa-box-open" style="font-size:40px; display:block; margin-bottom:10px;"></i>Tidak ada paket di tab ini.</div>`;
+        
+        // JALANKAN MESIN DRAG & DROP
+        initSortable();
+    }
+
+        let sortableInstance = null;
+    function initSortable() {
+        const container = document.getElementById('orderContainer');
+        if (sortableInstance) sortableInstance.destroy(); // Bersihkan sisa mesin lama
+        
+        // Cuma aktif kalau lagi di tab TAS SAYA
+        if (currentTab === 'Proses') {
+            sortableInstance = new Sortable(container, {
+                handle: '.drag-handle', // Cuma bisa digeser lewat gagang atas
+                animation: 200,         // Kecepatan animasi meluncur
+                ghostClass: 'sortable-ghost', // Efek bayangan saat melayang
+                onEnd: function (evt) {
+                    // Kalau geser selesai, rekam urutan barunya ke Memori HP!
+                    const itemEls = container.querySelectorAll('.sortable-item');
+                    let newOrder = [];
+                    itemEls.forEach(el => newOrder.push(el.getAttribute('data-id')));
+                    localStorage.setItem('rute_'+myName, JSON.stringify(newOrder));
+                    
+                    // --- MESIN UBAH ANGKA OTOMATIS (TANPA LOADING) ---
+                    const urutanEls = container.querySelectorAll('.nomor-urut');
+                    urutanEls.forEach((el, idx) => {
+                        el.innerText = idx + 1; // Timpa angka lamanya dengan urutan baru
+                    });
+                    // --------------------------------------------------
+
+                    if(navigator.vibrate) navigator.vibrate([50]); // HP Getar *Ceklik*
+                }
+            });
+        }
     }
 
     function updateStatusInternet() {
