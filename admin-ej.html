@@ -794,19 +794,28 @@
                 return alert("Waduh Bos, belum ada pembeli sukses di bulan ini.");
             }
 
-            // 2. Susun Header File Excel (CSV)
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "NAMA PEMBELI,NOMOR WHATSAPP,TOTAL BELANJA,TANGGAL\r\n";
+            // 2. Susun Header File Excel (CSV) - Tambahkan BOM untuk dukung simbol khusus
+            let csvContent = "\uFEFF"; 
+            csvContent += "NAMA PEMBELI;NOMOR WHATSAPP;TOTAL BELANJA;TANGGAL\r\n";
 
             // 3. Masukkan data pembeli ke baris-baris CSV
             dataSukses.forEach(o => {
-                let nama = o.namaPembeli.replace(/,/g, ''); // Hapus koma biar gak rusak formatnya
-                let wa = o.nohp;
+                // Bersihkan karakter pemisah agar tidak merusak kolom
+                let nama = (o.namaPembeli || "").replace(/;/g, ''); 
+                let wa = o.nohp || "";
                 let total = o.total || 0;
-                let tgl = o.tanggal;
+                let tgl = o.tanggal || "";
                 
-                csvContent += `${nama},${wa},${total},${tgl}\r\n`;
+                // Gunakan Titik Koma (;) agar Excel Indonesia otomatis membagi kolom
+                csvContent += `${nama};${wa};${total};${tgl}\r\n`;
             });
+
+            // 4. Proses Download (Gunakan Blob agar lebih stabil)
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `HARTA_KARUN_EJ_${v}.csv`);
 
             // 4. Proses Download Otomatis
             const encodedUri = encodeURI(csvContent);
