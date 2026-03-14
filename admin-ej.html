@@ -399,9 +399,90 @@
         }
 
         function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
+        // FUNGSI UNTUK MENGEMBALIKAN PAKET GAGAL KE GUDANG
+function kirimUlang(id) {
+    if (confirm("Kembalikan pesanan ini ke status GUDANG untuk dikirim ulang?")) {
+        db.ref('pesanan/' + id).update({
+            status: 'Gudang',
+            kurir: "", // Hapus nama kurir sebelumnya biar bisa diklaim siapa saja
+            alasanTunda: null, // Bersihkan alasan gagal sebelumnya
+            waktuUpdate: new Date().toLocaleTimeString()
+        }).then(() => {
+            alert("✅ Berhasil! Pesanan sudah kembali ke tab GUDANG.");
+        }).catch((error) => {
+            alert("❌ Gagal update: " + error.message);
+        });
+    }
+}
         function hapus(id) { if (confirm("Hapus pesanan?")) db.ref('pesanan/' + id).remove(); }
         function viewFoto(id, oldSrc) { document.getElementById('modalFoto').style.display = 'flex'; const img = document.getElementById('imgBukti'); img.src = oldSrc || ""; if(!oldSrc) db.ref('foto_bukti/'+id).once('value', s => img.src = s.val()); }
-        function bukaLaporan() { document.getElementById('laporanOverlay').style.display = 'flex'; }
+        // ==========================================
+// FUNGSI LAPORAN BULANAN (BARU & MEWAH)
+// ==========================================
+function bukaLaporan() {
+    const n = new Date();
+    // Bikin format "Tahun-Bulan" (contoh: 2026-03)
+    const blnSekarang = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`;
+    
+    // Setel kalender ke bulan ini otomatis
+    document.getElementById('bulanLaporan').value = blnSekarang;
+    
+    // Munculkan layarnya
+    document.getElementById('laporanOverlay').style.display = 'flex';
+    
+    // Langsung jalankan hitungan detik itu juga!
+    hitungLaporan(); 
+}
+
+function hitungLaporan() {
+    const inputBln = document.getElementById('bulanLaporan').value; 
+    if(!inputBln) return;
+
+    // Balik format jadi "Bulan/Tahun" (contoh: 03/2026) buat nyocokin database
+    const [thn, bln] = inputBln.split('-');
+    const targetBulan = `${bln}/${thn}`;
+    
+    let sukses = 0, gagal = 0, cod = 0, transfer = 0;
+
+    allOrders.forEach(o => {
+        if(o.tanggal && o.tanggal.includes(targetBulan)) {
+            if(o.status === 'Terkirim') { 
+                sukses++; 
+                if(o.metode === 'COD') cod += Number(o.total || 0); 
+                else transfer += Number(o.total || 0); 
+            } else if(o.status === 'Gagal') {
+                gagal++;
+            }
+        }
+    });
+
+    // Tampilkan di layar dengan desain Box Hitam Emas
+    document.getElementById('isiLaporan').innerHTML = `
+        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; border:1px solid var(--glass-border); text-align:left;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color:gray;">📦 Total Sukses:</span> <b style="color:var(--safe)">${sukses} Paket</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color:gray;">❌ Total Gagal:</span> <b style="color:var(--danger)">${gagal} Paket</b>
+            </div>
+            
+            <hr style="opacity:0.2; border:none; border-top:1px dashed var(--gold); margin:15px 0;">
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color:gray;">💰 Tunai (COD):</span> <b>Rp ${cod.toLocaleString('id-ID')}</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="color:gray;">💳 Bank/Transfer:</span> <b>Rp ${transfer.toLocaleString('id-ID')}</b>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; margin-top:20px; padding-top:15px; border-top:2px solid var(--gold);">
+                <span style="color:var(--gold); font-weight:800;">💎 TOTAL OMZET:</span>
+                <b style="color:var(--gold); font-size:18px;">Rp ${(cod + transfer).toLocaleString('id-ID')}</b>
+            </div>
+        </div>
+    `;
+}
+// ==========================================
         
         let map, markers = {};
         function bukaRadar() {
@@ -444,6 +525,37 @@
         }
         setTimeout(bersihkanDataLama, 10000); 
 
+        // ==========================================
+// FITUR DETEKSI SINYAL ONLINE / OFFLINE
+// ==========================================
+function updateStatusInternet() {
+    const lampu = document.getElementById('lampuKoneksi');
+    const teks = document.getElementById('teksKoneksi');
+    
+    if (navigator.onLine) {
+        // Kalau Sinyal Nyambung
+        db.goOnline(); // Bangunin database
+        if(lampu) { lampu.style.background = "var(--safe)"; lampu.style.boxShadow = "0 0 10px var(--safe)"; }
+        if(teks) { teks.innerText = "ONLINE"; teks.style.color = "var(--safe)"; }
+    } else {
+        // Kalau Sinyal Putus / Kuota Habis
+        db.goOffline(); // Tidurkan database biar gak error
+        if(lampu) { lampu.style.background = "var(--danger)"; lampu.style.boxShadow = "0 0 10px var(--danger)"; }
+        if(teks) { teks.innerText = "OFFLINE"; teks.style.color = "var(--danger)"; }
+        
+        // Kasih alert kecil di layar Admin
+        console.warn("Koneksi terputus! Data tidak akan tersimpan sampai sinyal kembali.");
+    }
+}
+
+// Pasang kuping buat dengerin perubahan sinyal HP/Laptop Bos
+window.addEventListener('online', updateStatusInternet);
+window.addEventListener('offline', updateStatusInternet);
+
+// Jalankan tes sinyal pertama kali saat Admin baru dibuka
+updateStatusInternet();
+// ==========================================
+        
     </script>
 </body>
 </html>
