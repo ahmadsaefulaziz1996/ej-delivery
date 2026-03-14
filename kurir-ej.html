@@ -240,15 +240,30 @@
     }, 1000);
 
     const dataPIN = { "kurirA": "1111", "kurirB": "2222", "kurirC": "3333" };
+    let memoriPIN = ""; // Kita simpan PIN murni di otak JavaScript
+
     function pressPin(val) {
-        let disp = document.getElementById('pinDisplay'); let v = disp.getAttribute('data-v') || "";
-        if (val === 'C') v = "";
-        else if (val === 'OK') {
+        if (val === 'C') { 
+            memoriPIN = ""; 
+        } else if (val === 'OK') {
             const sel = document.getElementById('namaKurirInput').value;
-            if (v === dataPIN[sel]) { myName = sel; document.getElementById('loginOverlay').style.display='none'; document.getElementById('namaKurirHeader').innerText=myName.toUpperCase(); updateUI(); aktifkanRadar(); }
-            else { alert("⚠️ PIN SALAH! Coba lagi."); v = ""; }
-        } else { if (v.length < 4) v += val; }
-        disp.setAttribute('data-v', v); disp.innerText = v.length > 0 ? "*".repeat(v.length) : "****";
+            if (memoriPIN === dataPIN[sel]) { 
+                myName = sel; 
+                document.getElementById('loginOverlay').style.display='none'; 
+                document.getElementById('namaKurirHeader').innerText=myName.toUpperCase(); 
+                updateUI(); 
+                aktifkanRadar(); 
+                memoriPIN = ""; // Bersihkan memori setelah berhasil login
+            } else { 
+                alert("⚠️ PIN SALAH! Pastikan PIN sesuai dengan nama kurir."); 
+                memoriPIN = ""; 
+            }
+        } else { 
+            if (memoriPIN.length < 4) memoriPIN += val; 
+        }
+        
+        // Tampilkan bintang-bintang di layar
+        document.getElementById('pinDisplay').innerText = memoriPIN.length > 0 ? "*".repeat(memoriPIN.length) : "****";
     }
 
     function logoutKurir() {
