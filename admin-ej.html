@@ -99,6 +99,7 @@
         .status-pill { padding: 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.02); text-align: center; flex: 1; border: 1px solid rgba(255,255,255,0.1); }
         .status-pill.pill-active { background: white !important; color: black !important; transform: scale(1.05); box-shadow: 0 5px 15px rgba(255,255,255,0.2); border-color: white !important; }
     </style>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
@@ -180,9 +181,14 @@
     <div class="dashboard-header"><i class="fa-solid fa-wallet"></i> KAS & SETORAN KURIR</div>
     <div id="keuanganKurirContainer" style="display:flex; flex-direction:column; gap:10px; margin-bottom:25px;"></div>
 
-    <div class="input-group">
-        <i class="fa-solid fa-magnifying-glass" style="color:gray;"></i>
-        <input type="text" id="searchBar" placeholder="Cari nama atau resi..." oninput="renderList()" style="border-color:rgba(255,255,255,0.2);">
+    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+        <div class="input-group" style="flex: 1; margin: 0;">
+            <i class="fa-solid fa-magnifying-glass" style="color:gray;"></i>
+            <input type="text" id="searchBar" placeholder="Cari nama atau resi..." oninput="renderList()" style="border-color:rgba(255,255,255,0.2);">
+        </div>
+        <button onclick="bukaScannerAdmin()" style="background: var(--blue); color: white; border: none; border-radius: 12px; width: 55px; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3); transition: 0.2s;">
+            <i class="fa-solid fa-qrcode"></i>
+        </button>
     </div>
     
     <div id="adminList" style="padding-bottom: 80px;">Memuat data database...</div>
@@ -275,6 +281,17 @@
     <div id="modalHapusPesanan" class="modal-overlay"><div class="glass-card" style="width:100%; max-width:320px; border-color:var(--danger); text-align:center;"><i class="fa-solid fa-trash-can" style="font-size:40px; color:var(--danger); margin-bottom:15px;"></i><h2 style="color:white; font-size: 16px;">HAPUS DATA?</h2><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;"><button class="btn-main" style="background:rgba(255,255,255,0.05); color:white;" onclick="document.getElementById('modalHapusPesanan').style.display='none'">BATAL</button><button id="btnConfirmHapus" class="btn-main" style="background:var(--danger); color:white;">HAPUS</button></div></div></div>
     
     <div id="modalKirimUlang" class="modal-overlay"><div class="glass-card" style="width:100%; max-width:320px; border-color:var(--blue); text-align:center;"><i class="fa-solid fa-box-open" style="font-size:40px; color:var(--blue); margin-bottom:15px;"></i><h2 style="color:white; font-size: 16px;">KE GUDANGKAN?</h2><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;"><button class="btn-main" style="background:rgba(255,255,255,0.05); color:white;" onclick="document.getElementById('modalKirimUlang').style.display='none'">BATAL</button><button id="btnConfirmKirimUlang" class="btn-main" style="background:var(--blue); color:white;">PROSES</button></div></div></div>
+
+    <div id="modalScannerAdmin" class="modal-overlay" style="padding:10px;">
+        <div class="glass-card" style="width:100%; max-width:400px; border-color:var(--blue); padding:15px; display:flex; flex-direction:column; align-items:center;">
+            <div style="width:100%; display:flex; justify-content:space-between; align-items:center; color:var(--blue); font-weight:800; margin-bottom:15px;">
+                <span><i class="fa-solid fa-qrcode"></i> SCAN RESI RETUR</span>
+                <button onclick="tutupScannerAdmin()" style="background:transparent; border:none; color:white; font-size:18px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="admin-reader" style="width: 100%; border-radius:15px; overflow:hidden; border:2px dashed var(--blue); background:black;"></div>
+            <p style="color:gray; font-size:10px; margin-top:15px; text-align:center;">Arahkan kamera ke Barcode di struk 80mm.<br>Paket akan otomatis ditarik ke GUDANG.</p>
+        </div>
+    </div>
 
     <div id="modalLogout" class="modal-overlay"><div class="glass-card" style="width:100%; max-width:320px; border-color:var(--danger); text-align:center;"><i class="fa-solid fa-triangle-exclamation" style="font-size:40px; color:var(--danger); margin-bottom:15px;"></i><h2 style="color:white; font-size: 16px;">KELUAR ADMIN?</h2><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;"><button class="btn-main" style="background:rgba(255,255,255,0.05); color:white;" onclick="document.getElementById('modalLogout').style.display='none'">BATAL</button><button class="btn-main" style="background:var(--danger); color:white;" onclick="eksekusiLogoutAdmin()">KELUAR</button></div></div></div>
     
@@ -571,6 +588,50 @@
 
         function updateStatusInternet() { const l=document.getElementById('lampuKoneksi'), t=document.getElementById('teksKoneksi'); if(navigator.onLine) { db.goOnline(); if(l)l.style.background="var(--safe)"; if(t)t.innerText="ONLINE"; } else { db.goOffline(); if(l)l.style.background="var(--danger)"; if(t)t.innerText="OFFLINE"; } }
         window.addEventListener('online', updateStatusInternet); window.addEventListener('offline', updateStatusInternet); updateStatusInternet();
+
+        let adminScanner = null;
+
+        function bukaScannerAdmin() {
+            document.getElementById('modalScannerAdmin').style.display = 'flex';
+            if (!adminScanner) {
+                adminScanner = new Html5QrcodeScanner("admin-reader", { fps: 10, qrbox: {width: 250, height: 150} }, false);
+                adminScanner.render(onScanSuccessAdmin, onScanFailureAdmin);
+            }
+        }
+
+        function tutupScannerAdmin() {
+            document.getElementById('modalScannerAdmin').style.display = 'none';
+            if (adminScanner) {
+                adminScanner.clear().then(() => { adminScanner = null; }).catch(err => console.log(err));
+            }
+        }
+
+        function onScanSuccessAdmin(decodedText) {
+            tutupScannerAdmin();
+            if(navigator.vibrate) navigator.vibrate([50, 50, 50]); // HP Getar Tanda Sukses
+            
+            // Bersihkan teks hasil scan (sama seperti rumus print struk 80mm)
+            const cleanScanned = decodedText.replace(/[^a-zA-Z0-9]/g, "");
+            
+            // Cari data di database lokal admin
+            const foundOrder = allOrders.find(o => {
+                const cleanResi = (o.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
+                return cleanResi === cleanScanned;
+            });
+
+            if (foundOrder) {
+                // Modifikasi Teks Popup biar keliatan canggih
+                document.getElementById('modalKirimUlang').querySelector('h2').innerHTML = `TARIK KE GUDANG?<br><span style="color:var(--gold); font-size:12px;">${foundOrder.namaPembeli.toUpperCase()}</span>`;
+                // Langsung buka modal konfirmasi kirim ulang (Ke Gudangkan)
+                bukaPopupKirimUlang(foundOrder.id);
+            } else {
+                alert("⚠️ GAGAL! Resi tidak ditemukan atau sudah kadaluarsa!");
+            }
+        }
+
+        function onScanFailureAdmin(error) {
+            // Biarkan kosong, mesin akan terus nyari barcode
+        }
     </script>
 </body>
 </html>
