@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EJ KURIR V4.1 - STABLE PRO</title>
+    <title>EJ KURIR V4 - ULTRA PREMIUM</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     
@@ -42,7 +42,7 @@
 
         /* TABS */
         .tab-menu { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
-        .tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; color: #fff; font-weight: 800; font-size: 10px; text-align: center; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; color: #fff; font-weight: 800; font-size: 10px; text-align: center; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .tab-btn i { font-size: 16px; color: gray; transition: 0.3s; }
         .tab-btn.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); color: var(--gold); box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
         .tab-btn.active i { color: var(--gold); }
@@ -88,7 +88,7 @@
         /* LOGIN */
         #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .pin-display { font-size: 40px; letter-spacing: 15px; margin: 30px 0; color: var(--gold); font-weight: 800; text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); text-align: center; }
-        .num-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 26px; transition: 0.2s; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .num-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 26px; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
         .num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
         
         /* KUSTOM INPUT DALAM MODAL */
@@ -111,9 +111,9 @@
             <div class="input-group" style="margin-bottom: 20px;">
                 <i class="fa-solid fa-user-astronaut" style="z-index: 10;"></i>
                 <select id="namaKurirInput" style="width: 100%; background: #111; color: var(--gold); border: 1px solid var(--gold); padding: 15px 15px 15px 45px; border-radius: 12px; font-weight: 800; outline: none; appearance: none;">
-                    <option value="kurira">KURIR - A</option>
-                    <option value="kurirb">KURIR - B</option>
-                    <option value="kurirc">KURIR - C</option>
+                    <option value="kurirA">KURIR - kurirA</option>
+                    <option value="kurirB">KURIR - kurirB</option>
+                    <option value="kurirC">KURIR - kurirC</option>
                 </select>
             </div>
             
@@ -140,7 +140,9 @@
         </div>
         <div style="text-align: right;">
             <div id="clock" style="font-size: 14px; font-weight: 800; color: var(--safe);"><i class="fa-regular fa-clock"></i> 00:00:00</div>
+            
             <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800; margin-top: 3px; letter-spacing: 0.5px;">LOADING...</div>
+
             <div style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 5px; background: rgba(34,197,94,0.1); padding: 3px 8px; border-radius: 20px;">
                 <div id="lampuKoneksi" style="width: 6px; height: 6px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 10px var(--safe);"></div>
                 <div id="teksKoneksi" style="font-size: 8px; font-weight: 800; color: var(--safe);">SISTEM ONLINE</div>
@@ -191,7 +193,7 @@
     <div id="modalExpense" class="modal-overlay">
         <div class="glass-card" style="width:100%; max-width:320px; border-color:var(--gold);">
             <h2 style="color:var(--gold); text-align:center; margin-bottom:20px; font-size: 16px;"><i class="fa-solid fa-gas-pump"></i> CATAT PENGELUARAN</h2>
-            <input type="text" id="expKet" class="modal-input" placeholder="Contoh: Bensin, Parkir, Tambal Ban...">
+            <input type="text" id="expKet" class="modal-input" placeholder="Contoh: Bensin, Parkir, Makan...">
             <input type="number" id="expNom" class="modal-input" placeholder="Nominal (Rp)" inputmode="numeric">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
                 <button class="btn-main" style="background:rgba(255,255,255,0.05); color:white; box-shadow:none;" onclick="document.getElementById('modalExpense').style.display='none'">BATAL</button>
@@ -202,8 +204,8 @@
 
     <div id="modalAlasan" class="modal-overlay">
         <div class="glass-card" style="width:100%; max-width:320px; border-color:var(--warning);">
-            <h2 id="judulAlasan" style="text-align:center; color:var(--warning); font-size: 16px;"><i class="fa-solid fa-circle-exclamation"></i> KENDALA PENGIRIMAN</h2>
-            <textarea id="textAlasan" class="modal-input" style="height:100px; margin-top:15px;" placeholder="Tulis alasan jelas (Contoh: Rumah kosong, Uang kurang, Dll)"></textarea>
+            <h2 id="judulAlasan" style="text-align:center; color:var(--warning); font-size: 16px;"><i class="fa-solid fa-circle-exclamation"></i> ALASAN GAGAL/TUNDA</h2>
+            <textarea id="textAlasan" class="modal-input" style="height:100px; margin-top:15px;" placeholder="Tulis alasan jelas (Rumah kosong, Uang kurang, Dll)"></textarea>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
                 <button class="btn-main" style="background:rgba(255,255,255,0.05); color:white; box-shadow:none;" onclick="document.getElementById('modalAlasan').style.display='none'">BATAL</button>
                 <button class="btn-main" style="background:var(--warning); color:black;" onclick="prosesSimpanAlasan()"><i class="fa-solid fa-check"></i> KONFIRMASI</button>
@@ -218,7 +220,7 @@
             <input type="text" id="inputNamaPenerima" class="modal-input" placeholder="Nama Penerima / Satpam..." style="border-color:var(--safe); font-weight:800;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
                 <button class="btn-main" style="background:rgba(255,255,255,0.05); color:white; box-shadow:none;" onclick="batalUploadSelesai()">BATAL</button>
-                <button id="btnUploadFoto" class="btn-main" style="background:var(--safe); color:white;" onclick="eksekusiUploadSelesai()"><i class="fa-solid fa-cloud-arrow-up"></i> SELESAI KIRIM</button>
+                <button id="btnUploadFoto" class="btn-main" style="background:var(--safe); color:white;" onclick="eksekusiUploadSelesai()"><i class="fa-solid fa-cloud-arrow-up"></i> UPLOAD</button>
             </div>
         </div>
     </div>
@@ -227,10 +229,10 @@
         <div class="glass-card" style="width:100%; max-width:320px; border-color:var(--danger); text-align:center;">
             <i class="fa-solid fa-triangle-exclamation" style="font-size:40px; color:var(--danger); margin-bottom:15px;"></i>
             <h2 style="color:white; font-size: 16px; margin-bottom:10px;">YAKIN INGIN KELUAR?</h2>
-            <p style="font-size:12px; color:gray; margin-bottom:20px;">Anda harus memasukkan PIN lagi untuk masuk.</p>
+            <p style="font-size:12px; color:gray; margin-bottom:20px;">Sesi Anda akan ditutup. Anda harus memasukkan PIN lagi untuk masuk.</p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 <button class="btn-main" style="background:rgba(255,255,255,0.05); color:white; box-shadow:none;" onclick="document.getElementById('modalLogout').style.display='none'">BATAL</button>
-                <button class="btn-main" style="background:var(--danger); color:white;" onclick="eksekusiLogout()"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT</button>
+                <button class="btn-main" style="background:var(--danger); color:white;" onclick="eksekusiLogout()"><i class="fa-solid fa-right-from-bracket"></i> KELUAR</button>
             </div>
         </div>
     </div>
@@ -244,12 +246,10 @@
 
     let currentTab = 'Proses', allData = [], allPengeluaranData = {}, allSetoranData = {}, tempFileSukses = null, tempIdSukses = "";
     
-    // FITUR AUTO-LOGIN (MEMORI HP)
+    // 1. PANGGIL MEMORI HP
     let myName = localStorage.getItem('namaKurir') || "";
-    const dataPIN = { "kurira": "1111", "kurirb": "2222", "kurirc": "3333" }; // Sesuaikan PIN kurir di sini
-    let memoriPIN = ""; 
 
-    // JIKA SUDAH PERNAH LOGIN, LANGSUNG BUKA APLIKASI
+    // 2. MESIN AUTO-LOGIN (Langsung bypass layar PIN kalau memori ada)
     window.onload = () => {
         if (myName) {
             document.getElementById('loginOverlay').style.display = 'none';
@@ -265,32 +265,31 @@
         const now = new Date(); 
         document.getElementById('clock').innerHTML = `<i class="fa-regular fa-clock"></i> ${now.toLocaleTimeString('id-ID')}`; 
         
+        // UPDATE TANGGAL OTOMATIS
         const opsiTgl = { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' };
         if(document.getElementById('currentDay')) document.getElementById('currentDay').innerText = now.toLocaleDateString('id-ID', opsiTgl).toUpperCase();
         
         updateStatusInternet();
     }, 1000);
 
-    // SISTEM LOGIN PIN NUMPAD
+    const dataPIN = { "kurirA": "1111", "kurirB": "2222", "kurirC": "3333" };
+    let memoriPIN = ""; 
+
     function pressPin(val) {
         if (val === 'C') { 
             memoriPIN = ""; 
         } else if (val === 'OK') {
-            const sel = document.getElementById('namaKurirInput').value.toLowerCase();
+            const sel = document.getElementById('namaKurirInput').value;
             if (memoriPIN === dataPIN[sel]) { 
                 myName = sel; 
-                localStorage.setItem('namaKurir', myName); // SIMPAN KE MEMORI HP
-                
+                localStorage.setItem('namaKurir', myName); // <-- SUNTIKAN KODE INI (Simpan ke Memori)
                 document.getElementById('loginOverlay').style.display='none'; 
                 document.getElementById('namaKurirHeader').innerText=myName.toUpperCase(); 
-                if(navigator.vibrate) navigator.vibrate([50]);
-                
                 updateUI(); 
                 aktifkanRadar(); 
                 memoriPIN = ""; 
             } else { 
-                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                alert("⚠️ PIN SALAH! Pastikan nama kurir dan PIN cocok."); 
+                alert("⚠️ PIN SALAH! Pastikan PIN sesuai dengan nama kurir."); 
                 memoriPIN = ""; 
             }
         } else { 
@@ -299,11 +298,13 @@
         document.getElementById('pinDisplay').innerText = memoriPIN.length > 0 ? "*".repeat(memoriPIN.length) : "****";
     }
 
-    function tampilkanPopupLogout() { document.getElementById('modalLogout').style.display = 'flex'; }
+    function tampilkanPopupLogout() {
+        document.getElementById('modalLogout').style.display = 'flex';
+    }
 
     function eksekusiLogout() {
         myName = "";
-        localStorage.removeItem('namaKurir'); // HAPUS DARI MEMORI HP
+        localStorage.removeItem('namaKurir'); // <-- SUNTIKAN KODE INI (Hapus Memori)
         document.getElementById('pinDisplay').innerText = "****";
         memoriPIN = "";
         document.getElementById('modalLogout').style.display = 'none';
@@ -337,7 +338,6 @@
         });
         let expK = 0; Object.values(allPengeluaranData).forEach(e => { if(String(e.kurir||"").toLowerCase() === me && e.tanggal === today) expK += Number(e.nominal || 0); });
         let setK = 0; const key = today.replace(/\//g, '-'); if(allSetoranData[key] && allSetoranData[key][myName]) setK = Number(allSetoranData[key][myName]);
-        
         document.getElementById('c-Gudang').innerText=gd; document.getElementById('c-Proses').innerText=p; document.getElementById('c-Terkirim').innerText=s; document.getElementById('c-Gagal').innerText=g;
         document.getElementById('totalCOD').innerText="Rp "+codK.toLocaleString('id-ID'); document.getElementById('totalPengeluaran').innerText="Rp "+expK.toLocaleString('id-ID');
         const bersih = codK - expK - setK; document.getElementById('setoranBersih').innerText="Rp "+Math.max(0, bersih).toLocaleString('id-ID');
@@ -362,7 +362,7 @@
         filtered.forEach(o => {
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
             const trackLink = `https://ejtobacco.github.io/ej-delivery/tracking.html?n=${myName}`;
-            const msg = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\n\nSaya kurir *${myName.toUpperCase()}* sedang meluncur mengantar paket kakak.\n\n*PANTAU POSISI SAYA:* \n${trackLink}\n\nTagihan: *Rp${Number(o.total || 0).toLocaleString()}* 🙏`;
+            const msg = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\n\nSaya kurir *${myName.toUpperCase()}* sedang meluncur.\n\n*PANTAU POSISI SAYA:* \n${trackLink}\n\nTagihan: *Rp${Number(o.total || 0).toLocaleString()}* 🙏`;
             
             let btnMaps = "";
             if (o.mapLink && o.mapLink.trim() !== "") {
@@ -461,8 +461,6 @@
     
     function batalUploadSelesai() { document.getElementById('modalPenerima').style.display='none'; tempFileSukses=null; }
     function setTab(t) { currentTab = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('t-'+t).classList.add('active'); renderOrders(); }
-    
-    // SCANNER PICKUP
     function toggleScanner() { const r = document.getElementById('reader'); r.style.display = r.style.display==='block'?'none':'block'; if(r.style.display==='block') startScanner(); }
     function startScanner() { html5QrCode = new Html5Qrcode("reader"); html5QrCode.start({ facingMode:"environment" }, { fps:10, qrbox:250 }, (txt) => {
         const target = allData.find(o => o.noPesanan.replace(/\W/g, "") === txt.replace(/\W/g, ""));
@@ -470,9 +468,13 @@
     }); }
     
     function tambahPengeluaran() { document.getElementById('modalExpense').style.display='flex'; }
+    
     function prosesSimpanExpense() { 
         const k=document.getElementById('expKet').value, n=document.getElementById('expNom').value; 
-        if(!k || !n) { alert("⚠️ Keterangan dan Nominal wajib diisi!"); return; }
+        if(!k || !n) {
+            alert("⚠️ Waduh! Keterangan dan Nominal Rp harus diisi dulu Bos!");
+            return; 
+        }
         db.ref('pengeluaran').push({ kurir:myName, keterangan:k, nominal:Number(n), tanggal:getTgl(), waktu:new Date().toLocaleTimeString() }).then(()=>{
             document.getElementById('modalExpense').style.display='none';
             document.getElementById('expKet').value = "";
@@ -481,9 +483,13 @@
     }
     
     function updateStat(id, s) { tempId = id; tempStat = s; document.getElementById('modalAlasan').style.display='flex'; }
+    
     function prosesSimpanAlasan() { 
         const a=document.getElementById('textAlasan').value; 
-        if(!a) { alert("⚠️ Alasan gagal/tunda wajib diisi!"); return; }
+        if(!a) {
+            alert("⚠️ Alasan tidak boleh kosong! Kasih tau admin kenapa paket ini ditunda/gagal.");
+            return;
+        }
         db.ref('pesanan/'+tempId).update({ status:tempStat, alasanTunda:a, waktuUpdate:new Date().toLocaleTimeString() }).then(()=>{
             document.getElementById('modalAlasan').style.display='none';
             document.getElementById('textAlasan').value = "";
@@ -491,7 +497,6 @@
     }
     
     function aktifkanRadar() { if (navigator.geolocation) { navigator.geolocation.watchPosition(pos => { db.ref('tracking/'+myName).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, waktu: new Date().toLocaleTimeString() }); }, null, { enableHighAccuracy:true }); } }
-    
     </script>
 </body>
 </html>
