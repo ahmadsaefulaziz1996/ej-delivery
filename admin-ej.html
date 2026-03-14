@@ -883,18 +883,16 @@
             }
         }
 
-        // ================= INGATAN GHOST MODE (DEFAULT OTOMATIS BLUR) =================
-        if (localStorage.getItem('ghostMode') !== 'off') {
-            document.body.classList.add('ghost-mode');
-            localStorage.setItem('ghostMode', 'on');
-            
-            // Langsung eksekusi, gak usah nunggu DOMContentLoaded
-            const icon = document.getElementById('iconMata');
-            if(icon) { 
-                icon.classList.remove('fa-eye'); 
-                icon.classList.add('fa-eye-slash'); 
-                icon.style.color = 'gray'; 
-            }
+        // ================= GHOST MODE PARANOID (SELALU BLUR SAAT BUKA WEB) =================
+        // Kita paksa SELALU NYALA tiap kali web dibuka/direfresh, tanpa kompromi!
+        document.body.classList.add('ghost-mode');
+        localStorage.setItem('ghostMode', 'on');
+        
+        const iconMata = document.getElementById('iconMata');
+        if(iconMata) { 
+            iconMata.classList.remove('fa-eye'); 
+            iconMata.classList.add('fa-eye-slash'); 
+            iconMata.style.color = 'gray'; 
         }
     </script>
 </body>
