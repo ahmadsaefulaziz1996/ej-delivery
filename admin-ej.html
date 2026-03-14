@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EJ ADMIN V5.7 - MASTERPIECE</title>
+    <title>EJ ADMIN V5.8 - MASTERPIECE</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="manifest" href="manifest.json">
@@ -211,7 +211,7 @@
                 </div>
                 <div class="input-group" style="margin:0;" id="containerTotal">
                     <i class="fa-solid fa-money-bill-wave"></i>
-                    <input type="number" id="total" placeholder="Rp Total Tagihan">
+                    <input type="number" id="total" placeholder="Nominal COD (Rp)">
                 </div>
             </div>
 
@@ -355,12 +355,17 @@
             for (let nama in dataKurir) {
                 adaData = true; const k = dataKurir[nama]; const sudahSetor = Number(dataSetoranHariIni[nama] || 0); const sisaSetor = k.cod - k.keluar - sudahSetor;
                 const warna = sisaSetor > 0 ? 'var(--warning)' : 'var(--safe)';
+                
+                // KODE YANG BALIK (MENAMPILKAN RINCIAN PENGELUARAN/BENSIN DI ADMIN)
+                const rincian = k.rincianKeluar.length > 0 ? `<div style="font-size:10px; color:var(--danger); opacity:0.8; margin-bottom:8px; padding-left:8px; border-left:2px solid var(--danger);"><i>${k.rincianKeluar.join('<br>')}</i></div>` : '';
+
                 htmlKeuangan += `<div class="glass-card" style="padding:15px; margin-bottom:0; border-color:${warna};">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><b style="color:var(--gold); font-size:14px;"><i class="fa-solid fa-motorcycle"></i> ${nama.toUpperCase()}</b> <span style="font-size:9px; color:${warna}">${sisaSetor>0?'BELUM SETOR':'LUNAS'}</span></div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Dompet Kurir:</span> <b>Rp ${k.cod.toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Dompet:</span> <b>Rp ${k.cod.toLocaleString('id-ID')}</b></div>
                     <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Potong Bensin:</span> <b style="color:var(--danger)">-Rp ${k.keluar.toLocaleString('id-ID')}</b></div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warna};"><span style="font-size:10px;">SISA WAJIB SETOR:</span><b style="font-size:14px; color:${warna};">Rp ${Math.max(0, sisaSetor).toLocaleString('id-ID')}</b></div>
-                    ${sisaSetor > 0 ? `<button onclick="bukaPopupSetoran('${nama}', ${sisaSetor})" class="btn-main" style="margin-top:10px; padding:10px; background:var(--safe); color:white;"><i class="fa-solid fa-check"></i> TERIMA UANG</button>` : ''}
+                    ${rincian}
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warna};"><span style="font-size:10px;">WAJIB SETOR:</span><b style="font-size:14px; color:${warna};">Rp ${Math.max(0, sisaSetor).toLocaleString('id-ID')}</b></div>
+                    ${sisaSetor > 0 ? `<button onclick="bukaPopupSetoran('${nama}', ${sisaSetor})" class="btn-main" style="margin-top:10px; padding:10px; background:var(--safe); color:white;">TERIMA UANG</button>` : ''}
                 </div>`;
             }
             document.getElementById('keuanganKurirContainer').innerHTML = adaData ? htmlKeuangan : `<div style="text-align:center; padding:20px; opacity:0.3; font-size:11px;">Belum ada data keuangan.</div>`;
@@ -443,10 +448,13 @@
         function toggleTotal() { 
             const tf = document.getElementById('metodeBayar').value === 'Transfer';
             document.getElementById('containerTotal').style.display = tf ? 'none' : 'block';
+            // Set otomatis 0 kalau transfer biar ga pusing ngitungnya nanti
+            if(tf) document.getElementById('total').value = ""; 
         }
         function toggleEditTotal() { 
             const tf = document.getElementById('editMetode').value === 'Transfer';
             document.getElementById('containerEditTotal').style.display = tf ? 'none' : 'block';
+            if(tf) document.getElementById('editTotal').value = "";
         }
         
         function tutupWAPrompt() {
