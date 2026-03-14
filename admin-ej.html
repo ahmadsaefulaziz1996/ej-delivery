@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EJ ADMIN V5.8 - MASTERPIECE</title>
+    <title>EJ ADMIN V5.9 - ULTIMATE</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     
@@ -99,7 +100,6 @@
         .status-pill { padding: 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.02); text-align: center; flex: 1; border: 1px solid rgba(255,255,255,0.1); }
         .status-pill.pill-active { background: white !important; color: black !important; transform: scale(1.05); box-shadow: 0 5px 15px rgba(255,255,255,0.2); border-color: white !important; }
     </style>
-    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
@@ -150,7 +150,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
         <div class="glass-card" style="padding:15px; margin:0; text-align:center; cursor:pointer;" onclick="bukaLaporan()">
             <i class="fa-solid fa-chart-pie" style="font-size:24px; color:var(--gold); margin-bottom:10px;"></i>
-            <div style="font-size:11px; font-weight:800;">REKAP BULANAN</div>
+            <div style="font-size:11px; font-weight:800;">REKAP & RANKING</div>
         </div>
         <div class="glass-card" style="padding:15px; margin:0; text-align:center; cursor:pointer;" onclick="bukaRadar()">
             <i class="fa-solid fa-satellite-dish" style="font-size:24px; color:var(--blue); margin-bottom:10px;"></i>
@@ -297,7 +297,7 @@
     
     <div id="modalFoto" class="modal-overlay" onclick="this.style.display='none'"><img id="imgBukti" src="" style="max-width:90%; max-height:75vh; border:3px solid var(--gold); border-radius:20px;"><p style="color:white; margin-top:20px; font-weight:800;">TAP UNTUK TUTUP</p></div>
     
-    <div id="laporanOverlay" class="modal-overlay"><div class="glass-card" style="width: 100%; max-width: 400px; border-color: var(--gold);"><div class="dashboard-header" style="color:var(--gold); justify-content:center; font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-line"></i> REKAP OMZET</div><input type="month" id="bulanLaporan" onchange="hitungLaporan()" class="modal-input" style="text-align:center; color:var(--gold); font-weight:800;"><div id="isiLaporan"></div><button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 20px; background:rgba(255,255,255,0.1); color:white;">TUTUP</button></div></div>
+    <div id="laporanOverlay" class="modal-overlay"><div class="glass-card" style="width: 100%; max-width: 400px; border-color: var(--gold); max-height:90vh; overflow-y:auto;"><div class="dashboard-header" style="color:var(--gold); justify-content:center; font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-line"></i> REKAP OMZET & KINERJA</div><input type="month" id="bulanLaporan" onchange="hitungLaporan()" class="modal-input" style="text-align:center; color:var(--gold); font-weight:800; margin-bottom:15px;"><div id="isiLaporan"></div><button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 20px; background:rgba(255,255,255,0.1); color:white;">TUTUP</button></div></div>
     
     <div id="radarOverlay" class="modal-overlay" style="padding:10px;"><div style="width:100%; max-width:600px; background:#000; border:1px solid var(--blue); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; height:85vh;"><div style="background:var(--blue); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; font-weight:800;"><span><i class="fa-solid fa-satellite-dish"></i> GPS RADAR</span><select id="radarFilterSelect" onchange="renderRadarMarkers()" style="padding:5px; background:rgba(0,0,0,0.5); color:white; border:1px solid white; font-size:10px;"><option value="ALL">SEMUA KURIR</option><option value="kurira">KURIR A</option><option value="kurirb">KURIR B</option><option value="kurirc">KURIR C</option></select><button onclick="document.getElementById('radarOverlay').style.display='none'" style="background:rgba(0,0,0,0.5); color:white; border:none; padding:5px 10px; border-radius:8px;"><i class="fa-solid fa-xmark"></i></button></div><div id="mapRadar" style="flex:1; width:100%; z-index:1;"></div></div></div>
     
@@ -373,7 +373,6 @@
                 adaData = true; const k = dataKurir[nama]; const sudahSetor = Number(dataSetoranHariIni[nama] || 0); const sisaSetor = k.cod - k.keluar - sudahSetor;
                 const warna = sisaSetor > 0 ? 'var(--warning)' : 'var(--safe)';
                 
-                // KODE YANG BALIK (MENAMPILKAN RINCIAN PENGELUARAN/BENSIN DI ADMIN)
                 const rincian = k.rincianKeluar.length > 0 ? `<div style="font-size:10px; color:var(--danger); opacity:0.8; margin-bottom:8px; padding-left:8px; border-left:2px solid var(--danger);"><i>${k.rincianKeluar.join('<br>')}</i></div>` : '';
 
                 htmlKeuangan += `<div class="glass-card" style="padding:15px; margin-bottom:0; border-color:${warna};">
@@ -384,8 +383,6 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warna};"><span style="font-size:10px;">WAJIB SETOR:</span><b style="font-size:14px; color:${warna};">Rp ${Math.max(0, sisaSetor).toLocaleString('id-ID')}</b></div>
                     ${sisaSetor > 0 ? `<button onclick="bukaPopupSetoran('${nama}', ${sisaSetor})" class="btn-main" style="margin-top:10px; padding:10px; background:var(--safe); color:white;"><i class="fa-solid fa-check"></i> TERIMA UANG</button>` : ''}
                     <button onclick="printManifest('${nama}')" class="btn-main" style="margin-top:8px; padding:10px; background:rgba(255,255,255,0.05); color:white; border:1px dashed rgba(255,255,255,0.3); box-shadow:none;"><i class="fa-solid fa-file-invoice"></i> CETAK SURAT JALAN</button>
-                </div>`;
-                    ${sisaSetor > 0 ? `<button onclick="bukaPopupSetoran('${nama}', ${sisaSetor})" class="btn-main" style="margin-top:10px; padding:10px; background:var(--safe); color:white;">TERIMA UANG</button>` : ''}
                 </div>`;
             }
             document.getElementById('keuanganKurirContainer').innerHTML = adaData ? htmlKeuangan : `<div style="text-align:center; padding:20px; opacity:0.3; font-size:11px;">Belum ada data keuangan.</div>`;
@@ -468,7 +465,6 @@
         function toggleTotal() { 
             const tf = document.getElementById('metodeBayar').value === 'Transfer';
             document.getElementById('containerTotal').style.display = tf ? 'none' : 'block';
-            // Set otomatis 0 kalau transfer biar ga pusing ngitungnya nanti
             if(tf) document.getElementById('total').value = ""; 
         }
         function toggleEditTotal() { 
