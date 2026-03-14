@@ -115,6 +115,11 @@
 <body>
 
     <div id="loginOverlay">
+        
+        <button onclick="wusWusReload(this)" style="position: absolute; top: 25px; right: 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--gold); padding: 10px; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 15px rgba(0,0,0,0.5); z-index: 10; transition: 0.2s;">
+            <i class="fa-solid fa-rotate-right"></i>
+        </button>
+
         <div class="pin-container">
             <div style="margin-bottom: 20px;">
                 <i class="fa-solid fa-crown" style="font-size: 40px; color: var(--gold); margin-bottom: 10px;"></i>
@@ -396,6 +401,18 @@
                 else { errEl.style.opacity = "1"; if(navigator.vibrate) navigator.vibrate([50, 50, 50]); memoriPIN = ""; }
             } else { if (memoriPIN.length < 4) memoriPIN += val; }
             document.getElementById('pinDisplay').innerText = memoriPIN.length > 0 ? "*".repeat(memoriPIN.length) : "****";
+        }
+
+        // ---> MESIN ANIMASI RELOAD WUS WUS <---
+        function wusWusReload(btn) {
+            btn.style.transform = "scale(0.85)"; // Tombol mengecil pas ditekan
+            const icon = btn.querySelector('i');
+            icon.classList.add('fa-spin'); // Icon panah muter kenceng
+            if(navigator.vibrate) navigator.vibrate(50); // Kasih efek getar dikit
+            
+            setTimeout(() => {
+                window.location.reload(); // Refresh halaman setelah setengah detik
+            }, 500); 
         }
 
         function forceRefresh() { const icon = document.getElementById('iconRefresh'); icon.classList.add('fa-spin'); db.goOffline(); setTimeout(() => { db.goOnline(); setTimeout(() => { icon.classList.remove('fa-spin'); }, 1000); }, 500); }
