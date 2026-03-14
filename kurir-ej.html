@@ -32,7 +32,7 @@
         ::-webkit-scrollbar { display: none; }
         /* EFEK DRAG & DROP */
         .sortable-ghost { opacity: 0.4; border: 2px dashed var(--gold) !important; transform: scale(0.98); }
-        .drag-handle { cursor: grab; }
+        .drag-handle { cursor: grab; touch-action: none; } /* <-- INI MANTRA ANTI-MACETNYA */
         .drag-handle:active { cursor: grabbing; }
         
         /* HEADER PREMIUM */
@@ -495,6 +495,7 @@
                 handle: '.drag-handle', // Cuma bisa digeser lewat gagang atas
                 animation: 200,         // Kecepatan animasi meluncur
                 ghostClass: 'sortable-ghost', // Efek bayangan saat melayang
+                forceFallback: true,    // <-- TAMBAHKAN INI (Biar gesekan di layar sentuh HP super lancar)
                 onEnd: function (evt) {
                     // Kalau geser selesai, rekam urutan barunya ke Memori HP!
                     const itemEls = container.querySelectorAll('.sortable-item');
