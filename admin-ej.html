@@ -110,6 +110,16 @@
         /* PILIHAN STATUS PILL */
         .status-pill { padding: 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.02); text-align: center; flex: 1; border: 1px solid rgba(255,255,255,0.1); }
         .status-pill.pill-active { background: white !important; color: black !important; transform: scale(1.05); box-shadow: 0 5px 15px rgba(255,255,255,0.2); border-color: white !important; }
+
+        /* ================= FITUR GHOST MODE (ANTI-INTIP) ================= */
+        body.ghost-mode .uang-blur { 
+            filter: blur(6px); 
+            opacity: 0.5; 
+            transition: filter 0.3s, opacity 0.3s; 
+            user-select: none; 
+            pointer-events: none; 
+        }
+        .uang-blur { transition: filter 0.3s, opacity 0.3s; }
     </style>
 </head>
 <body>
@@ -144,6 +154,9 @@
             <div class="main-logo-text"><i class="fa-solid fa-crown" style="font-size:16px; margin-right:5px;"></i> EJ TOBACCO</div>
             <div style="font-size:9px; letter-spacing:2px; color:gray; margin-left:25px; display:flex; align-items:center; gap:5px;">
                 ADMIN PRO
+                
+                <button onclick="toggleGhostMode()" style="background:transparent; border:none; cursor:pointer; padding:0; margin-left:5px; font-size:14px;"><i id="iconMata" class="fa-solid fa-eye" style="color:var(--safe); transition:0.3s;"></i></button>
+                
                 <button onclick="forceRefresh()" style="background:transparent; border:none; color:var(--blue); cursor:pointer; padding:0;"><i id="iconRefresh" class="fa-solid fa-rotate-right" style="font-size:12px;"></i></button>
                 <button onclick="tampilkanPopupLogout()" style="background:transparent; border:none; color:var(--danger); cursor:pointer; padding:0;"><i class="fa-solid fa-right-from-bracket" style="font-size:12px;"></i></button>
             </div>
@@ -449,7 +462,7 @@
                 }
             });
             Object.values(semuaPengeluaran).forEach(item => {
-                if (item.tanggal === tglTarget && item.kurir) { if (!dataKurir[item.kurir]) dataKurir[item.kurir] = { cod: 0, keluar: 0, rincianKeluar: [] }; dataKurir[item.kurir].keluar += Number(item.nominal || 0); dataKurir[item.kurir].rincianKeluar.push(`- ${item.keterangan} (Rp ${Number(item.nominal).toLocaleString('id-ID')})`); }
+                if (item.tanggal === tglTarget && item.kurir) { if (!dataKurir[item.kurir]) dataKurir[item.kurir] = { cod: 0, keluar: 0, rincianKeluar: [] }; dataKurir[item.kurir].keluar += Number(item.nominal || 0); dataKurir[item.kurir].rincianKeluar.push(`- ${item.keterangan} (<span class="uang-blur">Rp ${Number(item.nominal).toLocaleString('id-ID')}</span>)`); }
             });
             document.getElementById('countGudang').innerText = gd; document.getElementById('countProses').innerText = p; document.getElementById('countSukses').innerText = s; document.getElementById('countGagal').innerText = g;
             const keyTgl = tglTarget.replace(/\//g, '-'); const dataSetoranHariIni = semuaSetoranKurir[keyTgl] || {};
@@ -462,10 +475,10 @@
 
                 htmlKeuangan += `<div class="glass-card" style="padding:15px; margin-bottom:0; border-color:${warna};">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><b style="color:var(--gold); font-size:14px;"><i class="fa-solid fa-motorcycle"></i> ${nama.toUpperCase()}</b> <span style="font-size:9px; color:${warna}">${sisaSetor>0?'BELUM SETOR':'LUNAS'}</span></div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Total COD Hari Ini:</span> <b>Rp ${k.cod.toLocaleString('id-ID')}</b></div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Potong Pengeluaran:</span> <b style="color:var(--danger)">-Rp ${k.keluar.toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Total COD Hari Ini:</span> <b class="uang-blur">Rp ${k.cod.toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Potong Pengeluaran:</span> <b class="uang-blur" style="color:var(--danger)">-Rp ${k.keluar.toLocaleString('id-ID')}</b></div>
                     ${rincian}
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warna};"><span style="font-size:10px;">WAJIB SETOR:</span><b style="font-size:14px; color:${warna};">Rp ${Math.max(0, sisaSetor).toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warna};"><span style="font-size:10px;">WAJIB SETOR:</span><b class="uang-blur" style="font-size:14px; color:${warna};">Rp ${Math.max(0, sisaSetor).toLocaleString('id-ID')}</b></div>
                     ${sisaSetor > 0 ? `<button onclick="bukaPopupSetoran('${nama}', ${sisaSetor})" class="btn-main" style="margin-top:10px; padding:10px; background:var(--safe); color:white;"><i class="fa-solid fa-check"></i> TERIMA UANG</button>` : ''}
                     <button onclick="printManifest('${nama}')" class="btn-main" style="margin-top:8px; padding:10px; background:rgba(255,255,255,0.05); color:white; border:1px dashed rgba(255,255,255,0.3); box-shadow:none;"><i class="fa-solid fa-file-invoice"></i> CETAK SURAT JALAN</button>
                 </div>`;
@@ -498,7 +511,7 @@
                         <div onclick="toggleDetail('${o.id}')" style="padding:15px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div class="report-icon" style="width:35px; height:35px; font-size:14px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border);"><i class="fa-solid ${iStat}" style="color:${o.status==='Terkirim'?'var(--safe)':'var(--gold)'}"></i></div>
-                                <div><div style="font-size:13px; font-weight:800; color:white;">${o.namaPembeli}</div><div style="font-size:10px; color:gray;">${o.noPesanan} • ${payBadge} Rp ${Number(o.total).toLocaleString('id-ID')}</div></div>
+                                <div><div style="font-size:13px; font-weight:800; color:white;">${o.namaPembeli}</div><div style="font-size:10px; color:gray;">${o.noPesanan} • ${payBadge} <span class="uang-blur">Rp ${Number(o.total).toLocaleString('id-ID')}</span></div></div>
                             </div>
                             <i id="icon-arrow-${o.id}" class="fa-solid fa-chevron-down" style="font-size:12px; color:var(--gold); transition:0.3s;"></i>
                         </div>
@@ -661,17 +674,13 @@
             const t = `${v.split('-')[1]}/${v.split('-')[0]}`; 
             let s=0, g=0, c=0, tr=0;
             
-            // 1. Siapkan Wadah Kosong untuk Klasemen Kurir
             let kurirStats = {};
 
-            // 2. Hitung Omzet Global & Tarik Data Per-Kurir
             allOrders.forEach(o => { 
                 if(o.tanggal && o.tanggal.includes(t)) { 
                     if(o.status === 'Terkirim') { 
                         s++; 
                         if(o.metode==='COD') c+=Number(o.total||0); else tr+=Number(o.total||0); 
-                        
-                        // Hitung Sukses si Kurir
                         if(o.kurir) {
                             let namaK = o.kurir.toUpperCase();
                             if(!kurirStats[namaK]) kurirStats[namaK] = { sukses: 0, gagal: 0 };
@@ -679,8 +688,6 @@
                         }
                     } else if(o.status === 'Gagal') { 
                         g++; 
-                        
-                        // Hitung Gagal (Retur) si Kurir
                         if(o.kurir) {
                             let namaK = o.kurir.toUpperCase();
                             if(!kurirStats[namaK]) kurirStats[namaK] = { sukses: 0, gagal: 0 };
@@ -690,12 +697,10 @@
                 } 
             });
 
-            // 3. Mesin Pengurut (Ranking 1 yang Suksesnya Paling Banyak)
             let leaderboard = Object.keys(kurirStats).map(nama => {
                 return { nama: nama, sukses: kurirStats[nama].sukses, gagal: kurirStats[nama].gagal };
             }).sort((a, b) => b.sukses - a.sukses);
 
-            // 4. Desain Visual Papan Skor
             let htmlLeaderboard = `<div style="margin-top:20px;"><div style="font-size:11px; font-weight:800; color:var(--blue); margin-bottom:10px; display:flex; align-items:center; gap:5px; text-transform:uppercase;"><i class="fa-solid fa-ranking-star"></i> KINERJA KURIR BULAN INI</div>`;
             
             if(leaderboard.length === 0) {
@@ -703,10 +708,10 @@
             } else {
                 leaderboard.forEach((k, index) => {
                     let medali = "";
-                    if(index === 0) medali = `<i class="fa-solid fa-medal" style="color: gold; font-size:16px; text-shadow: 0 0 10px rgba(212,175,55,0.5);"></i>`; // Juara 1 Emas
-                    else if(index === 1) medali = `<i class="fa-solid fa-medal" style="color: silver; font-size:14px;"></i>`; // Juara 2 Perak
-                    else if(index === 2) medali = `<i class="fa-solid fa-medal" style="color: #CD7F32; font-size:14px;"></i>`; // Juara 3 Perunggu
-                    else medali = `<b style="color:gray; font-size:11px;">#${index+1}</b>`; // Harapan
+                    if(index === 0) medali = `<i class="fa-solid fa-medal" style="color: gold; font-size:16px; text-shadow: 0 0 10px rgba(212,175,55,0.5);"></i>`;
+                    else if(index === 1) medali = `<i class="fa-solid fa-medal" style="color: silver; font-size:14px;"></i>`;
+                    else if(index === 2) medali = `<i class="fa-solid fa-medal" style="color: #CD7F32; font-size:14px;"></i>`;
+                    else medali = `<b style="color:gray; font-size:11px;">#${index+1}</b>`;
 
                     htmlLeaderboard += `
                     <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); padding:10px 15px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
@@ -723,15 +728,14 @@
             }
             htmlLeaderboard += `</div>`;
 
-            // 5. Gabungkan Laporan Omzet Global + Papan Skor
             document.getElementById('isiLaporan').innerHTML = `
                 <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.1);">
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:gray; font-size:11px;">Total Sukses:</span><b>${s} Pcs</b></div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:gray; font-size:11px;">Total Gagal:</span><b>${g} Pcs</b></div>
                     <hr style="border:none; border-top:1px dashed rgba(255,255,255,0.2); margin:10px 0;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:gray; font-size:11px;">Tunai (COD):</span><b style="color:var(--warning);">Rp ${c.toLocaleString('id-ID')}</b></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:gray; font-size:11px;">Transfer:</span><b style="color:var(--blue);">Rp ${tr.toLocaleString('id-ID')}</b></div>
-                    <div style="display:flex; justify-content:space-between; margin-top:15px; padding-top:15px; border-top:2px solid var(--gold); color:var(--gold);"><b>TOTAL OMZET:</b><b>Rp ${(c+tr).toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:gray; font-size:11px;">Tunai (COD):</span><b class="uang-blur" style="color:var(--warning);">Rp ${c.toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:gray; font-size:11px;">Transfer:</span><b class="uang-blur" style="color:var(--blue);">Rp ${tr.toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:15px; padding-top:15px; border-top:2px solid var(--gold); color:var(--gold);"><b>TOTAL OMZET:</b><b class="uang-blur" style="font-size:16px;">Rp ${(c+tr).toLocaleString('id-ID')}</b></div>
                 </div>
                 ${htmlLeaderboard}
             `;
@@ -858,6 +862,34 @@
 
             // Lempar ke RawBT
             window.location.href = "rawbt:" + encodeURI(teks80mm);
+        }
+
+        // ================= MESIN GHOST MODE =================
+        function toggleGhostMode() {
+            document.body.classList.toggle('ghost-mode');
+            const icon = document.getElementById('iconMata');
+            if (document.body.classList.contains('ghost-mode')) {
+                localStorage.setItem('ghostMode', 'on');
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash'); // Mata Kecoret
+                icon.style.color = 'gray';
+                if(navigator.vibrate) navigator.vibrate(50);
+            } else {
+                localStorage.setItem('ghostMode', 'off');
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye'); // Mata Nyala
+                icon.style.color = 'var(--safe)';
+                if(navigator.vibrate) navigator.vibrate([50, 50]);
+            }
+        }
+
+        // Ingatan Auto-Nyala Pas Web Dibuka
+        if (localStorage.getItem('ghostMode') === 'on') {
+            document.body.classList.add('ghost-mode');
+            window.addEventListener('DOMContentLoaded', () => {
+                const icon = document.getElementById('iconMata');
+                if(icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); icon.style.color = 'gray'; }
+            });
         }
     </script>
 </body>
