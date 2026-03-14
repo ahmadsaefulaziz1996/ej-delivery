@@ -55,6 +55,7 @@
         
         .btn-main { background: var(--gradient-gold); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; font-size: 12px; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .btn-main:active { transform: scale(0.98); }
+        .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .action-btn { border: none; padding: 12px; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; color: white; transition: 0.2s; }
         .btn-wa { background: var(--wa); }
@@ -127,7 +128,10 @@
     <div class="header">
         <div class="logo-text-container">
             <div class="main-logo-text"><i class="fa-solid fa-crown" style="font-size:14px; margin-right:5px;"></i> EJ TOBACCO</div>
-            <div style="font-size:9px; letter-spacing:1px; color:gray; margin-left:20px;">APP KURIR | <b id="namaKurirHeader" style="color:white;">...</b></div>
+            <div style="font-size:9px; letter-spacing:1px; color:gray; margin-left:20px; display: flex; align-items: center; gap: 5px;">
+                APP KURIR | <b id="namaKurirHeader" style="color:white;">...</b>
+                <button onclick="logoutKurir()" style="background:transparent; border:none; color:var(--danger); cursor:pointer; padding:2px 5px;"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
         </div>
         <div style="text-align: right;">
             <div id="clock" style="font-size: 14px; font-weight: 800; color: var(--safe);"><i class="fa-regular fa-clock"></i> 00:00</div>
@@ -208,7 +212,7 @@
             <input type="text" id="inputNamaPenerima" class="modal-input" placeholder="Nama Penerima / Satpam..." style="border-color:var(--safe); font-weight:800;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
                 <button class="btn-main" style="background:rgba(255,255,255,0.05); color:white; box-shadow:none;" onclick="batalUploadSelesai()">BATAL</button>
-                <button class="btn-main" style="background:var(--safe); color:white;" onclick="eksekusiUploadSelesai()"><i class="fa-solid fa-cloud-arrow-up"></i> UPLOAD</button>
+                <button id="btnUploadFoto" class="btn-main" style="background:var(--safe); color:white;" onclick="eksekusiUploadSelesai()"><i class="fa-solid fa-cloud-arrow-up"></i> UPLOAD</button>
             </div>
         </div>
     </div>
@@ -240,6 +244,16 @@
             else { alert("⚠️ PIN SALAH! Coba lagi."); v = ""; }
         } else { if (v.length < 4) v += val; }
         disp.setAttribute('data-v', v); disp.innerText = v.length > 0 ? "*".repeat(v.length) : "****";
+    }
+
+    // FIX 2: FUNGSI LOGOUT / GANTI KURIR
+    function logoutKurir() {
+        if(confirm("Apakah Anda yakin ingin keluar / ganti akun kurir?")) {
+            myName = "";
+            document.getElementById('pinDisplay').innerText = "****";
+            document.getElementById('pinDisplay').setAttribute('data-v', '');
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
     }
 
     db.ref('pesanan').limitToLast(200).on('value', snap => { allData = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).reverse() : []; if(myName) updateUI(); });
@@ -347,9 +361,18 @@
 
     function ambilPaket(id) { db.ref('pesanan/'+id).update({ status:'Proses', kurir:myName, waktuAmbil:new Date().toLocaleTimeString() }).then(() => { document.getElementById('searchOrder').value=""; setTab('Proses'); }); }
     function uploadSelesai(id, input) { if (input.files[0]) { tempFileSukses = input.files[0]; tempIdSukses = id; document.getElementById('modalPenerima').style.display='flex'; input.value=""; } }
+    
+    // FIX 1: FUNGSI UPLOAD FOTO DENGAN ANIMASI LOADING (ANTI BRUTAL CLICK)
     function eksekusiUploadSelesai() {
         let n = document.getElementById('inputNamaPenerima').value || "Keluarga/Pihak Rumah";
-        const id = tempIdSukses, file = tempFileSukses; document.getElementById('modalPenerima').style.display='none';
+        const id = tempIdSukses, file = tempFileSukses; 
+        
+        // Ubah Tombol Jadi Loading
+        const btnUpload = document.getElementById('btnUploadFoto');
+        const teksAsli = btnUpload.innerHTML;
+        btnUpload.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MENGIRIM...`;
+        btnUpload.disabled = true;
+
         const reader = new FileReader(); reader.onload = function(e) {
             const img = new Image(); img.onload = function() {
                 const canvas = document.createElement('canvas'); let w = img.width, h = img.height;
@@ -357,11 +380,23 @@
                 canvas.width = w; canvas.height = h;
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                 db.ref('foto_bukti/'+id).set(canvas.toDataURL('image/jpeg', 0.5)).then(() => {
-                    db.ref('pesanan/'+id).update({ status:'Terkirim', adaFoto:true, catatanKurir:"Diterima: "+n, waktuSelesai:new Date().toLocaleTimeString() });
+                    db.ref('pesanan/'+id).update({ status:'Terkirim', adaFoto:true, catatanKurir:"Diterima: "+n, waktuSelesai:new Date().toLocaleTimeString() }).then(() => {
+                        // Kalau sukses, tutup modal dan kembalikan tombol
+                        document.getElementById('modalPenerima').style.display='none';
+                        btnUpload.innerHTML = teksAsli;
+                        btnUpload.disabled = false;
+                        document.getElementById('inputNamaPenerima').value = "";
+                        if(navigator.vibrate) navigator.vibrate(100);
+                    });
+                }).catch(err => {
+                    alert("❌ Gagal mengirim foto! Pastikan sinyal internet stabil.");
+                    btnUpload.innerHTML = teksAsli;
+                    btnUpload.disabled = false;
                 });
             }; img.src = e.target.result;
         }; reader.readAsDataURL(file);
     }
+    
     function batalUploadSelesai() { document.getElementById('modalPenerima').style.display='none'; tempFileSukses=null; }
     function setTab(t) { currentTab = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('t-'+t).classList.add('active'); renderOrders(); }
     function toggleScanner() { const r = document.getElementById('reader'); r.style.display = r.style.display==='block'?'none':'block'; if(r.style.display==='block') startScanner(); }
@@ -369,10 +404,38 @@
         const target = allData.find(o => o.noPesanan.replace(/\W/g, "") === txt.replace(/\W/g, ""));
         if (target) { if (target.status==='Gudang') ambilPaket(target.id); else { document.getElementById('searchOrder').value=target.noPesanan; renderOrders(); } html5QrCode.stop(); document.getElementById('reader').style.display='none'; }
     }); }
+    
     function tambahPengeluaran() { document.getElementById('modalExpense').style.display='flex'; }
-    function prosesSimpanExpense() { const k=document.getElementById('expKet').value, n=document.getElementById('expNom').value; if(k && n) db.ref('pengeluaran').push({ kurir:myName, keterangan:k, nominal:Number(n), tanggal:getTgl(), waktu:new Date().toLocaleTimeString() }).then(()=>document.getElementById('modalExpense').style.display='none'); }
+    
+    // FIX 3: PERINGATAN FORM BENSIN KOSONG
+    function prosesSimpanExpense() { 
+        const k=document.getElementById('expKet').value, n=document.getElementById('expNom').value; 
+        if(!k || !n) {
+            alert("⚠️ Waduh! Keterangan dan Nominal Rp harus diisi dulu Bos!");
+            return; // Hentikan proses kalau kosong
+        }
+        db.ref('pengeluaran').push({ kurir:myName, keterangan:k, nominal:Number(n), tanggal:getTgl(), waktu:new Date().toLocaleTimeString() }).then(()=>{
+            document.getElementById('modalExpense').style.display='none';
+            document.getElementById('expKet').value = "";
+            document.getElementById('expNom').value = "";
+        }); 
+    }
+    
     function updateStat(id, s) { tempId = id; tempStat = s; document.getElementById('modalAlasan').style.display='flex'; }
-    function prosesSimpanAlasan() { const a=document.getElementById('textAlasan').value; if(a) db.ref('pesanan/'+tempId).update({ status:tempStat, alasanTunda:a, waktuUpdate:new Date().toLocaleTimeString() }).then(()=>document.getElementById('modalAlasan').style.display='none'); }
+    
+    // FIX 3: PERINGATAN ALASAN KOSONG
+    function prosesSimpanAlasan() { 
+        const a=document.getElementById('textAlasan').value; 
+        if(!a) {
+            alert("⚠️ Alasan tidak boleh kosong! Kasih tau admin kenapa paket ini ditunda/gagal.");
+            return;
+        }
+        db.ref('pesanan/'+tempId).update({ status:tempStat, alasanTunda:a, waktuUpdate:new Date().toLocaleTimeString() }).then(()=>{
+            document.getElementById('modalAlasan').style.display='none';
+            document.getElementById('textAlasan').value = "";
+        }); 
+    }
+    
     function aktifkanRadar() { if (navigator.geolocation) { navigator.geolocation.watchPosition(pos => { db.ref('tracking/'+myName).set({ lat: pos.coords.latitude, lng: pos.coords.longitude, waktu: new Date().toLocaleTimeString() }); }, null, { enableHighAccuracy:true }); } }
     </script>
 </body>
