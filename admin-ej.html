@@ -146,6 +146,35 @@
         </div>
     </div>
 
+    <div id="modalEdit" class="modal-foto" style="padding: 20px; overflow-y: auto; backdrop-filter: blur(15px);">
+        <div class="glass-card" style="width: 100%; max-width: 400px; background: #0A0A0A; border: 1px solid var(--blue);">
+            <h2 style="color: var(--blue); text-align: center; margin-bottom: 15px; font-weight: 800;">✏️ EDIT PESANAN</h2>
+            
+            <label style="font-size: 10px; color: gray; margin-left: 5px;">NAMA PEMBELI</label>
+            <input type="text" id="editPembeli" placeholder="Nama Pembeli">
+            
+            <label style="font-size: 10px; color: gray; margin-left: 5px;">WHATSAPP</label>
+            <input type="text" id="editNohp" placeholder="WhatsApp">
+            
+            <label style="font-size: 10px; color: gray; margin-left: 5px;">ALAMAT LENGKAP</label>
+            <textarea id="editAlamat" placeholder="Alamat Lengkap" style="height: 80px;"></textarea>
+            
+            <label style="font-size: 10px; color: gray; margin-left: 5px;">METODE & HARGA</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <select id="editMetode">
+                    <option value="COD">COD</option>
+                    <option value="Transfer">Transfer</option>
+                </select>
+                <input type="number" id="editTotal" placeholder="Harga (Rp)">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <button class="btn-main" style="background: rgba(255,255,255,0.1); color: white;" onclick="document.getElementById('modalEdit').style.display='none'">BATAL</button>
+                <button class="btn-main" style="background: var(--blue); color: white;" onclick="simpanEdit()">UPDATE DATA</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
     <script>
@@ -160,6 +189,53 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+// ==========================================
+        // FITUR EDIT PESANAN
+        // ==========================================
+        let editIdAktif = "";
+
+        function bukaEdit(id) {
+            // Cari data pesanan berdasarkan ID
+            const o = allOrders.find(x => x.id === id);
+            if (!o) return;
+            
+            editIdAktif = id;
+            
+            // Isi form dengan data lama biar admin tinggal ganti yg salah
+            document.getElementById('editPembeli').value = o.namaPembeli || "";
+            document.getElementById('editNohp').value = o.nohp || "";
+            document.getElementById('editAlamat').value = o.alamat || "";
+            document.getElementById('editMetode').value = o.metode || "COD";
+            document.getElementById('editTotal').value = o.total || 0;
+            
+            // Munculkan Pop-up
+            document.getElementById('modalEdit').style.display = 'flex';
+        }
+
+        function simpanEdit() {
+            const pembeli = document.getElementById('editPembeli').value;
+            const nohp = document.getElementById('editNohp').value;
+            const alamat = document.getElementById('editAlamat').value;
+            const metode = document.getElementById('editMetode').value;
+            const total = document.getElementById('editTotal').value;
+
+            if (!pembeli || !nohp) return alert("Nama dan WA tidak boleh kosong!");
+
+            // Timpa data lama dengan data baru di Database
+            db.ref('pesanan/' + editIdAktif).update({
+                namaPembeli: pembeli,
+                nohp: nohp,
+                alamat: alamat,
+                metode: metode,
+                total: total,
+                waktuUpdate: new Date().toLocaleTimeString('id-ID')
+            }).then(() => {
+                document.getElementById('modalEdit').style.display = 'none';
+                // Biar keren kita getarkan HP admin sedikit kalau sukses (kalo support)
+                if(navigator.vibrate) navigator.vibrate(100);
+            }).catch(err => alert("Gagal update: " + err.message));
+        }
+        // ==========================================
         
         let allOrders = [];
         let semuaPengeluaran = {};
@@ -335,10 +411,11 @@
                         ${infoKurir}
                         ${o.catatanKurir ? `<div style="font-size:11px; color:var(--safe); margin-top:5px; font-style:italic;">📝 Bukti: ${o.catatanKurir}</div>` : ''}
                         ${o.alasanTunda ? `<div style="font-size:11px; color:var(--danger); margin-top:5px;">⚠️ Alasan: ${o.alasanTunda}</div>` : ''}
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px;">
-                            <a href="https://wa.me/${waNum}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
-                            <button style="background:var(--gold); color:black; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="reprint('${o.id}')">REPRINT</button>
-                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:8px;">
+    <a href="https://wa.me/${waNum}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
+    <button style="background:var(--gold); color:black; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="reprint('${o.id}')">PRINT</button>
+    <button style="background:var(--blue); color:white; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="bukaEdit('${o.id}')">EDIT</button>
+</div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
                             ${(o.adaFoto || o.buktiFoto) ? `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.id}', '${o.buktiFoto || ''}')">LIHAT FOTO</button>` : `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px; border:1px solid rgba(255,255,255,0.05);">TANPA FOTO</div>`}
                             ${o.status === 'Terkirim' ? `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 TERKUNCI</div>` : 
