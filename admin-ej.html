@@ -430,16 +430,6 @@
     </div>
 
     <div id="tvRadarContainer">
-        <div style="background:var(--gradient-dark); padding:20px 30px; display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--blue);">
-            <div style="color:var(--gold); font-weight:800; font-size:24px; letter-spacing:2px;"><i class="fa-solid fa-satellite-dish fa-beat-fade" style="color:var(--danger); margin-right:10px;"></i> EJ COMMAND CENTER</div>
-            <div style="display:flex; align-items:center; gap:15px;">
-                <div style="font-size:10px; color:gray; text-align:right;">STATUS RADAR:<br><b style="color:var(--safe); font-size:14px;">LIVE TRACKING ONLINE</b></div>
-            </div>
-        </div>
-        <div id="tvMapSlot" style="flex:1; width:100%;"></div>
-    </div>
-
-    <div id="tvRadarContainer">
         <div style="background:var(--gradient-dark); padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--blue);">
             <div style="color:var(--gold); font-weight:800; font-size:18px; letter-spacing:1px;"><i class="fa-solid fa-satellite-dish fa-beat-fade" style="color:var(--danger); margin-right:10px;"></i> EJ COMMAND CENTER</div>
             <div style="font-size:10px; color:gray; text-align:right;">STATUS RADAR:<br><b style="color:var(--safe); font-size:12px;">LIVE TRACKING ONLINE</b></div>
@@ -953,54 +943,6 @@
             iconMata.classList.remove('fa-eye'); 
             iconMata.classList.add('fa-eye-slash'); 
             iconMata.style.color = 'gray'; 
-        }
-
-        // ================= MESIN TV COMMAND CENTER =================
-        let isTvMode = false;
-        
-        function toggleTvMode() {
-            // Cek apakah layar cukup lebar buat masuk mode TV (Minimal layar Laptop/Tablet)
-            if (window.innerWidth < 800) {
-                alert("⚠️ Layar kekecilan Bos! Mode TV cuma bisa dipakai di Laptop, Tablet, atau Smart TV.");
-                return;
-            }
-
-            isTvMode = !isTvMode;
-            const icon = document.getElementById('iconTV');
-            const mapAsli = document.getElementById('mapRadar');
-            const slotTv = document.getElementById('tvMapSlot');
-            const slotModalAsli = document.getElementById('radarFilterSelect').parentNode.parentNode; // Wadah asli di modal
-
-            if (isTvMode) {
-                // NYALAKAN MODE NASA
-                document.body.classList.add('tv-mode');
-                icon.style.color = 'var(--blue)'; 
-                if(navigator.vibrate) navigator.vibrate([100, 50, 100]); // Getar khas mesin nyala
-                
-                // Curi map dari modal, pindahkan ke layar TV Kanan
-                slotTv.appendChild(mapAsli);
-                
-                // Inisialisasi map kalau Admin belum pernah buka radar sama sekali
-                if(!map) { 
-                    map=L.map('mapRadar').setView([-6.8694, 109.0435], 13); 
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); 
-                    db.ref('tracking').on('value', s => { mapDataFirebase = s.val(); if(mapDataFirebase) renderRadarMarkers(); }); 
-                } else { 
-                    renderRadarMarkers(); 
-                }
-                
-                // Refresh ukuran peta biar nggak nge-bug pas dipindah
-                setTimeout(() => map.invalidateSize(), 500);
-                
-            } else {
-                // MATIKAN MODE NASA, BALIK NORMAL
-                document.body.classList.remove('tv-mode');
-                icon.style.color = 'gray';
-                
-                // Kembalikan map ke dalam kandangnya (Modal Radar)
-                slotModalAsli.appendChild(mapAsli);
-                setTimeout(() => map.invalidateSize(), 500);
-            }
         }
 
         // ================= MESIN TV COMMAND CENTER & SENSOR MIRING =================
