@@ -414,7 +414,7 @@
         filtered.forEach((o, index) => {
             const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
             const trackLink = `https://ejtobacco.github.io/ej-delivery/tracking.html?n=${myName}`;
-            const msg = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\n\nSaya kurir *${myName.toUpperCase()}* sedang meluncur mengantar paket kakak.\n\n*PANTAU POSISI SAYA:* \n${trackLink}\n\nTagihan: *Rp${Number(o.total || 0).toLocaleString()}* 🙏`;
+            const msg = `*EJ TOBACCO DELIVERY* 🚀\n------------------------------------------\nHalo Kak *${o.namaPembeli.toUpperCase()}* 👋\n\nSaya kurir *${myName.toUpperCase()}* sedang meluncur mengantar paket kakak.\n\n*KAKAK BISA PANTAU POSISI SAYA SECARA LIVE:* \n${trackLink}\n\nTagihan COD: *Rp${Number(o.total || 0).toLocaleString()}* 🙏`;
             
             let btnMaps = "";
             if (o.mapLink && o.mapLink.trim() !== "") {
