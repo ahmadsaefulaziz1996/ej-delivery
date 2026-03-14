@@ -33,7 +33,7 @@
         /* EFEK DRAG & DROP PREMIUM */
         .sortable-ghost { opacity: 0.3; background: rgba(212,175,55,0.1) !important; border: 2px dashed var(--gold) !important; transform: scale(0.98); }
         .sortable-drag { opacity: 1 !important; box-shadow: 0 20px 40px rgba(0,0,0,0.8) !important; transform: scale(1.02) !important; cursor: grabbing !important; z-index: 99999; }
-        .drag-handle { cursor: grab; touch-action: none; }
+        .drag-handle { cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
         .nomor-urut { transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); } /* Pelumas perubahan angka */
         
@@ -494,14 +494,24 @@
         // Cuma aktif kalau lagi di tab TAS SAYA
         if (currentTab === 'Proses') {
             sortableInstance = new Sortable(container, {
-                handle: '.drag-handle', // Cuma bisa digeser lewat gagang atas
-                animation: 350,         // WAKTU DIPERLAMBAT BIAR SMOOTH (350ms)
-                easing: "cubic-bezier(0.25, 1, 0.5, 1)", // Efek "Ngerem Halus"
+                handle: '.drag-handle', 
+                animation: 350,         
+                easing: "cubic-bezier(0.25, 1, 0.5, 1)", 
                 ghostClass: 'sortable-ghost', 
-                dragClass: 'sortable-drag', // Efek pas diangkat
-                forceFallback: true,    // Wajib untuk HP
-                fallbackTolerance: 3,   // Toleransi getaran jari biar gak gampang kepencet
+                dragClass: 'sortable-drag', 
+                forceFallback: true,    
+                fallbackTolerance: 5, // Dinaikkan dikit biar jari gemetar aman
                 
+                // === FITUR TAHAN & GETAR (LONG PRESS) ===
+                delay: 400, // Harus DITAHAN selama 400 milidetik (hampir setengah detik)
+                delayOnTouchOnly: true, // Cuma berlaku kalau disentuh pakai jari di HP
+                
+                onChoose: function (evt) {
+                    // Begitu ditahan 400ms, HP langsung GETAR tandanya siap digeser!
+                    if(navigator.vibrate) navigator.vibrate([50]); 
+                },
+                // =========================================
+
                 // --- MESIN LIVE-UPDATE ANGKA SAAT DIGESER ---
                 onChange: function(evt) {
                     const urutanEls = container.querySelectorAll('.nomor-urut');
