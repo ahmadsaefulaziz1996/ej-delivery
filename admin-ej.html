@@ -427,7 +427,7 @@
                 </select>
                 <button onclick="document.getElementById('radarOverlay').style.display='none'" style="background:rgba(0,0,0,0.5); color:white; border:none; padding:5px 10px; border-radius:8px;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="mapRadar" style="flex:1; width:100%; height:100%; z-index:1;"></div>
+            <div id="mapRadar" style="flex:1; width:100%; z-index:1;"></div>
         </div>
     </div>
 
@@ -436,7 +436,7 @@
             <div style="color:var(--gold); font-weight:800; font-size:18px; letter-spacing:1px;"><i class="fa-solid fa-satellite-dish fa-beat-fade" style="color:var(--danger); margin-right:10px;"></i> EJ COMMAND CENTER</div>
             <div style="font-size:10px; color:gray; text-align:right;">STATUS RADAR:<br><b style="color:var(--safe); font-size:12px;">LIVE TRACKING ONLINE</b></div>
         </div>
-        <div id="tvMapSlot" style="flex:1; width:100%; display:flex;"></div>
+        <div id="tvMapSlot" style="flex:1; width:100%; display:flex; flex-direction:column;"></div>
     </div>
     
     <div id="waPrompt" style="position:fixed; top:20px; left:20px; right:20px; background:var(--wa); color:white; padding:20px; border-radius:20px; z-index:11000; display:none; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
@@ -834,7 +834,22 @@
 
         let map, markers={};
         function renderRadarMarkers() { if(!map) return; const f = document.getElementById('radarFilterSelect').value; for(let k in markers) { map.removeLayer(markers[k]); } markers = {}; for(let k in mapDataFirebase) { if(f === 'ALL' || f === k) { markers[k] = L.marker([mapDataFirebase[k].lat, mapDataFirebase[k].lng]).addTo(map).bindPopup(k.toUpperCase()); } } }
-        function bukaRadar() { document.getElementById('radarOverlay').style.display='flex'; if(!map) { map=L.map('mapRadar').setView([-6.8694, 109.0435], 13); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); db.ref('tracking').on('value', s => { mapDataFirebase = s.val(); if(mapDataFirebase) renderRadarMarkers(); }); } else { renderRadarMarkers(); } setTimeout(()=>map.invalidateSize(), 500); }
+        function bukaRadar(latKurir, lngKurir) {
+    // 1. Munculkan overlay radar
+    document.getElementById('radarOverlay').style.display = 'flex';
+
+    // 2. Penting! Refresh ukuran peta agar tidak blank saat muncul
+    setTimeout(function() {
+        mapRadar.invalidateSize(); 
+        
+        // 3. OTO-FOKUS: Langsung arahkan kamera ke titik kurir
+        // Angka 15 adalah level zoom (makin besar makin dekat)
+        mapRadar.setView([latKurir, lngKurir], 15);
+        
+        // 4. Pastikan Marker Kurir juga ada di sana
+        markerKurir.setLatLng([latKurir, lngKurir]);
+    }, 200); // Kasih jeda dikit biar transisi mulus
+}
 
         function bersihkanDataLama() { const BATAS = 90 * 24 * 60 * 60 * 1000; const skr = new Date().getTime(); db.ref('pesanan').once('value', s => { const d = s.val(); if(!d) return; for(let id in d) { if(d[id].tanggal) { const p=d[id].tanggal.split('/'); if(skr - new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime() > BATAS) { db.ref('pesanan/'+id).remove(); db.ref('foto_bukti/'+id).remove(); } } } }); }
         setTimeout(bersihkanDataLama, 10000);
