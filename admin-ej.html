@@ -468,13 +468,15 @@
                     
                     // --- SUNTIKAN SUARA LOGIN (Sekaligus mancing izin suara Browser) ---
                     if (jarvisAktif && 'speechSynthesis' in window) {
-                        let msg = new SpeechSynthesisUtterance("Akses diterima. Selamat datang Komandan EJ.");
+                        let msg = new SpeechSynthesisUtterance("Akses diterima. Selamat datang Komandan E J.");
                         msg.lang = 'id-ID'; window.speechSynthesis.speak(msg);
                     }
                     // -------------------------------------------------------------------
                 } 
                 else { errEl.style.opacity = "1"; if(navigator.vibrate) navigator.vibrate([50, 50, 50]); memoriPIN = ""; }
-            }
+            } else { if (memoriPIN.length < 4) memoriPIN += val; }
+            document.getElementById('pinDisplay').innerText = memoriPIN.length > 0 ? "*".repeat(memoriPIN.length) : "****";
+        } // <-- INI DIA SI KURUNG TUTUP YANG HILANG! WKWKWK
 
         // ---> MESIN ANIMASI RELOAD WUS WUS <---
         function wusWusReload(btn) {
