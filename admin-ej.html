@@ -834,22 +834,24 @@
 
         let map, markers={};
         function renderRadarMarkers() { if(!map) return; const f = document.getElementById('radarFilterSelect').value; for(let k in markers) { map.removeLayer(markers[k]); } markers = {}; for(let k in mapDataFirebase) { if(f === 'ALL' || f === k) { markers[k] = L.marker([mapDataFirebase[k].lat, mapDataFirebase[k].lng]).addTo(map).bindPopup(k.toUpperCase()); } } }
-        function bukaRadar(latKurir, lngKurir) {
-    // 1. Munculkan overlay radar
-    document.getElementById('radarOverlay').style.display = 'flex';
+        function bukaRadar() { 
+            document.getElementById('radarOverlay').style.display='flex'; 
+            
+            if(!map) { 
+                map=L.map('mapRadar').setView([-6.8694, 109.0435], 13); 
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); 
+                db.ref('tracking').on('value', s => { 
+                    mapDataFirebase = s.val(); 
+                    if(mapDataFirebase) renderRadarMarkers(); 
+                }); 
+            }
 
-    // 2. Penting! Refresh ukuran peta agar tidak blank saat muncul
-    setTimeout(function() {
-        mapRadar.invalidateSize(); 
-        
-        // 3. OTO-FOKUS: Langsung arahkan kamera ke titik kurir
-        // Angka 15 adalah level zoom (makin besar makin dekat)
-        mapRadar.setView([latKurir, lngKurir], 15);
-        
-        // 4. Pastikan Marker Kurir juga ada di sana
-        markerKurir.setLatLng([latKurir, lngKurir]);
-    }, 200); // Kasih jeda dikit biar transisi mulus
-}
+            // --- OBAT ANTI TERPOTONG ---
+            setTimeout(() => {
+                map.invalidateSize(); // Mesin peta ngecek ulang ukuran layar
+                autoFocusKurir(); // Langsung fokus ke kurir (Fungsi di bawah)
+            }, 400); 
+        }
 
         function bersihkanDataLama() { const BATAS = 90 * 24 * 60 * 60 * 1000; const skr = new Date().getTime(); db.ref('pesanan').once('value', s => { const d = s.val(); if(!d) return; for(let id in d) { if(d[id].tanggal) { const p=d[id].tanggal.split('/'); if(skr - new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime() > BATAS) { db.ref('pesanan/'+id).remove(); db.ref('foto_bukti/'+id).remove(); } } } }); }
         setTimeout(bersihkanDataLama, 10000);
@@ -1005,48 +1007,32 @@
         let isTvMode = false;
         
         function setTvMode(nyala) {
-            if (isTvMode === nyala) return; // Biar gak dobel eksekusi
-            
-            // Proteksi: Kalau layar HP miringnya terlalu sempit, jangan dipaksa belah
-            if (nyala && window.innerHeight < 250) return; 
+            // ... (kode Bos yang sudah ada sebelumnya) ...
 
-            isTvMode = nyala;
-            const icon = document.getElementById('iconTV');
-            const mapAsli = document.getElementById('mapRadar');
-            const slotTv = document.getElementById('tvMapSlot');
-            
-            // Cari wadah asli peta (di dalam modal)
-            let slotModalAsli = document.getElementById('radarFilterSelect');
-            if(slotModalAsli) slotModalAsli = slotModalAsli.parentNode.parentNode;
-
-            if (isTvMode) {
-                // NYALAKAN MODE NASA
-                document.body.classList.add('tv-mode');
-                if(icon) icon.style.color = 'var(--blue)'; 
-                if(navigator.vibrate) navigator.vibrate([100, 50]); // HP Getar DZZT-DZT!
-                
-                // Curi map dari dalam modal tersembunyi, lalu pindahkan ke layar kanan
-                if(slotTv && mapAsli) slotTv.appendChild(mapAsli);
-                
-                // Nyalakan GPS Radar kalau belum pernah dinyalain
-                if(!map) { 
-                    map=L.map('mapRadar').setView([-6.8694, 109.0435], 13); 
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); 
-                    db.ref('tracking').on('value', s => { mapDataFirebase = s.val(); if(mapDataFirebase) renderRadarMarkers(); }); 
-                } else { 
-                    renderRadarMarkers(); 
+            // Tepat sebelum fungsi berakhir, tambahkan ini:
+            setTimeout(() => { 
+                if(map) {
+                    map.invalidateSize(); // Paksa peta render ulang full layar
+                    autoFocusKurir(); // Biar pas miring tetep fokus ke titik kurir
                 }
-                
-                setTimeout(() => { if(map) map.invalidateSize(); }, 500);
-            } else {
-                // MATIKAN MODE NASA, BALIK NORMAL
-                document.body.classList.remove('tv-mode');
-                if(icon) icon.style.color = 'gray';
-                if(navigator.vibrate) navigator.vibrate(50);
-                
-                // Kembalikan map ke kandangnya (biar tombol Modal Radar tetep jalan)
-                if(slotModalAsli && mapAsli) slotModalAsli.appendChild(mapAsli);
-                setTimeout(() => { if(map) map.invalidateSize(); }, 500);
+            }, 500); 
+        }
+
+        function autoFocusKurir() {
+            if (!map || !mapDataFirebase) return;
+            
+            // Ambil semua koordinat kurir yang ada
+            const koordinat = Object.values(mapDataFirebase).map(k => [k.lat, k.lng]);
+            
+            if (koordinat.length > 0) {
+                if (koordinat.length === 1) {
+                    // Kalau cuma 1 kurir, langsung zoom ke orang itu
+                    map.setView(koordinat[0], 16);
+                } else {
+                    // Kalau kurir banyak, zoom otomatis biar SEMUA kurir kelihatan di layar
+                    const bounds = L.latLngBounds(koordinat);
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
             }
         }
 
