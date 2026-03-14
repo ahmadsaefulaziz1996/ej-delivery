@@ -122,6 +122,37 @@
         /* KUSTOM INPUT DALAM MODAL */
         .modal-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 15px; color: white; outline: none; font-size: 13px; margin-bottom: 15px; }
         .modal-input:focus { border-color: var(--gold); }
+   
+  /* ================= FITUR MATAHARI TERIK (SUNLIGHT MODE) ================= */
+        body.sunlight-mode { background: #E5E7EB; color: #111827; }
+        body.sunlight-mode .glass-card { background: #FFFFFF !important; border: 1px solid #D1D5DB !important; box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important; }
+        body.sunlight-mode .glass-card::before { display: none; } /* Matikan garis emas atas biar lebih clean */
+        body.sunlight-mode .wallet-card { background: #FFFFFF !important; border: 1px solid #D1D5DB !important; border-top: 4px solid var(--safe) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; color: #111; }
+        body.sunlight-mode .wallet-card::before { display: none; }
+        body.sunlight-mode #namaKurirHeader { color: #111 !important; }
+        
+        /* Ubah warna Tab & Input */
+        body.sunlight-mode .tab-btn { background: #FFFFFF; color: #6B7280; border-color: #D1D5DB; }
+        body.sunlight-mode .tab-btn.active { background: rgba(212,175,55,0.15); color: #B48E2D; border-color: var(--gold); }
+        body.sunlight-mode .search-box, body.sunlight-mode .modal-input { background: #F9FAFB; color: #111; border-color: #D1D5DB; }
+        body.sunlight-mode .search-box::placeholder, body.sunlight-mode .modal-input::placeholder { color: #9CA3AF; }
+        
+        /* Ubah Laci Bawah & Drag Handle */
+        body.sunlight-mode .bottom-sheet { background: #FFFFFF !important; }
+        body.sunlight-mode .sheet-pill { background: #D1D5DB; }
+        body.sunlight-mode .swipe-content { background: #FFFFFF !important; }
+        body.sunlight-mode .drag-handle { background: #FEF3C7 !important; border-bottom: 1px solid #FDE68A !important; color: #D97706 !important; }
+        body.sunlight-mode .nomor-urut { background: #F59E0B !important; color: #FFF !important; }
+        body.sunlight-mode .num-btn { color: #111; border-color: #D1D5DB; }
+        
+        /* Trik Sulap: Memaksa text inline HTML yang putih jadi hitam */
+        body.sunlight-mode div[style*="color:white"] { color: #111827 !important; }
+        body.sunlight-mode h2[style*="color:#fff"] { color: #111827 !important; }
+        body.sunlight-mode div[style*="color:#ddd"] { color: #374151 !important; }
+        body.sunlight-mode div[style*="background:rgba(0,0,0,0.2)"] { background: #F9FAFB !important; border-top-color: #E5E7EB !important; }
+        body.sunlight-mode div[style*="background:rgba(0,0,0,0.3)"] { background: #F3F4F6 !important; }
+        body.sunlight-mode div[style*="background:rgba(0,0,0,0.4)"] { background: #F3F4F6 !important; border-color: #D1D5DB !important; }
+        body.sunlight-mode div[style*="background:rgba(0,0,0,0.5)"] { background: #E5E7EB !important; border-color: #D1D5DB !important; color: #374151 !important; }  
     </style>
 </head>
 <body>
@@ -168,8 +199,13 @@
             <div class="main-logo-text"><i class="fa-solid fa-crown" style="font-size:14px; margin-right:5px;"></i> EJ TOBACCO</div>
             <div style="font-size:9px; letter-spacing:1px; color:gray; margin-left:20px; display: flex; align-items: center; gap: 8px;">
                 APP KURIR | <b id="namaKurirHeader" style="color:white;">...</b>
-                <button onclick="forceRefresh()" style="background:transparent; border:none; color:var(--blue); cursor:pointer; padding:0; margin-left:5px;"><i id="iconRefresh" class="fa-solid fa-rotate-right" style="font-size:12px;"></i></button>
+                
+                <button onclick="toggleSunlightMode()" style="background:transparent; border:none; cursor:pointer; padding:0; margin-left:5px; font-size:14px;"><i id="iconMatahari" class="fa-solid fa-sun" style="color:#F59E0B; transition:0.3s;"></i></button>
+                
+                <button onclick="forceRefresh()" style="background:transparent; border:none; color:var(--blue); cursor:pointer; padding:0;"><i id="iconRefresh" class="fa-solid fa-rotate-right" style="font-size:12px;"></i></button>
+                
                 <button onclick="tampilkanPopupLogout()" style="background:transparent; border:none; color:var(--danger); cursor:pointer; padding:0;"><i class="fa-solid fa-right-from-bracket" style="font-size:12px;"></i></button>
+                
             </div>
         </div>
         <div style="text-align: right;">
@@ -301,8 +337,20 @@
     // 1. PANGGIL MEMORI HP
     let myName = localStorage.getItem('namaKurir') || "";
 
-    // 2. MESIN AUTO-LOGIN (Langsung bypass layar PIN kalau memori ada)
+    // 2. MESIN MATAHARI & AUTO-LOGIN
     window.onload = () => {
+        // Cek memori HP, apakah kemarin kurir pakai Mode Matahari?
+        if (localStorage.getItem('sunlightMode') === 'on') {
+            document.body.classList.add('sunlight-mode');
+            const icon = document.getElementById('iconMatahari');
+            if(icon) {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon'); // Berubah jadi ikon bulan
+                icon.style.color = '#4B5563'; // Warna gelap
+            }
+        }
+
+        // Cek Login
         if (myName) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('namaKurirHeader').innerText = myName.toUpperCase();
@@ -310,6 +358,24 @@
             aktifkanRadar();
         }
     };
+
+    // Fungsi Saklar Matahari
+    function toggleSunlightMode() {
+        document.body.classList.toggle('sunlight-mode');
+        const icon = document.getElementById('iconMatahari');
+        
+        if (document.body.classList.contains('sunlight-mode')) {
+            localStorage.setItem('sunlightMode', 'on');
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon'); // Ganti icon jadi Bulan
+            icon.style.color = '#4B5563'; 
+        } else {
+            localStorage.setItem('sunlightMode', 'off');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun'); // Balik jadi Matahari
+            icon.style.color = '#F59E0B'; 
+        }
+    }
     
     function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
     
