@@ -221,6 +221,17 @@
             <h2 style="color:var(--safe); text-align:center; font-size: 16px;"><i class="fa-solid fa-camera"></i> PAKET DITERIMA</h2>
             <p style="font-size:11px; text-align:center; color:gray; margin:15px 0;">Foto tersimpan! Siapa nama penerima paket ini?</p>
             <input type="text" id="inputNamaPenerima" class="modal-input" placeholder="Nama Penerima / Satpam..." style="border-color:var(--safe); font-weight:800;">
+            
+            <div id="kalkulatorCOD" style="display:none; background:rgba(0,0,0,0.4); padding:15px; border-radius:12px; margin-bottom:15px; border:1px dashed var(--warning);">
+                <div style="font-size:10px; color:gray; margin-bottom:10px;">TAGIHAN COD: <b id="tagihanCalc" style="color:var(--warning); font-size:16px; float:right;">Rp 0</b></div>
+                <div class="input-group" style="margin-bottom:10px; width:100%;">
+                    <i class="fa-solid fa-hand-holding-dollar" style="color:var(--safe); top:13px;"></i>
+                    <input type="number" id="uangDiterima" class="modal-input" placeholder="Ketik Uang Diterima..." style="margin:0; border-color:var(--safe); font-size:14px; font-weight:800; background:rgba(34,197,94,0.1);" oninput="hitungKembalian()" inputmode="numeric">
+                </div>
+                <div style="text-align:center; font-size:10px; color:gray; font-weight:800; margin-top:5px;">KEMBALIAN / KEKURANGAN:</div>
+                <div id="teksKembalian" style="text-align:center; font-size:24px; font-weight:800; color:white; margin-top:5px; text-shadow:0 0 10px rgba(255,255,255,0.2);">Rp 0</div>
+            </div>
+
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
                 <button class="btn-main" style="background:rgba(255,255,255,0.05); color:white; box-shadow:none;" onclick="batalUploadSelesai()">BATAL</button>
                 <button id="btnUploadFoto" class="btn-main" style="background:var(--safe); color:white;" onclick="eksekusiUploadSelesai()"><i class="fa-solid fa-cloud-arrow-up"></i> UPLOAD</button>
@@ -425,7 +436,7 @@
                     <div style="font-size:11px; text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px; color:gray;"><i class="fa-solid fa-lock"></i> PESANAN SELESAI / TERKUNCI</div>
                     `)}
                     
-                    <input type="file" id="f-${o.id}" accept="image/*" capture="environment" style="display:none;" onchange="uploadSelesai('${o.id}', this)">
+                    <input type="file" id="f-${o.id}" accept="image/*" capture="environment" style="display:none;" onchange="uploadSelesai('${o.id}', '${o.metode}', ${o.total}, this)">
                 </div>
             </div>`;
         });
@@ -447,7 +458,62 @@
     }
 
     function ambilPaket(id) { db.ref('pesanan/'+id).update({ status:'Proses', kurir:myName, waktuAmbil:new Date().toLocaleTimeString() }).then(() => { document.getElementById('searchOrder').value=""; setTab('Proses'); }); }
-    function uploadSelesai(id, input) { if (input.files[0]) { tempFileSukses = input.files[0]; tempIdSukses = id; document.getElementById('modalPenerima').style.display='flex'; input.value=""; } }
+        
+    let tempMetodeSukses = "", tempTotalSukses = 0;
+
+    function uploadSelesai(id, metode, total, input) { 
+        if (input.files[0]) { 
+            tempFileSukses = input.files[0]; 
+            tempIdSukses = id; 
+            tempMetodeSukses = metode;
+            tempTotalSukses = Number(total || 0);
+
+            // Reset Form Modal
+            document.getElementById('inputNamaPenerima').value = "";
+            const uangIn = document.getElementById('uangDiterima');
+            const teksKem = document.getElementById('teksKembalian');
+            const calcDiv = document.getElementById('kalkulatorCOD');
+
+            // Logika Detektor COD
+            if (metode === 'COD') {
+                calcDiv.style.display = 'block'; // Munculkan Kalkulator
+                document.getElementById('tagihanCalc').innerText = "Rp " + tempTotalSukses.toLocaleString('id-ID');
+                uangIn.value = "";
+                teksKem.innerText = "Rp 0";
+                teksKem.style.color = "white";
+            } else {
+                calcDiv.style.display = 'none'; // Sembunyikan kalau Transfer
+            }
+
+            document.getElementById('modalPenerima').style.display='flex'; 
+            input.value=""; 
+        } 
+    }
+
+    function hitungKembalian() {
+        const uang = Number(document.getElementById('uangDiterima').value || 0);
+        const teksKem = document.getElementById('teksKembalian');
+        
+        if (uang === 0) {
+            teksKem.innerText = "Rp 0"; teksKem.style.color = "white"; return;
+        }
+
+        const kembalian = uang - tempTotalSukses;
+        
+        if (kembalian < 0) {
+            // UANG KURANG (MERAH)
+            teksKem.innerText = "- Rp " + Math.abs(kembalian).toLocaleString('id-ID');
+            teksKem.style.color = "var(--danger)";
+        } else if (kembalian === 0) {
+            // UANG PAS (HIJAU)
+            teksKem.innerText = "UANG PAS";
+            teksKem.style.color = "var(--safe)";
+        } else {
+            // KEMBALIAN (EMAS)
+            teksKem.innerText = "Kembali: Rp " + kembalian.toLocaleString('id-ID');
+            teksKem.style.color = "var(--gold)";
+        }
+    }
     
     function eksekusiUploadSelesai() {
         let n = document.getElementById('inputNamaPenerima').value || "Keluarga/Pihak Rumah";
