@@ -297,7 +297,9 @@
     
     <div id="modalFoto" class="modal-overlay" onclick="this.style.display='none'"><img id="imgBukti" src="" style="max-width:90%; max-height:75vh; border:3px solid var(--gold); border-radius:20px;"><p style="color:white; margin-top:20px; font-weight:800;">TAP UNTUK TUTUP</p></div>
     
-    <div id="laporanOverlay" class="modal-overlay"><div class="glass-card" style="width: 100%; max-width: 400px; border-color: var(--gold); max-height:90vh; overflow-y:auto;"><div class="dashboard-header" style="color:var(--gold); justify-content:center; font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-line"></i> REKAP OMZET & KINERJA</div><input type="month" id="bulanLaporan" onchange="hitungLaporan()" class="modal-input" style="text-align:center; color:var(--gold); font-weight:800; margin-bottom:15px;"><div id="isiLaporan"></div><button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 20px; background:rgba(255,255,255,0.1); color:white;">TUTUP</button></div></div>
+    <div id="laporanOverlay" class="modal-overlay"><div class="glass-card" style="width: 100%; max-width: 400px; border-color: var(--gold); max-height:90vh; overflow-y:auto;"><div class="dashboard-header" style="color:var(--gold); justify-content:center; font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-line"></i> REKAP OMZET & KINERJA</div><input type="month" id="bulanLaporan" onchange="hitungLaporan()" class="modal-input" style="text-align:center; color:var(--gold); font-weight:800; margin-bottom:15px;"><div id="isiLaporan"></div><button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 20px; background:rgba(255,255,255,0.1); color:white;">TUTUP</button><button class="btn-main" onclick="downloadHartaKarun()" style="margin-top: 10px; background:var(--wa); color:white; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);">
+    <i class="fa-solid fa-file-csv"></i> DOWNLOAD DATA PEMBELI (CSV)
+</button></div></div>
     
     <div id="radarOverlay" class="modal-overlay" style="padding:10px;"><div style="width:100%; max-width:600px; background:#000; border:1px solid var(--blue); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; height:85vh;"><div style="background:var(--blue); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; font-weight:800;"><span><i class="fa-solid fa-satellite-dish"></i> GPS RADAR</span><select id="radarFilterSelect" onchange="renderRadarMarkers()" style="padding:5px; background:rgba(0,0,0,0.5); color:white; border:1px solid white; font-size:10px;"><option value="ALL">SEMUA KURIR</option><option value="kurira">KURIR A</option><option value="kurirb">KURIR B</option><option value="kurirc">KURIR C</option></select><button onclick="document.getElementById('radarOverlay').style.display='none'" style="background:rgba(0,0,0,0.5); color:white; border:none; padding:5px 10px; border-radius:8px;"><i class="fa-solid fa-xmark"></i></button></div><div id="mapRadar" style="flex:1; width:100%; z-index:1;"></div></div></div>
     
@@ -773,6 +775,50 @@
 
             // Lempar ke RawBT
             window.location.href = "rawbt:" + encodeURI(teks80mm);
+        }
+
+        // ==========================================
+        // MESIN GUDANG HARTA KARUN (EXPORT DATA)
+        // ==========================================
+        function downloadHartaKarun() {
+            // Ambil bulan yang lagi dipilih di modal laporan
+            const v = document.getElementById('bulanLaporan').value;
+            if(!v) return alert("Pilih bulannya dulu Bos!");
+            
+            const t = `${v.split('-')[1]}/${v.split('-')[0]}`;
+            
+            // 1. Saring pesanan yang SUKSES di bulan tersebut
+            const dataSukses = allOrders.filter(o => o.tanggal && o.tanggal.includes(t) && o.status === 'Terkirim');
+
+            if(dataSukses.length === 0) {
+                return alert("Waduh Bos, belum ada pembeli sukses di bulan ini.");
+            }
+
+            // 2. Susun Header File Excel (CSV)
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "NAMA PEMBELI,NOMOR WHATSAPP,TOTAL BELANJA,TANGGAL\r\n";
+
+            // 3. Masukkan data pembeli ke baris-baris CSV
+            dataSukses.forEach(o => {
+                let nama = o.namaPembeli.replace(/,/g, ''); // Hapus koma biar gak rusak formatnya
+                let wa = o.nohp;
+                let total = o.total || 0;
+                let tgl = o.tanggal;
+                
+                csvContent += `${nama},${wa},${total},${tgl}\r\n`;
+            });
+
+            // 4. Proses Download Otomatis
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `HARTA_KARUN_EJ_${v}.csv`);
+            document.body.appendChild(link);
+            
+            link.click(); // Klik download otomatis
+            document.body.removeChild(link); // Hapus link rahasia setelah selesai
+            
+            if(navigator.vibrate) navigator.vibrate(100);
         }
     </script>
 </body>
