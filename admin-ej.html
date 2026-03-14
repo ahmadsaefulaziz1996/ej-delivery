@@ -589,40 +589,54 @@
         function updateStatusInternet() { const l=document.getElementById('lampuKoneksi'), t=document.getElementById('teksKoneksi'); if(navigator.onLine) { db.goOnline(); if(l)l.style.background="var(--safe)"; if(t)t.innerText="ONLINE"; } else { db.goOffline(); if(l)l.style.background="var(--danger)"; if(t)t.innerText="OFFLINE"; } }
         window.addEventListener('online', updateStatusInternet); window.addEventListener('offline', updateStatusInternet); updateStatusInternet();
 
+        // ==========================================
+        // MESIN MATA ELANG V2 (AUTO KAMERA BELAKANG)
+        // ==========================================
         let adminScanner = null;
 
         function bukaScannerAdmin() {
             document.getElementById('modalScannerAdmin').style.display = 'flex';
+            
+            // Kita pakai Engine "Html5Qrcode" murni, bukan yang versi Scanner UI
             if (!adminScanner) {
-                adminScanner = new Html5QrcodeScanner("admin-reader", { fps: 10, qrbox: {width: 250, height: 150} }, false);
-                adminScanner.render(onScanSuccessAdmin, onScanFailureAdmin);
+                adminScanner = new Html5Qrcode("admin-reader");
             }
+            
+            // PERINTAH WAJIB: Gunakan Kamera Belakang (environment)
+            adminScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 250, height: 100 } },
+                onScanSuccessAdmin,
+                onScanFailureAdmin
+            ).catch(err => {
+                alert("⚠️ Gagal membuka kamera. Pastikan izin kamera sudah dinyalakan di browser Bos!");
+                console.log(err);
+            });
         }
 
         function tutupScannerAdmin() {
             document.getElementById('modalScannerAdmin').style.display = 'none';
-            if (adminScanner) {
-                adminScanner.clear().then(() => { adminScanner = null; }).catch(err => console.log(err));
+            // Matikan kamera saat modal ditutup biar hemat baterai
+            if (adminScanner && adminScanner.isScanning) {
+                adminScanner.stop().catch(err => console.log(err));
             }
         }
 
         function onScanSuccessAdmin(decodedText) {
             tutupScannerAdmin();
-            if(navigator.vibrate) navigator.vibrate([50, 50, 50]); // HP Getar Tanda Sukses
+            if(navigator.vibrate) navigator.vibrate([50, 50, 50]); // HP Getar
             
-            // Bersihkan teks hasil scan (sama seperti rumus print struk 80mm)
+            // Bersihkan teks hasil scan
             const cleanScanned = decodedText.replace(/[^a-zA-Z0-9]/g, "");
             
-            // Cari data di database lokal admin
+            // Cari data di database lokal
             const foundOrder = allOrders.find(o => {
                 const cleanResi = (o.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
                 return cleanResi === cleanScanned;
             });
 
             if (foundOrder) {
-                // Modifikasi Teks Popup biar keliatan canggih
                 document.getElementById('modalKirimUlang').querySelector('h2').innerHTML = `TARIK KE GUDANG?<br><span style="color:var(--gold); font-size:12px;">${foundOrder.namaPembeli.toUpperCase()}</span>`;
-                // Langsung buka modal konfirmasi kirim ulang (Ke Gudangkan)
                 bukaPopupKirimUlang(foundOrder.id);
             } else {
                 alert("⚠️ GAGAL! Resi tidak ditemukan atau sudah kadaluarsa!");
@@ -630,7 +644,7 @@
         }
 
         function onScanFailureAdmin(error) {
-            // Biarkan kosong, mesin akan terus nyari barcode
+            // Biarkan diam, mesin akan meradar terus sampai dapat barcode
         }
     </script>
 </body>
