@@ -3,293 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EJ ADMIN PRO - FULL SYSTEM</title>
+    <title>EJ ADMIN V4 - ULTRA PREMIUM</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root { --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.2); --text-main: #FFFFFF; --safe: #22C55E; --warning: #F59E0B; --danger: #EF4444; --blue: #2563eb; --wa: #25D366; }
+        :root { 
+            --gold: #D4AF37; --bg: #050505; --glass: rgba(255, 255, 255, 0.05); 
+            --glass-border: rgba(212, 175, 55, 0.3); --text-main: #FFFFFF; 
+            --safe: #22C55E; --warning: #F59E0B; --danger: #EF4444; 
+            --blue: #3B82F6; --wa: #25D366; 
+            --gradient-gold: linear-gradient(135deg, #F7E08C, #D4AF37);
+            --gradient-dark: linear-gradient(145deg, #111, #000);
+        }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         html { scroll-behavior: smooth; }
-        body { background: var(--bg); color: var(--text-main); width: 100%; margin: 0; padding: 12px; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
+        body { background: var(--bg); color: var(--text-main); width: 100%; margin: 0; padding: 15px; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
         ::-webkit-scrollbar { display: none; }
-        input, textarea, select { -webkit-user-select: text; user-select: text; width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; outline: none; }
-        img { pointer-events: none; -webkit-user-drag: none; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; z-index: 9999; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
-        .logo-text-container { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
-        .main-logo-text { color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; animation: goldBreathe 3s ease-in-out infinite; }
-        @keyframes goldBreathe { 0% { opacity: 1; text-shadow: 0 0 5px var(--gold); } 50% { opacity: 0.7; text-shadow: 0 0 20px var(--gold); } 100% { opacity: 1; text-shadow: 0 0 5px var(--gold); } }
-        .report-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
-        .report-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 10px 5px; border-radius: 12px; text-align: center; cursor: pointer; font-size: 11px; }
-        .report-box.active { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); }
-        .report-box b { display: block; font-size: 14px; margin-top: 4px; }
-        .glass-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; width: 100%; }
-        .btn-main { background: linear-gradient(135deg, #F7E08C, #D4AF37); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; }
-        .order-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
-        .btn-small { padding: 10px; border-radius: 8px; font-weight: 800; font-size: 10px; text-align: center; color: white; border: none; cursor: pointer; }
-        .modal-foto { display: none; position: fixed; z-index: 2000000 !important; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        .modal-foto img { max-width: 90%; max-height: 75vh; border: 2px solid var(--gold); border-radius: 15px; object-fit: contain; box-shadow: 0 0 30px rgba(212, 175, 55, 0.3); }
-        #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .pin-container { text-align: center; width: 100%; max-width: 320px; padding: 20px; }
-        .pin-display { font-size: 40px; letter-spacing: 15px; margin: 30px 0; color: var(--gold); font-weight: 800; text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
-        .numpad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; }
-        .num-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(212, 175, 55, 0.2); color: #fff; width: 75px; height: 75px; border-radius: 50%; font-size: 26px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .num-btn:active { background: var(--gold); color: #000; transform: scale(0.9); }
-        #waPrompt { position: fixed; bottom: 30px; left: 20px; right: 20px; background: var(--wa); color: white; padding: 20px; border-radius: 20px; text-align: center; z-index: 2000000; box-shadow: 0 15px 40px rgba(0,0,0,0.6); display: none; }
         
-        /* EFEK KEDAP-KEDIP URGENT DI ADMIN */
-        @keyframes blinkUrgent { 0% { border-color: var(--danger); } 50% { border-color: #fff; background: rgba(239, 68, 68, 0.2); } 100% { border-color: var(--danger); } }
-        .card-urgent { animation: blinkUrgent 0.8s infinite !important; border: 2px solid var(--danger) !important; border-radius: 12px; }
+        /* INPUT MEWAH DENGAN ICON */
+        .input-group { position: relative; margin-bottom: 12px; }
+        .input-group i { position: absolute; left: 15px; top: 15px; color: var(--gold); font-size: 14px; opacity: 0.8; }
+        input, textarea, select { 
+            -webkit-user-select: text; user-select: text; width: 100%; 
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 12px; padding: 14px 15px 14px 45px; /* Spasi untuk icon */
+            color: white; outline: none; font-size: 13px; transition: 0.3s; 
+        }
+        textarea { padding-top: 15px; }
+        input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+        
+        /* HEADER PREMIUM */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: sticky; top: 0; z-index: 9999; background: rgba(5,5,5,0.85); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .logo-text-container { display: flex; flex-direction: column; gap: 2px; }
+        .main-logo-text { color: var(--gold); font-weight: 800; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 10px rgba(212,175,55,0.3); }
+        
+        /* CARD & BUTTONS */
+        .glass-card { background: var(--gradient-dark); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+        .glass-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gradient-gold); opacity: 0.5; }
+        
+        .btn-main { background: var(--gradient-gold); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; font-size: 14px; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-main:active { transform: scale(0.98); }
+        
+        .action-btn { border: none; padding: 10px; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; color: white; transition: 0.2s; }
+        .btn-wa { background: var(--wa); }
+        .btn-print { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        .btn-edit { background: rgba(59,130,246,0.2); color: var(--blue); border: 1px solid var(--blue); }
+        .btn-delete { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid var(--danger); }
+        
+        /* REPORT DASHBOARD */
+        .dashboard-header { font-size: 12px; color: gray; letter-spacing: 1px; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .report-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 15px; transition: 0.3s; cursor: pointer; }
+        .report-box.active { background: rgba(212, 175, 55, 0.1); border-color: var(--gold); }
+        .report-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 18px; }
+        .r-info { display: flex; flex-direction: column; }
+        .r-title { font-size: 10px; color: gray; }
+        .r-value { font-size: 18px; font-weight: 800; color: white; }
+        
+        /* ORDER ITEMS */
+        .order-badge { position: absolute; top: 15px; right: 15px; padding: 5px 12px; border-radius: 20px; font-size: 9px; font-weight: 800; display: flex; align-items: center; gap: 5px; }
+        .badge-gudang { background: rgba(59,130,246,0.2); color: #60A5FA; border: 1px solid #3B82F6; }
+        .badge-proses { background: rgba(212,175,55,0.2); color: var(--gold); border: 1px solid var(--gold); }
+        .badge-sukses { background: rgba(34,197,94,0.2); color: #4ADE80; border: 1px solid #22C55E; }
+        .badge-gagal { background: rgba(239,68,68,0.2); color: #F87171; border: 1px solid #EF4444; }
+        
+        .kurir-tag { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; margin-top: 8px; }
+        
+        /* DATE PICKER CUSTOM */
+        .date-control { display: flex; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .date-control input { border: none; background: transparent; padding-left: 15px; border-radius: 0; margin: 0; }
+        .date-control button { background: var(--gold); border: none; color: black; font-weight: 800; padding: 0 20px; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+
+        /* URGENT BLINK */
+        @keyframes pulseUrgent { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .card-urgent { border: 1px solid var(--danger) !important; animation: pulseUrgent 2s infinite; }
+
+        /* MODALS */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); padding: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="loginOverlay">
-        <div class="pin-container">
-            <div style="margin-bottom: 20px;"><h2 style="color:#fff; font-size:22px;">EJ ACCESS</h2><p style="color:var(--gold); font-size:11px; letter-spacing:2px;">SECURITY VERIFICATION</p></div>
-            <div class="pin-display" id="pinDisplay">****</div>
-            <div class="numpad">
-                <button class="num-btn" onclick="pressPin('1')">1</button><button class="num-btn" onclick="pressPin('2')">2</button><button class="num-btn" onclick="pressPin('3')">3</button>
-                <button class="num-btn" onclick="pressPin('4')">4</button><button class="num-btn" onclick="pressPin('5')">5</button><button class="num-btn" onclick="pressPin('6')">6</button>
-                <button class="num-btn" onclick="pressPin('7')">7</button><button class="num-btn" onclick="pressPin('8')">8</button><button class="num-btn" onclick="pressPin('9')">9</button>
-                <button class="num-btn" onclick="pressPin('C')" style="color:var(--danger)">C</button><button class="num-btn" onclick="pressPin('0')">0</button><button class="num-btn" onclick="pressPin('OK')" style="color:var(--safe)">OK</button>
-            </div>
-        </div>
-    </div>
-    
     <div class="header">
         <div class="logo-text-container" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-            <div class="main-logo-text">EJ TOBACCO</div>
-            <div class="sub-logo-text" style="font-size:9px; letter-spacing:1px; color:#fff;">DELIVERY SYSTEM</div>
+            <div class="main-logo-text"><i class="fa-solid fa-crown" style="font-size:16px; margin-right:5px;"></i> EJ TOBACCO</div>
+            <div style="font-size:9px; letter-spacing:2px; color:gray; margin-left:25px;">ADMIN DASHBOARD PRO</div>
         </div>
         <div style="text-align: right;">
-            <div id="runningClock" style="font-size: 14px; font-weight: 800; color: var(--safe);">00:00:00</div>
-            <div id="currentDay" style="font-size: 9px; color: var(--gold); font-weight: 800;">LOADING...</div>
-            <div id="statusKoneksi" style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 3px;">
+            <div id="runningClock" style="font-size: 16px; font-weight: 800; color: var(--safe);"><i class="fa-regular fa-clock"></i> 00:00</div>
+            <div id="statusKoneksi" style="display: flex; align-items: center; gap: 5px; justify-content: flex-end; margin-top: 5px; background: rgba(34,197,94,0.1); padding: 3px 8px; border-radius: 20px;">
                 <div id="lampuKoneksi" style="width: 6px; height: 6px; background: var(--safe); border-radius: 50%; box-shadow: 0 0 10px var(--safe);"></div>
-                <span id="teksKoneksi" style="font-size: 8px; font-weight: 800; color: var(--safe);">ONLINE</span>
+                <span id="teksKoneksi" style="font-size: 9px; font-weight: 800; color: var(--safe);">SISTEM ONLINE</span>
             </div>
         </div>
     </div>
 
-    <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-        <input type="date" id="datePicker" onchange="changeDate()" style="border-color: var(--gold); background: rgba(212, 175, 55, 0.1); color: var(--gold); text-align: center; font-weight: 800; flex: 1; margin:0;">
-        <button onclick="goToToday()" style="background: var(--gold); border: none; border-radius: 12px; padding: 0 15px; font-weight: 800; font-size: 10px; color: black; cursor: pointer;">HARI INI</button>
+    <div class="date-control">
+        <input type="date" id="datePicker" onchange="changeDate()" style="color: var(--gold); font-weight: 800; font-size: 14px;">
+        <button onclick="goToToday()"><i class="fa-solid fa-calendar-day"></i> HARI INI</button>
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:15px;">
-        <button onclick="bukaLaporan()" style="background:var(--glass); border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:12px; font-weight:800; font-size:9px; cursor: pointer;">📊 LAPORAN BULANAN</button>
-        <button onclick="bukaRadar()" style="background:var(--glass); border:1px solid var(--blue); color:var(--blue); padding:10px; border-radius:12px; font-weight:800; font-size:9px; cursor: pointer;">📡 RADAR KURIR LIVE</button>
-    </div>
-
-    <div id="radarOverlay" class="modal-foto" style="padding: 10px; flex-direction: column;">
-        <div style="width: 100%; max-width: 600px; background: #000; border: 1px solid var(--blue); border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; height: 80vh;">
-            <div style="background: var(--blue); color: #fff; padding: 15px; text-align: center; font-weight: 800; display: flex; justify-content: space-between; align-items: center;">
-                <span>📡 RADAR KURIR REAL-TIME</span>
-                <button onclick="document.getElementById('radarOverlay').style.display='none'" style="background: #000; color: #fff; border: none; padding: 5px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;">TUTUP</button>
-            </div>
-            <div id="mapRadar" style="flex: 1; width: 100%; z-index: 1; background: #111;"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+        <div class="glass-card" style="padding:15px; margin:0; text-align:center; cursor:pointer;" onclick="bukaLaporan()">
+            <i class="fa-solid fa-chart-pie" style="font-size:24px; color:var(--gold); margin-bottom:10px;"></i>
+            <div style="font-size:11px; font-weight:800; color:white;">REKAP BULANAN</div>
         </div>
+        <div class="glass-card" style="padding:15px; margin:0; text-align:center; cursor:pointer;" onclick="bukaRadar()">
+            <i class="fa-solid fa-satellite-dish" style="font-size:24px; color:var(--blue); margin-bottom:10px;"></i>
+            <div style="font-size:11px; font-weight:800; color:white;">RADAR KURIR</div>
+        </div>
+    </div>
+
+    <div class="dashboard-header"><i class="fa-solid fa-chart-line"></i> STATUS PESANAN HARI INI</div>
+    <div class="report-grid">
+        <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')">
+            <div class="report-icon" style="background:rgba(255,255,255,0.1); color:white;"><i class="fa-solid fa-box-open"></i></div>
+            <div class="r-info"><span class="r-title">SISA JALAN</span><span class="r-value" id="countProses">0</span></div>
+        </div>
+        <div class="report-box" id="f-Gudang" onclick="setFilter('Gudang')">
+            <div class="report-icon" style="background:rgba(59,130,246,0.2); color:#60A5FA;"><i class="fa-solid fa-warehouse"></i></div>
+            <div class="r-info"><span class="r-title">DI GUDANG</span><span class="r-value" id="countGudang" style="color:#60A5FA">0</span></div>
+        </div>
+        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')">
+            <div class="report-icon" style="background:rgba(34,197,94,0.2); color:#4ADE80;"><i class="fa-solid fa-check-double"></i></div>
+            <div class="r-info"><span class="r-title">SUKSES</span><span class="r-value" id="countSukses" style="color:#4ADE80">0</span></div>
+        </div>
+        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')">
+            <div class="report-icon" style="background:rgba(239,68,68,0.2); color:#F87171;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="r-info"><span class="r-title">CANCEL</span><span class="r-value" id="countGagal" style="color:#F87171">0</span></div>
+        </div>
+    </div>
+
+    <div class="dashboard-header" style="margin-top:25px;"><i class="fa-solid fa-wallet"></i> KAS & SETORAN KURIR</div>
+    <div id="keuanganKurirContainer" style="display:flex; flex-direction:column; gap:10px; margin-bottom:25px;"></div>
+
+    <div class="glass-card" style="border: 1px solid var(--gold);">
+        <div class="dashboard-header" style="color:var(--gold); border-bottom:1px solid rgba(212,175,55,0.2); padding-bottom:10px; margin-bottom:15px;">
+            <i class="fa-solid fa-pen-to-square"></i> INPUT PESANAN BARU
+        </div>
+        
+        <div class="input-group">
+            <i class="fa-solid fa-hashtag"></i>
+            <input type="text" id="noPesanan" placeholder="Nomor Resi / Pesanan (Otomatis jika kosong)" autocomplete="off">
+        </div>
+        <div class="input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="pembeli" placeholder="Nama Lengkap Pembeli" autocomplete="off">
+        </div>
+        <div class="input-group">
+            <i class="fa-brands fa-whatsapp"></i>
+            <input type="number" id="nohp" placeholder="Nomor WhatsApp Aktif" autocomplete="off" inputmode="numeric">
+        </div>
+        <div class="input-group">
+            <i class="fa-solid fa-location-dot"></i>
+            <textarea id="alamat" placeholder="Alamat Pengiriman Detail" autocomplete="off" style="height:80px;"></textarea>
+        </div>
+        <div class="input-group">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <input type="text" id="mapLink" placeholder="Link Google Maps (Opsional)" autocomplete="off">
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div class="input-group" style="margin:0;">
+                <i class="fa-solid fa-credit-card"></i>
+                <select id="metodeBayar" onchange="toggleTotal()">
+                    <option value="COD">Tunai (COD)</option>
+                    <option value="Transfer">Transfer Bank</option>
+                </select>
+            </div>
+            <div class="input-group" style="margin:0;">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <input type="number" id="total" placeholder="Rp Total COD" autocomplete="off" inputmode="numeric">
+            </div>
+        </div>
+
+        <label style="display:flex; align-items:center; gap:10px; background:rgba(239,68,68,0.1); border:1px dashed var(--danger); padding:12px; border-radius:12px; color:#F87171; font-weight:800; font-size:11px; margin-bottom:15px; cursor:pointer;">
+            <input type="checkbox" id="isUrgent" style="width:20px; height:20px; accent-color:var(--danger); margin:0; padding:0;">
+            <i class="fa-solid fa-bolt"></i> TANDAI PESANAN URGENT (KILAT)
+        </label>
+
+        <button class="btn-main" onclick="tambah()"><i class="fa-solid fa-print"></i> SIMPAN DATA & CETAK STRUK</button>
+    </div>
+
+    <div class="input-group" style="margin-top:20px;">
+        <i class="fa-solid fa-magnifying-glass" style="color:gray;"></i>
+        <input type="text" id="searchBar" placeholder="Cari nama pelanggan atau nomor resi..." oninput="renderList()" style="border-color:rgba(255,255,255,0.2);">
     </div>
     
-    <div class="report-grid">
-        <div class="report-box" id="f-Gudang" onclick="setFilter('Gudang')" style="border-color: var(--blue);"><span>Gudang</span><b id="countGudang">0</b></div>
-        <div class="report-box active" id="f-Semua" onclick="setFilter('Semua')"><span>Sisa Jalan</span><b id="countProses">0</b></div>
-        <div class="report-box" id="f-Terkirim" onclick="setFilter('Terkirim')" style="border-color: var(--safe);"><span>Sukses</span><b id="countSukses">0</b></div>
-        <div class="report-box" id="f-Gagal" onclick="setFilter('Gagal')" style="border-color: var(--danger);"><span>Cancel</span><b id="countGagal">0</b></div>
-    </div>
+    <div id="adminList" style="margin-top:15px;">Memuat data database...</div>
 
-    <h3 style="font-size:11px; color:var(--gold); margin-top:20px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">💸 KEUANGAN PER KURIR HARI INI</h3>
-    <div id="keuanganKurirContainer" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-        </div>
-
-    <div class="glass-card">
-        <h3 style="font-size:11px; color:#fff; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">📦 INPUT PESANAN BARU</h3>
-        <input type="text" id="noPesanan" placeholder="No Pesanan (#001)" autocomplete="off">
-        <input type="text" id="pembeli" placeholder="Nama Pembeli" autocomplete="off">
-        <input type="text" id="nohp" placeholder="WhatsApp (08xx)" autocomplete="off">
-        <textarea id="alamat" placeholder="Alamat Lengkap" autocomplete="off"></textarea>
-        <input type="text" id="mapLink" placeholder="Link Google Maps Asli (Opsional)" autocomplete="off">
-        
-        <select id="metodeBayar" onchange="toggleTotal()"><option value="COD">Metode: COD</option><option value="Transfer">Metode: Transfer</option></select>
-        <input type="number" id="total" placeholder="Harga COD (Rp)" autocomplete="off" inputmode="numeric">
-
-        <label style="color: var(--danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; background: rgba(239, 68, 68, 0.05); padding: 10px; border-radius: 10px; border: 1px dashed var(--danger); cursor: pointer;">
-            <input type="checkbox" id="isUrgent" style="width: 18px; height: 18px; accent-color: var(--danger);"> 🔥 TANDAI SEBAGAI PESANAN URGENT
-        </label>
-        <button class="btn-main" onclick="tambah()">SIMPAN & PRINT</button>
-    </div>
-
-    <input type="text" id="searchBar" placeholder="🔍 Cari nama/resi..." oninput="renderList()" style="width:100%; border:1px solid var(--gold); margin-top:10px;">
-    <div id="adminList" class="glass-card" style="margin-top:15px; border:none; padding:0; background:transparent;">Memuat data...</div>
-
-    <div id="modalFoto" class="modal-foto" onclick="this.style.display='none'">
-        <img id="imgBukti" src="">
-        <p style="color:var(--gold); margin-top:15px; font-weight:800; font-size:12px;">KLIK MANA SAJA UNTUK TUTUP</p>
-    </div>
-
-    <div id="waPrompt">
-        <p style="font-size:12px; margin-bottom:10px;">✅ Data Tersimpan!</p>
-        <button id="btnWAOpen" style="background:white; color:black; border:none; padding:10px 20px; border-radius:10px; font-weight:800; width:100%;">KIRIM WA SEKARANG</button>
-        <p onclick="document.getElementById('waPrompt').style.display='none'" style="margin-top:10px; font-size:10px; opacity:0.7; cursor:pointer;">Nanti Saja</p>
-    </div>
-
-    <div id="laporanOverlay" class="modal-foto" style="padding: 20px; overflow-y: auto; backdrop-filter: blur(15px);">
-        <div class="glass-card" style="width: 100%; max-width: 450px; background: #0A0A0A; border: 1px solid var(--gold);">
-            <h2 style="color: var(--gold); text-align: center; margin-bottom: 15px; font-weight: 800;">REKAPITULASI BULANAN</h2>
-            <input type="month" id="bulanLaporan" onchange="hitungLaporan()" style="width: 100%; background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 12px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 14px; margin-bottom: 20px; outline: none; cursor: pointer;">
-            <div id="isiLaporan" style="line-height: 2.5; font-size: 14px;">Memuat data...</div>
-            <button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 30px;">TUTUP LAPORAN</button>
-        </div>
-    </div>
-
-    <div id="modalEdit" class="modal-foto" style="padding: 20px; overflow-y: auto; backdrop-filter: blur(15px);">
-        <div class="glass-card" style="width: 100%; max-width: 400px; background: #0A0A0A; border: 1px solid var(--blue);">
-            <h2 style="color: var(--blue); text-align: center; margin-bottom: 15px; font-weight: 800;">✏️ EDIT PESANAN</h2>
-            
-            <label style="font-size: 10px; color: gray; margin-left: 5px;">NAMA PEMBELI</label>
-            <input type="text" id="editPembeli" placeholder="Nama Pembeli">
-            
-            <label style="font-size: 10px; color: gray; margin-left: 5px;">WHATSAPP</label>
-            <input type="text" id="editNohp" placeholder="WhatsApp">
-            
-            <label style="font-size: 10px; color: gray; margin-left: 5px;">ALAMAT LENGKAP</label>
-            <textarea id="editAlamat" placeholder="Alamat Lengkap" style="height: 80px;"></textarea>
-            
-            <label style="font-size: 10px; color: gray; margin-left: 5px;">METODE & HARGA</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <select id="editMetode">
-                    <option value="COD">COD</option>
-                    <option value="Transfer">Transfer</option>
-                </select>
-                <input type="number" id="editTotal" placeholder="Harga (Rp)">
+    <div id="modalEdit" class="modal-overlay">
+        <div class="glass-card" style="width: 100%; max-width: 400px; border-color: var(--blue);">
+            <div class="dashboard-header" style="color:var(--blue); justify-content:center; font-size:14px; margin-bottom:20px;">
+                <i class="fa-solid fa-pen-ruler"></i> UBAH DATA PESANAN
             </div>
-
+            <div class="input-group"><i class="fa-solid fa-user"></i><input type="text" id="editPembeli"></div>
+            <div class="input-group"><i class="fa-brands fa-whatsapp"></i><input type="text" id="editNohp"></div>
+            <div class="input-group"><i class="fa-solid fa-location-dot"></i><textarea id="editAlamat" style="height:70px;"></textarea></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="input-group"><i class="fa-solid fa-credit-card"></i><select id="editMetode"><option value="COD">COD</option><option value="Transfer">Transfer</option></select></div>
+                <div class="input-group"><i class="fa-solid fa-money-bill"></i><input type="number" id="editTotal"></div>
+            </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
                 <button class="btn-main" style="background: rgba(255,255,255,0.1); color: white;" onclick="document.getElementById('modalEdit').style.display='none'">BATAL</button>
-                <button class="btn-main" style="background: var(--blue); color: white;" onclick="simpanEdit()">UPDATE DATA</button>
+                <button class="btn-main" style="background: var(--blue); color: white;" onclick="simpanEdit()"><i class="fa-solid fa-save"></i> UPDATE</button>
             </div>
         </div>
     </div>
+
+    <div id="modalFoto" class="modal-overlay" onclick="this.style.display='none'">
+        <img id="imgBukti" src="" style="max-width:90%; max-height:75vh; border:3px solid var(--gold); border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.8);">
+        <p style="color:white; margin-top:20px; font-weight:800; background:rgba(0,0,0,0.5); padding:10px 20px; border-radius:20px;"><i class="fa-solid fa-xmark"></i> TUTUP FOTO</p>
+    </div>
+
+    <div id="laporanOverlay" class="modal-overlay">
+        <div class="glass-card" style="width: 100%; max-width: 400px; border-color: var(--gold);">
+            <div class="dashboard-header" style="color:var(--gold); justify-content:center; font-size:14px; margin-bottom:15px;">
+                <i class="fa-solid fa-chart-line"></i> REKAPITULASI OMZET
+            </div>
+            <div class="input-group">
+                <i class="fa-regular fa-calendar" style="z-index:10;"></i>
+                <input type="month" id="bulanLaporan" onchange="hitungLaporan()" style="color:var(--gold); font-weight:800; font-size:16px; text-align:center; padding-left:15px;">
+            </div>
+            <div id="isiLaporan"></div>
+            <button class="btn-main" onclick="document.getElementById('laporanOverlay').style.display='none'" style="margin-top: 20px; background:rgba(255,255,255,0.1); color:white;">TUTUP LAPORAN</button>
+        </div>
+    </div>
+
+    <div id="radarOverlay" class="modal-overlay" style="padding:10px;">
+        <div style="width:100%; max-width:600px; background:#000; border:1px solid var(--blue); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; height:85vh; box-shadow:0 10px 30px rgba(59,130,246,0.3);">
+            <div style="background:var(--blue); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; font-weight:800;">
+                <span><i class="fa-solid fa-satellite-dish"></i> RADAR LIVE GPS</span>
+                <button onclick="document.getElementById('radarOverlay').style.display='none'" style="background:rgba(0,0,0,0.5); color:white; border:none; padding:5px 15px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="mapRadar" style="flex:1; width:100%; z-index:1;"></div>
+        </div>
+    </div>
+
+    <div id="waPrompt" style="position:fixed; bottom:20px; left:20px; right:20px; background:var(--wa); color:white; padding:20px; border-radius:20px; z-index:999999; box-shadow:0 10px 30px rgba(37,211,102,0.4); display:none;">
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+            <i class="fa-brands fa-whatsapp" style="font-size:30px;"></i>
+            <div>
+                <b style="display:block; font-size:14px;">Data Tersimpan!</b>
+                <span style="font-size:10px; opacity:0.9;">Kirim rincian struk ke pelanggan?</span>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <button onclick="document.getElementById('waPrompt').style.display='none'" style="background:rgba(0,0,0,0.2); color:white; border:none; padding:12px; border-radius:10px; font-weight:800;">NANTI SAJA</button>
+            <button id="btnWAOpen" style="background:white; color:black; border:none; padding:12px; border-radius:10px; font-weight:800;">KIRIM WA</button>
+        </div>
+    </div>
+
 
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
     <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyCP6q75dxdWmsvXlAU-ON0KyvzqGXeCaUg",
-          authDomain: "ejtobacco-v2.firebaseapp.com",
-          databaseURL: "https://ejtobacco-v2-default-rtdb.asia-southeast1.firebasedatabase.app",
-          projectId: "ejtobacco-v2",
-          storageBucket: "ejtobacco-v2.firebasestorage.app",
-          messagingSenderId: "366973371317",
-          appId: "1:366973371317:web:c5ec32460cd9cf0f6c8ffc"
-        };
+        // CONFIG FIREBASE
+        const firebaseConfig = { apiKey: "AIzaSyCP6q75dxdWmsvXlAU-ON0KyvzqGXeCaUg", authDomain: "ejtobacco-v2.firebaseapp.com", databaseURL: "https://ejtobacco-v2-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "ejtobacco-v2", storageBucket: "ejtobacco-v2.firebasestorage.app", messagingSenderId: "366973371317", appId: "1:366973371317:web:c5ec32460cd9cf0f6c8ffc" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-// ==========================================
-        // FITUR EDIT PESANAN
-        // ==========================================
-        let editIdAktif = "";
-
-        function bukaEdit(id) {
-            // Cari data pesanan berdasarkan ID
-            const o = allOrders.find(x => x.id === id);
-            if (!o) return;
-            
-            editIdAktif = id;
-            
-            // Isi form dengan data lama biar admin tinggal ganti yg salah
-            document.getElementById('editPembeli').value = o.namaPembeli || "";
-            document.getElementById('editNohp').value = o.nohp || "";
-            document.getElementById('editAlamat').value = o.alamat || "";
-            document.getElementById('editMetode').value = o.metode || "COD";
-            document.getElementById('editTotal').value = o.total || 0;
-            
-            // Munculkan Pop-up
-            document.getElementById('modalEdit').style.display = 'flex';
-        }
-
-        function simpanEdit() {
-            const pembeli = document.getElementById('editPembeli').value;
-            const nohp = document.getElementById('editNohp').value;
-            const alamat = document.getElementById('editAlamat').value;
-            const metode = document.getElementById('editMetode').value;
-            const total = document.getElementById('editTotal').value;
-
-            if (!pembeli || !nohp) return alert("Nama dan WA tidak boleh kosong!");
-
-            // Timpa data lama dengan data baru di Database
-            db.ref('pesanan/' + editIdAktif).update({
-                namaPembeli: pembeli,
-                nohp: nohp,
-                alamat: alamat,
-                metode: metode,
-                total: total,
-                waktuUpdate: new Date().toLocaleTimeString('id-ID')
-            }).then(() => {
-                document.getElementById('modalEdit').style.display = 'none';
-                // Biar keren kita getarkan HP admin sedikit kalau sukses (kalo support)
-                if(navigator.vibrate) navigator.vibrate(100);
-            }).catch(err => alert("Gagal update: " + err.message));
-        }
-        // ==========================================
         
-        let allOrders = [];
-        let semuaPengeluaran = {};
-        let semuaSetoranKurir = {};
-        let currentFilter = "Semua", lastOrder = null, lastDateString = "";
+        let allOrders = [], semuaPengeluaran = {}, semuaSetoranKurir = {}, currentFilter = "Semua", lastOrder = null, lastDateString = "";
 
+        // TANGGAL & JAM
         function formatTglDB(date) { const d = new Date(date); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
         function initDate() { const n = new Date(); document.getElementById('datePicker').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; lastDateString = formatTglDB(n); }
         initDate();
-
         function changeDate() { updateAll(); }
         function goToToday() { initDate(); updateAll(); }
         function setFilter(f) { currentFilter = f; document.querySelectorAll('.report-box').forEach(el => el.classList.remove('active')); document.getElementById('f-'+f).classList.add('active'); renderList(); }
 
         setInterval(() => {
             const now = new Date();
-            document.getElementById('runningClock').innerText = now.toLocaleTimeString('id-ID');
-            document.getElementById('currentDay').innerText = now.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}).toUpperCase();
+            document.getElementById('runningClock').innerHTML = `<i class="fa-regular fa-clock"></i> ${now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
         }, 1000);
 
-        let inputPin = "";
-        const PIN_RAHASIA = "1234";
-        function pressPin(val) {
-            if (val === 'C') { inputPin = ""; } 
-            else if (val === 'OK') {
-                if (inputPin === PIN_RAHASIA) document.getElementById('loginOverlay').style.display = 'none';
-                else { alert("⚠️ PIN SALAH!"); inputPin = ""; }
-            } else { if (inputPin.length < 4) inputPin += val; }
-            document.getElementById('pinDisplay').innerText = inputPin.length > 0 ? "*".repeat(inputPin.length) : "****";
-        }
+        // AMBIL DATA
+        db.ref('pesanan').limitToLast(150).on('value', snap => { allOrders = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).reverse() : []; updateAll(); });
+        db.ref('pengeluaran').on('value', snap => { semuaPengeluaran = snap.val() || {}; updateAll(); });
+        db.ref('setoran_kurir').on('value', snap => { semuaSetoranKurir = snap.val() || {}; updateAll(); });
 
-        db.ref('pesanan').limitToLast(100).on('value', snap => {
-            const val = snap.val();
-            allOrders = val ? Object.keys(val).map(k => ({id:k, ...val[k]})).reverse() : [];
-            updateAll();
-        });
-
-        db.ref('pengeluaran').on('value', snap => {
-            semuaPengeluaran = snap.val() || {};
-            updateAll();
-        });
-
-        db.ref('setoran_kurir').on('value', snap => {
-            semuaSetoranKurir = snap.val() || {}; 
-            updateAll();
-        });
-
+        // UPDATE DASHBOARD & KEUANGAN
         function updateAll() {
-            const pickerVal = document.getElementById('datePicker').value; 
-            if(!pickerVal) return;
+            const pickerVal = document.getElementById('datePicker').value; if(!pickerVal) return;
             const tglTarget = pickerVal.split('-').reverse().join('/');
-            
-            let s=0, g=0, p=0, gd=0;
-            let dataKurir = {}; 
+            let s=0, g=0, p=0, gd=0, dataKurir = {}; 
 
             allOrders.forEach(o => {
                 if (o.status === 'Gudang') gd++;
@@ -309,79 +314,56 @@
             Object.values(semuaPengeluaran).forEach(item => {
                 if (item.tanggal === tglTarget && item.kurir) {
                     if (!dataKurir[item.kurir]) dataKurir[item.kurir] = { cod: 0, keluar: 0, rincianKeluar: [] };
-                    if (!dataKurir[item.kurir].rincianKeluar) dataKurir[item.kurir].rincianKeluar = [];
-                    
                     dataKurir[item.kurir].keluar += Number(item.nominal || 0);
-                    dataKurir[item.kurir].rincianKeluar.push(`- ${item.keterangan || 'Tanpa keterangan'} (Rp ${Number(item.nominal).toLocaleString('id-ID')})`);
+                    dataKurir[item.kurir].rincianKeluar.push(`- ${item.keterangan} (Rp ${Number(item.nominal).toLocaleString('id-ID')})`);
                 }
             });
 
-            document.getElementById('countGudang').innerText = gd; 
-            document.getElementById('countProses').innerText = p;
-            document.getElementById('countSukses').innerText = s; 
-            document.getElementById('countGagal').innerText = g;
+            document.getElementById('countGudang').innerText = gd; document.getElementById('countProses').innerText = p; document.getElementById('countSukses').innerText = s; document.getElementById('countGagal').innerText = g;
             
             const keyTgl = tglTarget.replace(/\//g, '-');
             const dataSetoranHariIni = semuaSetoranKurir[keyTgl] || {};
-            let htmlKeuangan = "";
-            let adaData = false;
+            let htmlKeuangan = ""; let adaData = false;
 
             for (let nama in dataKurir) {
-                adaData = true;
-                const k = dataKurir[nama];
+                adaData = true; const k = dataKurir[nama];
                 const sudahSetor = Number(dataSetoranHariIni[nama] || 0);
                 const sisaSetor = k.cod - k.keluar - sudahSetor;
-
-                const warnaBorder = sisaSetor > 0 ? 'var(--warning)' : 'var(--safe)';
-                const badgeStatus = sisaSetor > 0 
-                    ? `<span style="background:var(--warning); color:#000; padding:4px 8px; border-radius:6px; font-size:9px; font-weight:800;">BELUM SETOR</span>`
-                    : `<span style="background:var(--safe); color:#fff; padding:4px 8px; border-radius:6px; font-size:9px; font-weight:800;">LUNAS ✅</span>`;
-
-                const tulisanRincian = (k.rincianKeluar && k.rincianKeluar.length > 0) 
-                    ? `<div style="font-size:10px; color:var(--danger); opacity:0.8; margin-top:-4px; margin-bottom:8px; padding-left:5px; border-left:2px solid var(--danger);"><i>${k.rincianKeluar.join('<br>')}</i></div>` 
-                    : '';
+                const warna = sisaSetor > 0 ? 'var(--warning)' : 'var(--safe)';
+                const badge = sisaSetor > 0 ? `<span style="background:var(--warning); color:#000; padding:3px 8px; border-radius:6px; font-size:9px; font-weight:800;"><i class="fa-solid fa-hourglass-half"></i> BELUM SETOR</span>` : `<span style="background:var(--safe); color:#fff; padding:3px 8px; border-radius:6px; font-size:9px; font-weight:800;"><i class="fa-solid fa-check"></i> LUNAS</span>`;
+                const rincian = k.rincianKeluar.length > 0 ? `<div style="font-size:10px; color:var(--danger); opacity:0.8; margin-bottom:8px; padding-left:8px; border-left:2px solid var(--danger);"><i>${k.rincianKeluar.join('<br>')}</i></div>` : '';
 
                 htmlKeuangan += `
-                <div class="glass-card" style="padding: 15px; margin-bottom: 0; border-color: ${warnaBorder}; background: rgba(255,255,255,0.02);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <b style="color:var(--gold); font-size:15px;">🛵 ${nama.toUpperCase()}</b>
-                        ${badgeStatus}
+                <div class="glass-card" style="padding:15px; margin-bottom:0; border-color:${warna};">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px;">
+                        <b style="color:var(--gold); font-size:14px;"><i class="fa-solid fa-motorcycle"></i> ${nama.toUpperCase()}</b>
+                        ${badge}
                     </div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px; color:#ccc;">
-                        <span>💰 Total COD Masuk:</span> <b>Rp ${k.cod.toLocaleString('id-ID')}</b>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Total COD:</span> <b>Rp ${k.cod.toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#ccc;"><span>Potong Pengeluaran:</span> <b style="color:var(--danger)">-Rp ${k.keluar.toLocaleString('id-ID')}</b></div>
+                    ${rincian}
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:12px; color:#ccc;"><span>Uang Masuk Laci:</span> <b style="color:var(--gold)">Rp ${sudahSetor.toLocaleString('id-ID')}</b></div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warna};">
+                        <span style="font-size:10px; font-weight:800;">SISA WAJIB SETOR:</span>
+                        <b style="font-size:14px; color:${warna};">Rp ${(sisaSetor < 0 ? 0 : sisaSetor).toLocaleString('id-ID')}</b>
                     </div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; color:#ccc;">
-                        <span>📉 Potong Pengeluaran:</span> <b style="color:var(--danger)">-Rp ${k.keluar.toLocaleString('id-ID')}</b>
-                    </div>
-                    ${tulisanRincian}
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:12px; color:#ccc;">
-                        <span>💸 Uang Sudah Diterima:</span> <b style="color:var(--gold)">Rp ${sudahSetor.toLocaleString('id-ID')}</b>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border:1px solid ${warnaBorder};">
-                        <span style="font-size:11px; font-weight:800; color:#fff;">SISA WAJIB SETOR:</span>
-                        <b style="font-size:15px; color:${warnaBorder};">Rp ${(sisaSetor < 0 ? 0 : sisaSetor).toLocaleString('id-ID')}</b>
-                    </div>
-                    ${sisaSetor > 0 ? `<button onclick="terimaSetoranKurir('${nama}', ${sisaSetor})" style="width:100%; margin-top:12px; background:var(--safe); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:800; font-size:11px; cursor:pointer;">✅ TERIMA UANG DARI ${nama.toUpperCase()}</button>` : ''}
+                    ${sisaSetor > 0 ? `<button onclick="terimaSetoranKurir('${nama}', ${sisaSetor})" class="btn-main" style="margin-top:10px; padding:10px; background:var(--safe); color:white;"><i class="fa-solid fa-hand-holding-dollar"></i> TERIMA UANG</button>` : ''}
                 </div>`;
             }
-
-            if (!adaData) {
-                htmlKeuangan = `<div style="text-align:center; padding:20px; opacity:0.5; font-size:11px; border:1px dashed var(--glass-border); border-radius:12px;">Belum ada pesanan COD atau pengeluaran hari ini.</div>`;
-            }
+            if (!adaData) htmlKeuangan = `<div style="text-align:center; padding:20px; opacity:0.5; font-size:11px; border:1px dashed var(--glass-border); border-radius:12px;"><i class="fa-solid fa-bed" style="font-size:20px; display:block; margin-bottom:5px;"></i>Belum ada data keuangan hari ini.</div>`;
             document.getElementById('keuanganKurirContainer').innerHTML = htmlKeuangan;
-
             renderList();
         }
 
         function terimaSetoranKurir(namaKurir, jumlah) {
             const keyTgl = document.getElementById('datePicker').value.split('-').reverse().join('-');
-            if(confirm(`Yakin sudah menerima uang pas sebesar Rp ${jumlah.toLocaleString('id-ID')} dari ${namaKurir.toUpperCase()}?`)) {
-                db.ref(`setoran_kurir/${keyTgl}/${namaKurir}`).transaction(cv => (Number(cv) || 0) + jumlah).then(() => { 
-                    alert(`✅ Uang dari ${namaKurir.toUpperCase()} berhasil diterima!`); 
-                }).catch(e => alert("Gagal: " + e.message));
+            if(confirm(`Terima uang pas sejumlah Rp ${jumlah.toLocaleString('id-ID')} dari kurir ${namaKurir.toUpperCase()}?`)) {
+                db.ref(`setoran_kurir/${keyTgl}/${namaKurir}`).transaction(cv => (Number(cv) || 0) + jumlah);
             }
         }
 
+        // RENDER LIST PESANAN (DESAIN BARU)
         function renderList() {
             const keyword = document.getElementById('searchBar').value.toLowerCase();
             const tglAktif = document.getElementById('datePicker').value.split('-').reverse().join('/');
@@ -395,34 +377,49 @@
                 return matchSearch && matchStatus;
             });
 
-            if(filtered.length === 0) { html = `<p style="text-align:center; opacity:0.5; padding:20px;">Kosong.</p>`; } 
+            if(filtered.length === 0) { html = `<div style="text-align:center; opacity:0.4; padding:40px 20px;"><i class="fa-solid fa-box-open" style="font-size:40px; margin-bottom:10px; display:block;"></i>Tidak ada data ditemukan.</div>`; } 
             else {
                 filtered.forEach(o => {
                     const waNum = String(o.nohp || "").replace(/\D/g, '').replace(/^0/, '62');
-                    const infoKurir = o.kurir && o.status !== 'Gudang' ? `<div style="font-size:10px; color:var(--blue); font-weight:800; margin-top:3px; display:inline-block; padding:2px 8px; background:rgba(37,99,235,0.1); border-radius:4px;">🛵 Dibawa oleh: ${o.kurir}</div>` : '';
                     
-                    // CEK APAKAH INI PESANAN URGENT UNTUK KASIH EFEK BLINKING
-                    const classUrgent = o.urgent ? 'card-urgent' : '';
+                    let badgeClass = ""; let iconStatus = "";
+                    if(o.status === 'Gudang') { badgeClass = "badge-gudang"; iconStatus = "fa-warehouse"; }
+                    else if(o.status === 'Terkirim') { badgeClass = "badge-sukses"; iconStatus = "fa-check-double"; }
+                    else if(o.status === 'Gagal') { badgeClass = "badge-gagal"; iconStatus = "fa-triangle-exclamation"; }
+                    else { badgeClass = "badge-proses"; iconStatus = "fa-motorcycle"; }
 
-                    html += `<div class="glass-card order-item ${classUrgent}">
-                        <span style="font-size:9px; color:var(--gold)">${o.tanggal} | ${o.waktu}</span><br>
-                        <b>${o.noPesanan} - ${o.namaPembeli}</b><br>
-                        <small>${o.status} | ${o.metode} | Rp${Number(o.total).toLocaleString('id-ID')}</small><br>
-                        ${infoKurir}
-                        ${o.catatanKurir ? `<div style="font-size:11px; color:var(--safe); margin-top:5px; font-style:italic;">📝 Bukti: ${o.catatanKurir}</div>` : ''}
-                        ${o.alasanTunda ? `<div style="font-size:11px; color:var(--danger); margin-top:5px;">⚠️ Alasan: ${o.alasanTunda}</div>` : ''}
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:8px;">
-    <a href="https://wa.me/${waNum}" style="background:var(--wa); text-decoration:none; color:white; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800;">WA</a>
-    <button style="background:var(--gold); color:black; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="reprint('${o.id}')">PRINT</button>
-    ${o.status === 'Terkirim' ? 
-        `<div style="background:rgba(255,255,255,0.05); color:#666; padding:8px; border-radius:8px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 EDIT</div>` : 
-        `<button style="background:var(--blue); color:white; border:none; padding:8px; border-radius:8px; font-size:10px; font-weight:800;" onclick="bukaEdit('${o.id}')">EDIT</button>`
-    }
-</div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;">
-                            ${(o.adaFoto || o.buktiFoto) ? `<button class="btn-small" style="background:var(--safe);" onclick="viewFoto('${o.id}', '${o.buktiFoto || ''}')">LIHAT FOTO</button>` : `<div style="background:var(--glass); color:gray; padding:8px; border-radius:8px; text-align:center; font-size:10px; border:1px solid rgba(255,255,255,0.05);">TANPA FOTO</div>`}
-                            ${o.status === 'Terkirim' ? `<div style="background:rgba(255,255,255,0.05); color:#666; padding:10px; border-radius:10px; text-align:center; font-size:10px; font-weight:800; border:1px solid rgba(255,255,255,0.1); cursor:not-allowed;">🔒 TERKUNCI</div>` : 
-                                (o.status === 'Gagal' ? `<button onclick="kirimUlang('${o.id}')" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">KIRIM ULANG</button>` : `<button onclick="hapus('${o.id}')" style="background:rgba(239,68,68,0.1); color:#EF4444; border:1px solid #EF4444; padding:10px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer;">HAPUS</button>`)
+                    html += `
+                    <div class="glass-card ${o.urgent ? 'card-urgent' : ''}" style="padding:15px;">
+                        <div class="order-badge ${badgeClass}"><i class="fa-solid ${iconStatus}"></i> ${o.status.toUpperCase()}</div>
+                        
+                        <div style="font-size:9px; color:gray; margin-bottom:5px;"><i class="fa-regular fa-calendar"></i> ${o.tanggal} &nbsp;|&nbsp; <i class="fa-regular fa-clock"></i> ${o.waktu}</div>
+                        
+                        <div style="font-size:15px; font-weight:800; color:white; margin-bottom:3px;">${o.noPesanan}</div>
+                        <div style="font-size:13px; font-weight:600; color:var(--gold); margin-bottom:8px;"><i class="fa-solid fa-user" style="font-size:10px;"></i> ${o.namaPembeli}</div>
+                        
+                        <div style="display:flex; gap:10px; font-size:11px; margin-bottom:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:8px;">
+                            <div><i class="fa-solid fa-credit-card" style="color:gray;"></i> ${o.metode}</div>
+                            <div style="color:var(--safe); font-weight:800;"><i class="fa-solid fa-tags" style="color:gray;"></i> Rp ${Number(o.total).toLocaleString('id-ID')}</div>
+                        </div>
+                        
+                        ${o.kurir && o.status !== 'Gudang' ? `<div class="kurir-tag"><i class="fa-solid fa-motorcycle" style="color:var(--blue);"></i> Kurir: ${o.kurir.toUpperCase()}</div>` : ''}
+                        
+                        ${o.catatanKurir ? `<div style="font-size:10px; color:var(--safe); margin-top:8px; padding-left:10px; border-left:2px solid var(--safe);"><i><i class="fa-solid fa-comment-dots"></i> ${o.catatanKurir}</i></div>` : ''}
+                        ${o.alasanTunda ? `<div style="font-size:10px; color:var(--danger); margin-top:8px; padding-left:10px; border-left:2px solid var(--danger);"><i><i class="fa-solid fa-circle-exclamation"></i> ${o.alasanTunda}</i></div>` : ''}
+                        
+                        <hr style="opacity:0.1; border:none; border-top:1px dashed white; margin:12px 0;">
+                        
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                            <a href="https://wa.me/${waNum}" class="action-btn btn-wa" style="text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> WA</a>
+                            <button class="action-btn btn-print" onclick="reprint('${o.id}')"><i class="fa-solid fa-print"></i> PRINT</button>
+                            ${o.status === 'Terkirim' ? `<button class="action-btn" style="background:rgba(255,255,255,0.05); color:gray; cursor:not-allowed;"><i class="fa-solid fa-lock"></i> KUNCI</button>` : `<button class="action-btn btn-edit" onclick="bukaEdit('${o.id}')"><i class="fa-solid fa-pen"></i> EDIT</button>`}
+                        </div>
+                        
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;">
+                            ${(o.adaFoto || o.buktiFoto) ? `<button class="action-btn" style="background:var(--safe);" onclick="viewFoto('${o.id}', '${o.buktiFoto || ''}')"><i class="fa-solid fa-image"></i> BUKTI FOTO</button>` : `<div class="action-btn" style="background:transparent; border:1px dashed gray; color:gray; cursor:default;"><i class="fa-solid fa-image-portrait"></i> KOSONG</div>`}
+                            
+                            ${o.status === 'Terkirim' ? `<button class="action-btn" style="background:rgba(255,255,255,0.05); color:gray; cursor:not-allowed;"><i class="fa-solid fa-shield-halved"></i> AMAN</button>` : 
+                                (o.status === 'Gagal' ? `<button class="action-btn" style="background:var(--blue);" onclick="kirimUlang('${o.id}')"><i class="fa-solid fa-rotate-left"></i> RE-GUDANG</button>` : `<button class="action-btn btn-delete" onclick="hapus('${o.id}')"><i class="fa-solid fa-trash"></i> HAPUS</button>`)
                             }
                         </div>
                     </div>`;
@@ -431,11 +428,10 @@
             document.getElementById('adminList').innerHTML = html;
         }
 
+        // FUNGSI INPUT BARU
         function toggleTotal() { document.getElementById('total').style.display = document.getElementById('metodeBayar').value === 'Transfer' ? 'none' : 'block'; }
         
-        // FUNGSI INPUT BARU (DENGAN STRUK THERMAL & TOMBOL WA)
         function tambah() {
-            const n = new Date();
             const d = { 
                 noPesanan: document.getElementById('noPesanan').value || "#"+Date.now().toString().slice(-4), 
                 namaPembeli: document.getElementById('pembeli').value, 
@@ -445,26 +441,20 @@
                 total: document.getElementById('total').value || 0, 
                 metode: document.getElementById('metodeBayar').value, 
                 urgent: document.getElementById('isUrgent').checked, 
-                status: 'Gudang', 
-                kurir: "", 
-                tanggal: formatTglDB(n), 
-                waktu: n.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
+                status: 'Gudang', kurir: "", 
+                tanggal: formatTglDB(new Date()), 
+                waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
             };
             if(!d.namaPembeli || !d.nohp) return alert("Nama & WA wajib!");
             db.ref('pesanan').push(d).then(() => { 
-                lastOrder = d; 
-                executePrint(); 
+                lastOrder = d; executePrint(); 
                 
-                const waNumber = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62'); 
-                const linkMaps = d.mapLink ? `\n📍 Map: ${d.mapLink}` : "";
-                const teksWA = `*EJ TOBACCO DELIVERY* 📦\n------------------------------------------\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\n\nPesanan Anda sedang kami proses dan segera diambil kurir.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp ${Number(d.total).toLocaleString('id-ID')}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMaps}\n\nMohon siapkan uang pas kalau COD ya Kak. Terima kasih! 🙏`;
-                const urlWA = `https://wa.me/${waNumber}?text=${encodeURIComponent(teksWA)}`;
+                const waNum = String(d.nohp).replace(/\D/g, '').replace(/^0/, '62'); 
+                const linkMap = d.mapLink ? `\n📍 Map: ${d.mapLink}` : "";
+                const tks = `*EJ TOBACCO DELIVERY* 📦\nHalo Kak *${d.namaPembeli.toUpperCase()}* 👋\nPesanan sedang diproses.\n\n*RINCIAN:* \n🆔 Resi: ${d.noPesanan}\n💰 Total: *Rp ${Number(d.total).toLocaleString('id-ID')}*\n💳 Bayar: *${d.metode}*\n📍 Tujuan: ${d.alamat}${linkMap}\n\nMohon siapkan uang pas jika COD. 🙏`;
                 
                 document.getElementById('waPrompt').style.display = 'block';
-                document.getElementById('btnWAOpen').onclick = () => { 
-                    window.open(urlWA, '_blank'); 
-                    document.getElementById('waPrompt').style.display = 'none'; 
-                };
+                document.getElementById('btnWAOpen').onclick = () => { window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(tks)}`, '_blank'); document.getElementById('waPrompt').style.display = 'none'; };
 
                 ['noPesanan','pembeli','nohp','alamat','mapLink','total'].forEach(id => document.getElementById(id).value = "");
                 document.getElementById('isUrgent').checked = false;
@@ -472,170 +462,68 @@
         }
 
         function executePrint() {
-            if(!lastOrder) return; 
-            const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
+            if(!lastOrder) return; const cleanNo = (lastOrder.noPesanan || "").replace(/[^a-zA-Z0-9]/g, "");
             const teks80mm = `[C]<font size="big"><b>EJ TOBACCO DELIVERY</b></font>\n[C]"belanja semakin nyaman menggunakan aplikasi toko ej"\n[C]================================================\n[C]<font size="big"><b>NO. RESI : ${lastOrder.noPesanan}</b></font>\n[C]================================================\n[L]<b>PENERIMA:</b>\n[L]${lastOrder.namaPembeli}\n[L]No. HP : ${lastOrder.nohp}\n\n[L]<b>ALAMAT PENGIRIMAN:</b>\n[L]${lastOrder.alamat}\n[C]================================================\n[L]METODE PEMBAYARAN: ${lastOrder.metode}\n[L]TOTAL TAGIHAN    : Rp ${Number(lastOrder.total).toLocaleString('id-ID')}\n[C]================================================\n[C][b]code128,3,80,${cleanNo},yes\n\n[C]------------------------------------------------\n[C]Tgl: ${lastOrder.tanggal} ${lastOrder.waktu}\n[C]HARAP VIDIO WAKTU UNBOXING PAKET\n\n\n\n\n`;
             window.location.href = "rawbt:" + encodeURI(teks80mm);
         }
 
+        // AKSI TOMBOL
         function reprint(id) { lastOrder = allOrders.find(o => o.id === id); if(lastOrder) executePrint(); }
-        // FUNGSI UNTUK MENGEMBALIKAN PAKET GAGAL KE GUDANG
-function kirimUlang(id) {
-    if (confirm("Kembalikan pesanan ini ke status GUDANG untuk dikirim ulang?")) {
-        db.ref('pesanan/' + id).update({
-            status: 'Gudang',
-            kurir: "", // Hapus nama kurir sebelumnya biar bisa diklaim siapa saja
-            alasanTunda: null, // Bersihkan alasan gagal sebelumnya
-            waktuUpdate: new Date().toLocaleTimeString()
-        }).then(() => {
-            alert("✅ Berhasil! Pesanan sudah kembali ke tab GUDANG.");
-        }).catch((error) => {
-            alert("❌ Gagal update: " + error.message);
-        });
-    }
-}
-        function hapus(id) { if (confirm("Hapus pesanan?")) db.ref('pesanan/' + id).remove(); }
-        function viewFoto(id, oldSrc) { document.getElementById('modalFoto').style.display = 'flex'; const img = document.getElementById('imgBukti'); img.src = oldSrc || ""; if(!oldSrc) db.ref('foto_bukti/'+id).once('value', s => img.src = s.val()); }
-        // ==========================================
-// FUNGSI LAPORAN BULANAN (BARU & MEWAH)
-// ==========================================
-function bukaLaporan() {
-    const n = new Date();
-    // Bikin format "Tahun-Bulan" (contoh: 2026-03)
-    const blnSekarang = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`;
-    
-    // Setel kalender ke bulan ini otomatis
-    document.getElementById('bulanLaporan').value = blnSekarang;
-    
-    // Munculkan layarnya
-    document.getElementById('laporanOverlay').style.display = 'flex';
-    
-    // Langsung jalankan hitungan detik itu juga!
-    hitungLaporan(); 
-}
+        function kirimUlang(id) { if(confirm("Kembalikan pesanan ini ke GUDANG?")) db.ref('pesanan/'+id).update({status:'Gudang', kurir:"", alasanTunda:null, waktuUpdate:new Date().toLocaleTimeString()}); }
+        function hapus(id) { if(confirm("Hapus pesanan permanen?")) db.ref('pesanan/'+id).remove(); }
+        function viewFoto(id, src) { document.getElementById('modalFoto').style.display='flex'; document.getElementById('imgBukti').src=src||""; if(!src) db.ref('foto_bukti/'+id).once('value', s=>document.getElementById('imgBukti').src=s.val()); }
 
-function hitungLaporan() {
-    const inputBln = document.getElementById('bulanLaporan').value; 
-    if(!inputBln) return;
-
-    // Balik format jadi "Bulan/Tahun" (contoh: 03/2026) buat nyocokin database
-    const [thn, bln] = inputBln.split('-');
-    const targetBulan = `${bln}/${thn}`;
-    
-    let sukses = 0, gagal = 0, cod = 0, transfer = 0;
-
-    allOrders.forEach(o => {
-        if(o.tanggal && o.tanggal.includes(targetBulan)) {
-            if(o.status === 'Terkirim') { 
-                sukses++; 
-                if(o.metode === 'COD') cod += Number(o.total || 0); 
-                else transfer += Number(o.total || 0); 
-            } else if(o.status === 'Gagal') {
-                gagal++;
-            }
+        // EDIT PESANAN
+        let editId = "";
+        function bukaEdit(id) {
+            const o = allOrders.find(x => x.id === id); if (!o) return; editId = id;
+            document.getElementById('editPembeli').value = o.namaPembeli||""; document.getElementById('editNohp').value = o.nohp||"";
+            document.getElementById('editAlamat').value = o.alamat||""; document.getElementById('editMetode').value = o.metode||"COD"; document.getElementById('editTotal').value = o.total||0;
+            document.getElementById('modalEdit').style.display = 'flex';
         }
-    });
+        function simpanEdit() {
+            const p = document.getElementById('editPembeli').value, n = document.getElementById('editNohp').value, a = document.getElementById('editAlamat').value, m = document.getElementById('editMetode').value, t = document.getElementById('editTotal').value;
+            if (!p || !n) return alert("Nama dan WA wajib!");
+            db.ref('pesanan/'+editId).update({namaPembeli:p, nohp:n, alamat:a, metode:m, total:t, waktuUpdate:new Date().toLocaleTimeString()}).then(()=>{ document.getElementById('modalEdit').style.display='none'; });
+        }
 
-    // Tampilkan di layar dengan desain Box Hitam Emas
-    document.getElementById('isiLaporan').innerHTML = `
-        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; border:1px solid var(--glass-border); text-align:left;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                <span style="color:gray;">📦 Total Sukses:</span> <b style="color:var(--safe)">${sukses} Paket</b>
-            </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                <span style="color:gray;">❌ Total Gagal:</span> <b style="color:var(--danger)">${gagal} Paket</b>
-            </div>
-            
-            <hr style="opacity:0.2; border:none; border-top:1px dashed var(--gold); margin:15px 0;">
-            
-            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                <span style="color:gray;">💰 Tunai (COD):</span> <b>Rp ${cod.toLocaleString('id-ID')}</b>
-            </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                <span style="color:gray;">💳 Bank/Transfer:</span> <b>Rp ${transfer.toLocaleString('id-ID')}</b>
-            </div>
-            
-            <div style="display:flex; justify-content:space-between; margin-top:20px; padding-top:15px; border-top:2px solid var(--gold);">
-                <span style="color:var(--gold); font-weight:800;">💎 TOTAL OMZET:</span>
-                <b style="color:var(--gold); font-size:18px;">Rp ${(cod + transfer).toLocaleString('id-ID')}</b>
-            </div>
-        </div>
-    `;
-}
-// ==========================================
-        
-        let map, markers = {};
+        // LAPORAN BULANAN
+        function bukaLaporan() {
+            const n = new Date(); document.getElementById('bulanLaporan').value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+            document.getElementById('laporanOverlay').style.display = 'flex'; hitungLaporan(); 
+        }
+        function hitungLaporan() {
+            const v = document.getElementById('bulanLaporan').value; if(!v) return;
+            const t = `${v.split('-')[1]}/${v.split('-')[0]}`; let s=0, g=0, c=0, tr=0;
+            allOrders.forEach(o => { if(o.tanggal && o.tanggal.includes(t)) { if(o.status === 'Terkirim') { s++; if(o.metode==='COD') c+=Number(o.total||0); else tr+=Number(o.total||0); } else if(o.status === 'Gagal') g++; } });
+            document.getElementById('isiLaporan').innerHTML = `
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;"><span><i class="fa-solid fa-box" style="color:gray;"></i> Total Sukses:</span><b style="color:var(--safe)">${s} Pcs</b></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;"><span><i class="fa-solid fa-ban" style="color:gray;"></i> Total Gagal:</span><b style="color:var(--danger)">${g} Pcs</b></div>
+                    <hr style="border:none; border-top:1px dashed rgba(255,255,255,0.2); margin:10px 0;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;"><span><i class="fa-solid fa-money-bill-wave" style="color:gray;"></i> Tunai (COD):</span><b>Rp ${c.toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;"><span><i class="fa-solid fa-building-columns" style="color:gray;"></i> Transfer:</span><b>Rp ${tr.toLocaleString('id-ID')}</b></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:15px; padding-top:15px; border-top:2px solid var(--gold);">
+                        <span style="color:var(--gold); font-weight:800; font-size:12px;"><i class="fa-solid fa-sack-dollar"></i> TOTAL OMZET:</span>
+                        <b style="color:var(--gold); font-size:16px;">Rp ${(c+tr).toLocaleString('id-ID')}</b>
+                    </div>
+                </div>`;
+        }
+
+        // MAP & KONEKSI (Diringkas agar muat)
+        let map, markers={};
         function bukaRadar() {
-            document.getElementById('radarOverlay').style.display = 'flex';
-            if (!map) {
-                map = L.map('mapRadar').setView([-6.8694, 109.0435], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                db.ref('tracking').on('value', snap => {
-                    const data = snap.val(); if (!data) return;
-                    for (let kurir in data) {
-                        const k = data[kurir];
-                        if (markers[kurir]) markers[kurir].setLatLng([k.lat, k.lng]);
-                        else markers[kurir] = L.marker([k.lat, k.lng]).addTo(map).bindPopup(kurir.toUpperCase());
-                    }
-                });
-            }
-            setTimeout(() => { map.invalidateSize(); }, 500);
+            document.getElementById('radarOverlay').style.display='flex';
+            if(!map) { map=L.map('mapRadar').setView([-6.8694, 109.0435], 13); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            db.ref('tracking').on('value', s => { const d=s.val(); if(!d)return; for(let k in d){ if(markers[k]) markers[k].setLatLng([d[k].lat,d[k].lng]); else markers[k]=L.marker([d[k].lat,d[k].lng]).addTo(map).bindPopup(k.toUpperCase()); } }); }
+            setTimeout(()=>map.invalidateSize(), 500);
         }
-
-        // FITUR AUTO-DELETE DATA 90 HARI
-        function bersihkanDataLama() {
-            const BATAS_WAKTU_MS = 90 * 24 * 60 * 60 * 1000; 
-            const waktuSekarang = new Date().getTime();
-            db.ref('pesanan').once('value', snap => {
-                const data = snap.val(); if (!data) return;
-                for (let id in data) {
-                    const o = data[id];
-                    if (o.tanggal) { 
-                        const p = o.tanggal.split('/'); 
-                        if (p.length === 3) { 
-                            const waktuPesanan = new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime(); 
-                            if (waktuSekarang - waktuPesanan > BATAS_WAKTU_MS) {
-                                db.ref('pesanan/' + id).remove(); 
-                                db.ref('foto_bukti/' + id).remove();
-                            }
-                        } 
-                    }
-                }
-            });
+        function updateStatusInternet() {
+            const l=document.getElementById('lampuKoneksi'), t=document.getElementById('teksKoneksi');
+            if(navigator.onLine) { db.goOnline(); if(l)l.style.background="var(--safe)"; if(t)t.innerText="SISTEM ONLINE"; }
+            else { db.goOffline(); if(l)l.style.background="var(--danger)"; if(t)t.innerText="KONEKSI TERPUTUS"; }
         }
-        setTimeout(bersihkanDataLama, 10000); 
-
-        // ==========================================
-// FITUR DETEKSI SINYAL ONLINE / OFFLINE
-// ==========================================
-function updateStatusInternet() {
-    const lampu = document.getElementById('lampuKoneksi');
-    const teks = document.getElementById('teksKoneksi');
-    
-    if (navigator.onLine) {
-        // Kalau Sinyal Nyambung
-        db.goOnline(); // Bangunin database
-        if(lampu) { lampu.style.background = "var(--safe)"; lampu.style.boxShadow = "0 0 10px var(--safe)"; }
-        if(teks) { teks.innerText = "ONLINE"; teks.style.color = "var(--safe)"; }
-    } else {
-        // Kalau Sinyal Putus / Kuota Habis
-        db.goOffline(); // Tidurkan database biar gak error
-        if(lampu) { lampu.style.background = "var(--danger)"; lampu.style.boxShadow = "0 0 10px var(--danger)"; }
-        if(teks) { teks.innerText = "OFFLINE"; teks.style.color = "var(--danger)"; }
-        
-        // Kasih alert kecil di layar Admin
-        console.warn("Koneksi terputus! Data tidak akan tersimpan sampai sinyal kembali.");
-    }
-}
-
-// Pasang kuping buat dengerin perubahan sinyal HP/Laptop Bos
-window.addEventListener('online', updateStatusInternet);
-window.addEventListener('offline', updateStatusInternet);
-
-// Jalankan tes sinyal pertama kali saat Admin baru dibuka
-updateStatusInternet();
-// ==========================================
-        
+        window.addEventListener('online', updateStatusInternet); window.addEventListener('offline', updateStatusInternet); updateStatusInternet();
     </script>
 </body>
-</html>
+</html> mantap bos makasih ya atas ilmunya moga bermanfaat bagi saya yang otodidak ini, dan semoga engkau bisa diperbarui dan lebih pintar lagi hehehe selamat tinggal 👋🏻
