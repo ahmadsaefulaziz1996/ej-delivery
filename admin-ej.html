@@ -542,7 +542,7 @@
                 }
                 updateAll(); 
             });
-            db.ref('pengeluaran').on('value', snap => { semuaPengeluaran = snap.val() || {}; updateAll(); });
+            db.ref('pengeluaran').limitToLast(150).on('value', snap => { semuaPengeluaran = snap.val() || {}; updateAll(); });
             db.ref('setoran_kurir').on('value', snap => { semuaSetoranKurir = snap.val() || {}; updateAll(); });
         })
         .catch((error) => {
