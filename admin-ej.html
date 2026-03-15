@@ -431,6 +431,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCP6q75dxdWmsvXlAU-ON0KyvzqGXeCaUg", authDomain: "ejtobacco-v2.firebaseapp.com", databaseURL: "https://ejtobacco-v2-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "ejtobacco-v2", storageBucket: "ejtobacco-v2.firebasestorage.app", messagingSenderId: "366973371317", appId: "1:366973371317:web:c5ec32460cd9cf0f6c8ffc" };
         firebase.initializeApp(firebaseConfig);
@@ -489,39 +490,39 @@
             if(document.getElementById('currentDay')) document.getElementById('currentDay').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
         }, 1000);
 
-        // Menarik data sekaligus jadi Mata-Mata buat ngasih tau Jarvis kalau ada kurir selesai
-        db.ref('pesanan').limitToLast(150).on('value', snap => { 
-            const data = snap.val();
-            allOrders = data ? Object.keys(data).map(k => ({id:k, ...data[k]})).reverse() : []; 
+        // ================= KTP DIGITAL SATPAM FIREBASE =================
+        firebase.auth().signInWithEmailAndPassword("tokoej2020@gmail.com", "ejtbk2020")
+        .then(() => {
+            console.log("KTP DITERIMA SATPAM! Akses Brankas Terbuka.");
             
-            // --- DETEKTOR PERUBAHAN UNTUK JARVIS ---
-            if (!isPertamaMasuk) {
-                allOrders.forEach(o => {
-                    const statLama = statusPaketLama[o.id];
-                    // Cek kalau statusnya beda sama ingatan sebelumnya (artinya ada kurir yg baru mencet Selesai)
-                    if (statLama && statLama !== o.status) {
-                        if (o.status === 'Terkirim') {
-                            jarvisBicara(`Lapor komandan. Paket atas nama ${o.namaPembeli}, telah sukses dikirim oleh kurir ${o.kurir}.`);
-                        } else if (o.status === 'Tunda') {
-                            jarvisBicara(`Perhatian. Paket atas nama ${o.namaPembeli}, ditunda oleh kurir.`);
-                        } else if (o.status === 'Gagal') {
-                            jarvisBicara(`Gawat komandan. Paket atas nama ${o.namaPembeli}, dibatalkan atau gagal dikirim.`);
+            // Menarik data sekaligus jadi Mata-Mata buat ngasih tau Jarvis kalau ada kurir selesai
+            db.ref('pesanan').limitToLast(150).on('value', snap => { 
+                const data = snap.val();
+                allOrders = data ? Object.keys(data).map(k => ({id:k, ...data[k]})).reverse() : []; 
+                if (!isPertamaMasuk) {
+                    allOrders.forEach(o => {
+                        const statLama = statusPaketLama[o.id];
+                        if (statLama && statLama !== o.status) {
+                            if (o.status === 'Terkirim') { jarvisBicara(`Lapor komandan. Paket atas nama ${o.namaPembeli}, telah sukses dikirim oleh kurir ${o.kurir}.`); } 
+                            else if (o.status === 'Tunda') { jarvisBicara(`Perhatian. Paket atas nama ${o.namaPembeli}, ditunda oleh kurir.`); } 
+                            else if (o.status === 'Gagal') { jarvisBicara(`Gawat komandan. Paket atas nama ${o.namaPembeli}, dibatalkan atau gagal dikirim.`); }
                         }
-                    }
-                    statusPaketLama[o.id] = o.status; // Simpan ke memori lagi
-                });
-            } else {
-                // Pertama kali web buka, catat aja semua posisinya dalam diam (biar Jarvis gak cerewet bawel)
-                allOrders.forEach(o => { statusPaketLama[o.id] = o.status; });
-                isPertamaMasuk = false; 
-            }
-            // ---------------------------------------
-            
-            updateAll(); 
+                        statusPaketLama[o.id] = o.status; 
+                    });
+                } else {
+                    allOrders.forEach(o => { statusPaketLama[o.id] = o.status; });
+                    isPertamaMasuk = false; 
+                }
+                updateAll(); 
+            });
+            db.ref('pengeluaran').on('value', snap => { semuaPengeluaran = snap.val() || {}; updateAll(); });
+            db.ref('setoran_kurir').on('value', snap => { semuaSetoranKurir = snap.val() || {}; updateAll(); });
+        })
+        .catch((error) => {
+            console.error(error);
+            alert("⚠️ AKSES DITOLAK SATPAM! Pastikan Email dan Password di kode sudah benar.");
         });
-        db.ref('pengeluaran').on('value', snap => { semuaPengeluaran = snap.val() || {}; updateAll(); });
-        db.ref('setoran_kurir').on('value', snap => { semuaSetoranKurir = snap.val() || {}; updateAll(); });
-
+        // ===============================================================
         function updateAll() {
             const pickerVal = document.getElementById('datePicker').value; if(!pickerVal) return;
             const tglTarget = pickerVal.split('-').reverse().join('/');
