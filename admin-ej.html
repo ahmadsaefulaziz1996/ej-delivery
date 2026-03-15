@@ -764,55 +764,42 @@
             });
         }
 
-        function bukaLaporan() { document.getElementById('bulanLaporan').value = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`; document.getElementById('laporanOverlay').style.display = 'flex'; hitungLaporan(); }
-        
+        // ================= LAPORAN CUSTOM TANGGAL (FOKUS PAKET TERKIRIM) =================
+        function bukaLaporan() { 
+            const now = new Date(); const y = now.getFullYear(); const m = String(now.getMonth() + 1).padStart(2, '0'); const d = String(now.getDate()).padStart(2, '0');
+            document.getElementById('lapMulai').value = `${y}-${m}-01`; document.getElementById('lapSelesai').value = `${y}-${m}-${d}`;
+            document.getElementById('laporanOverlay').style.display = 'flex'; hitungLaporan(); 
+            setTimeout(() => {
+                const topKurir = document.querySelector('.report-box b') ? document.querySelector('.report-box b').innerText : null;
+                if(topKurir) { jarvisBicara(`Membuka brankas data. Prajurit terbaik di periode ini jatuh kepada: ${topKurir}.`); } 
+                else { jarvisBicara(`Membuka brankas data. Intelijen omzet siap dianalisa.`); }
+            }, 500);
+        }
+
         function hitungLaporan() {
-            const tglMulai = document.getElementById('lapMulai').value; 
-            const tglSelesai = document.getElementById('lapSelesai').value;
+            const tglMulai = document.getElementById('lapMulai').value; const tglSelesai = document.getElementById('lapSelesai').value;
             if(!tglMulai || !tglSelesai) return;
-
-            // Konversi ke waktu sistem untuk perbandingan
-            const dMulai = new Date(tglMulai).setHours(0,0,0,0);
-            const dSelesai = new Date(tglSelesai).setHours(23,59,59,999);
-
-            let s=0, c=0, tr=0;
-            let kurirStats = {};
+            const dMulai = new Date(tglMulai).setHours(0,0,0,0); const dSelesai = new Date(tglSelesai).setHours(23,59,59,999);
+            let s=0, c=0, tr=0; let kurirStats = {};
 
             allOrders.forEach(o => { 
                 if(!o.tanggal) return;
-                // Ubah format database ke waktu sistem
-                const p = o.tanggal.split('/');
-                const orderDate = new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime();
-
-                // Cek apakah masuk dalam rentang tanggal
+                const p = o.tanggal.split('/'); const orderDate = new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime();
                 if(orderDate >= dMulai && orderDate <= dSelesai) { 
-                    
-                    // KITA FOKUS HANYA PADA PAKET YANG "TERKIRIM"
                     if(o.status === 'Terkirim') { 
-                        s++; 
-                        let nominal = Number(o.total || 0);
+                        s++; let nominal = Number(o.total || 0);
                         if(o.metode === 'COD') c += nominal; else tr += nominal; 
-                        
                         if(o.kurir) {
                             let namaK = o.kurir.toUpperCase();
-                            
-                            // Siapkan dompet data buat kurir
                             if(!kurirStats[namaK]) kurirStats[namaK] = { terkirim: 0, cod: 0, tf: 0 };
-                            
-                            // Tambah jumlah paket terkirim & uangnya
                             kurirStats[namaK].terkirim++;
-                            if(o.metode === 'COD') kurirStats[namaK].cod += nominal;
-                            else kurirStats[namaK].tf += nominal;
+                            if(o.metode === 'COD') kurirStats[namaK].cod += nominal; else kurirStats[namaK].tf += nominal;
                         }
                     }
                 } 
             });
 
-            // Menyusun Laporan Peringkat berdasarkan PAKET TERKIRIM terbanyak
-            let leaderboard = Object.keys(kurirStats).map(nama => {
-                return { nama: nama, ...kurirStats[nama] };
-            }).sort((a, b) => b.terkirim - a.terkirim); 
-
+            let leaderboard = Object.keys(kurirStats).map(nama => { return { nama: nama, ...kurirStats[nama] }; }).sort((a, b) => b.terkirim - a.terkirim); 
             let htmlLeaderboard = `<div style="margin-top:20px;"><div class="dashboard-header" style="color:var(--safe);"><i class="fa-solid fa-ranking-star fa-beat"></i> RANKING PAKET TERKIRIM</div>`;
             
             if(leaderboard.length === 0) {
@@ -827,7 +814,6 @@
 
                     htmlLeaderboard += `
                     <div class="report-box" style="padding:15px; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; cursor:default; background:rgba(255,255,255,0.02); border: 1px solid rgba(34,197,94,0.2); animation: fadeInUpItem 0.4s var(--ease-ios) forwards; animation-delay: ${index * 0.1}s; opacity:0; align-items: stretch;">
-                        
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="width:20px; text-align:center;">${medali}</div>
@@ -837,7 +823,6 @@
                                 <span style="color:var(--safe); font-weight:800; background:rgba(34,197,94,0.2); padding:5px 10px; border-radius:8px; border:1px solid var(--safe);"><i class="fa-solid fa-check-double"></i> TERKIRIM: ${k.terkirim} PAKET</span> 
                             </div>
                         </div>
-
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.1);">
                             <div style="font-size:10px; color:gray;">Setoran COD:<br><b class="uang-blur" style="color:var(--warning); font-size:12px;">Rp ${k.cod.toLocaleString('id-ID')}</b></div>
                             <div style="font-size:10px; color:gray; text-align:right;">Setoran TF:<br><b class="uang-blur" style="color:var(--blue); font-size:12px;">Rp ${k.tf.toLocaleString('id-ID')}</b></div>
