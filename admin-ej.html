@@ -413,19 +413,36 @@
         </div>
     </div>
 
-    <div id="tvRadarContainer">
-        <div style="background:var(--gradient-dark); padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--blue);">
-            <div style="color:var(--gold); font-weight:800; font-size:18px; letter-spacing:1px;"><i class="fa-solid fa-satellite-dish fa-beat-fade" style="color:var(--danger); margin-right:10px;"></i> EJ COMMAND CENTER</div>
-            <div style="font-size:10px; color:gray; text-align:right;">STATUS RADAR:<br><b style="color:var(--safe); font-size:12px;">LIVE TRACKING ONLINE</b></div>
+    <div id="calcOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000000; justify-content:center; align-items:center; backdrop-filter:blur(10px);">
+        <div class="glass-card" style="width:90%; max-width:400px; border-color:#ffcc00; padding:25px;">
+            <div class="sheet-pill" style="background:#ffcc00"></div>
+            <h3 style="text-align:center; color:#ffcc00; margin-bottom:15px;"><i class="fa-solid fa-calculator"></i> KALKULATOR GEPOKAN</h3>
+            <p id="calcTarget" style="text-align:center; font-size:12px; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:20px;"></p>
+            
+            <div id="inputGepokan" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:10px; max-height:300px; overflow-y:auto; padding-right:5px;">
+            </div>
+
+            <div style="margin-top:20px; padding-top:15px; border-top:1px solid #444;">
+                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:18px;">
+                    <span>TOTAL FISIK:</span>
+                    <span id="calcTotal" style="color:var(--safe);">Rp 0</span>
+                </div>
+                <div id="calcSelisih" style="text-align:right; font-size:11px; margin-top:5px; font-weight:800;"></div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1.5fr; gap:10px; margin-top:20px;">
+                <button onclick="tutupKalkulator()" class="btn-main" style="background:rgba(255,255,255,0.1); color:white;">BATAL</button>
+                <button id="btnSimpanGepokan" class="btn-main" style="background:#ffcc00; color:black;">TERIMA UANG</button>
+            </div>
         </div>
-        <div id="tvMapSlot" style="flex:1; width:100%; display:flex; flex-direction:column;"></div>
     </div>
-    
-    <div id="waPrompt" style="position:fixed; top:20px; left:20px; right:20px; background:var(--wa); color:white; padding:20px; border-radius:20px; z-index:11000; display:none; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
-        <b style="display:block; margin-bottom:10px;">✅ Pesanan Tersimpan!</b>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <button onclick="tutupWAPrompt()" style="background:rgba(0,0,0,0.2); color:white; border:none; padding:10px; border-radius:10px; font-weight:800;">NANTI</button>
-            <button id="btnWAOpen" style="background:white; color:black; border:none; padding:10px; border-radius:10px; font-weight:800;">KIRIM WA</button>
+
+    <div id="ejAlertOverlay" class="modal-overlay" style="justify-content:center; padding:20px; z-index:9999999;">
+        <div class="glass-card" style="width:100%; max-width:320px; text-align:center; border-color:var(--gold); transform:scale(0.9); transition:0.3s;" id="ejAlertBox">
+            <div id="ejAlertIcon" style="font-size:40px; margin-bottom:15px;"></div>
+            <h2 id="ejAlertTitle" style="font-size:16px; color:white; margin-bottom:10px;"></h2>
+            <p id="ejAlertText" style="font-size:12px; color:gray; margin-bottom:20px; line-height:1.5;"></p>
+            <button class="btn-main" onclick="tutupEjAlert()">MENGERTI</button>
         </div>
     </div>
 
@@ -439,43 +456,34 @@
         
         let allOrders = [], semuaPengeluaran = {}, semuaSetoranKurir = {}, currentFilter = "Semua", lastOrder = null, lastDateString = "";
         let mapDataFirebase = {}, memoriPIN = "";
-        const PIN_ADMIN = "2020"; // PIN buat karyawan
-        const PIN_BOS = "0808";   // PIN khusus Jenderal EJ (Silakan diganti angkanya)
-        let hakAkses = "";        // Memori untuk nyatet siapa yang lagi login
+        const PIN_ADMIN = "2020"; 
+        const PIN_BOS = "0808";   
+        let hakAkses = "";        
 
         function pressPin(val) {
             const errEl = document.getElementById('pinError'); errEl.style.opacity = "0";
             if (val === 'C') { memoriPIN = ""; } 
             else if (val === 'OK') {
-                
-                // CEK APAKAH PIN COCOK DENGAN ADMIN ATAU BOS
                 if (memoriPIN === PIN_ADMIN || memoriPIN === PIN_BOS) { 
                     document.getElementById('loginOverlay').style.display = 'none'; 
-                    
-                    // Cari tombol Laporan di layar
                     const btnRekap = document.querySelector('div[onclick="bukaLaporan()"]');
 
-                    // ================= JIKA YANG LOGIN ADALAH BOS =================
                     if (memoriPIN === PIN_BOS) {
                         hakAkses = "BOS";
-                        if(btnRekap) { btnRekap.style.opacity = "1"; btnRekap.style.filter = "none"; } // Tombol Nyala Terang
-                        
+                        if(btnRekap) { btnRekap.style.opacity = "1"; btnRekap.style.filter = "none"; } 
                         if (jarvisAktif && 'speechSynthesis' in window) {
                             let msg = new SpeechSynthesisUtterance("Akses V I P diterima. Selamat datang kembali, Jenderal E J. Sistem kendali penuh telah dibuka.");
                             msg.lang = 'id-ID'; msg.pitch = 1.1; window.speechSynthesis.speak(msg);
                         }
                     } 
-                    // ================ JIKA YANG LOGIN ADALAH ADMIN ================
                     else if (memoriPIN === PIN_ADMIN) {
                         hakAkses = "ADMIN";
-                        if(btnRekap) { btnRekap.style.opacity = "0.4"; btnRekap.style.filter = "grayscale(100%)"; } // Tombol Dibuat Buram Hitam Putih
-                        
+                        if(btnRekap) { btnRekap.style.opacity = "0.4"; btnRekap.style.filter = "grayscale(100%)"; } 
                         if (jarvisAktif && 'speechSynthesis' in window) {
                             let msg = new SpeechSynthesisUtterance("Akses Admin diterima. Selamat bertugas, pasukan logistik siap menerima perintah.");
                             msg.lang = 'id-ID'; msg.pitch = 1.1; window.speechSynthesis.speak(msg);
                         }
                     }
-                    
                     memoriPIN = ""; 
                 } 
                 else { 
@@ -488,16 +496,12 @@
             document.getElementById('pinDisplay').innerText = memoriPIN.length > 0 ? "*".repeat(memoriPIN.length) : "****";
         }
 
-        // ---> MESIN ANIMASI RELOAD WUS WUS <---
         function wusWusReload(btn) {
-            btn.style.transform = "scale(0.85)"; // Tombol mengecil pas ditekan
+            btn.style.transform = "scale(0.85)";
             const icon = btn.querySelector('i');
-            icon.classList.add('fa-spin'); // Icon panah muter kenceng
-            if(navigator.vibrate) navigator.vibrate(50); // Kasih efek getar dikit
-            
-            setTimeout(() => {
-                window.location.reload(); // Refresh halaman setelah setengah detik
-            }, 500); 
+            icon.classList.add('fa-spin');
+            if(navigator.vibrate) navigator.vibrate(50);
+            setTimeout(() => { window.location.reload(); }, 500); 
         }
 
         function forceRefresh() { const icon = document.getElementById('iconRefresh'); icon.classList.add('fa-spin'); db.goOffline(); setTimeout(() => { db.goOnline(); setTimeout(() => { icon.classList.remove('fa-spin'); }, 1000); }, 500); }
@@ -517,12 +521,9 @@
             if(document.getElementById('currentDay')) document.getElementById('currentDay').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
         }, 1000);
 
-        // ================= KTP DIGITAL SATPAM FIREBASE =================
         firebase.auth().signInWithEmailAndPassword("tokoej2020@gmail.com", "ejtbk2020")
         .then(() => {
             console.log("KTP DITERIMA SATPAM! Akses Brankas Terbuka.");
-            
-            // Menarik data sekaligus jadi Mata-Mata buat ngasih tau Jarvis kalau ada kurir selesai
             db.ref('pesanan').limitToLast(150).on('value', snap => { 
                 const data = snap.val();
                 allOrders = data ? Object.keys(data).map(k => ({id:k, ...data[k]})).reverse() : []; 
@@ -547,9 +548,9 @@
         })
         .catch((error) => {
             console.error(error);
-            alert("⚠️ AKSES DITOLAK SATPAM! Pastikan Email dan Password di kode sudah benar.");
+            ejAlert("AKSES DITOLAK SATPAM!", "Pastikan Email dan Password di kode sudah benar.", "danger");
         });
-        // ===============================================================
+
         function updateAll() {
             const pickerVal = document.getElementById('datePicker').value; if(!pickerVal) return;
             const tglTarget = pickerVal.split('-').reverse().join('/');
@@ -693,7 +694,7 @@
             };
             if(!d.namaPembeli || !d.nohp) { ejAlert("DATA TIDAK LENGKAP", "Nama Pembeli dan Nomor WhatsApp wajib diisi!", "warning"); return; }
 
-// --- CEGATAN BLANK SPOT (INPUT BARU) ---
+            // --- CEGATAN BLANK SPOT (INPUT BARU) ---
             if (!navigator.onLine) {
                 let q = JSON.parse(localStorage.getItem('ejOffline') || '[]');
                 q.push({ type: 'tambah', data: d }); // Masukkan ke karung memori
@@ -833,6 +834,7 @@
                 jarvisBicara(`Membuka brankas data. Intelijen omzet bulan ini siap dianalisa, Komandan.`);
             }, 500);
         }
+        
         function hitungLaporan() {
             const v = document.getElementById('bulanLaporan').value; if(!v) return;
             const t = `${v.split('-')[1]}/${v.split('-')[0]}`; 
@@ -1080,7 +1082,7 @@
             teks80mm += `[L]TOTAL TAGIH : <b>Rp ${totalCOD.toLocaleString('id-ID')}</b>\n`;
             teks80mm += `[C]================================================\n`;
             teks80mm += `[C]Dibawa Oleh,          Diserahkan Oleh,\n\n\n\n`;
-            teks80mm += `[C]( ${namaKurir.toUpperCase()} )             ( ADMIN )\n\n\n\n\n`;
+            teks80mm += `[C]( ${namaKurir.toUpperCase()} )              ( ADMIN )\n\n\n\n\n`;
 
             // Lempar ke RawBT
             window.location.href = "rawbt:" + encodeURI(teks80mm);
@@ -1237,119 +1239,84 @@
         });
 
         // --- MESIN POP-UP MODERN (EJ ALERT) ---
-function ejAlert(judul, pesan, tipe = 'warning') {
-    const overlay = document.getElementById('ejAlertOverlay');
-    const box = document.getElementById('ejAlertBox');
-    const icon = document.getElementById('ejAlertIcon');
-    const title = document.getElementById('ejAlertTitle');
-    const text = document.getElementById('ejAlertText');
+        function ejAlert(judul, pesan, tipe = 'warning') {
+            const overlay = document.getElementById('ejAlertOverlay');
+            const box = document.getElementById('ejAlertBox');
+            const icon = document.getElementById('ejAlertIcon');
+            const title = document.getElementById('ejAlertTitle');
+            const text = document.getElementById('ejAlertText');
 
-    if (tipe === 'danger') {
-        icon.innerHTML = '<i class="fa-solid fa-shield-xmark" style="color:var(--danger)"></i>';
-        box.style.borderColor = 'var(--danger)';
-    } else if (tipe === 'success') {
-        icon.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--safe)"></i>';
-        box.style.borderColor = 'var(--safe)';
-    } else {
-        icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:var(--gold)"></i>';
-        box.style.borderColor = 'var(--gold)';
-    }
+            if (tipe === 'danger') {
+                icon.innerHTML = '<i class="fa-solid fa-shield-xmark" style="color:var(--danger)"></i>';
+                box.style.borderColor = 'var(--danger)';
+            } else if (tipe === 'success') {
+                icon.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--safe)"></i>';
+                box.style.borderColor = 'var(--safe)';
+            } else {
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:var(--gold)"></i>';
+                box.style.borderColor = 'var(--gold)';
+            }
 
-    title.innerText = judul;
-    text.innerText = pesan;
-    overlay.style.display = 'flex';
-    setTimeout(() => { box.style.transform = "scale(1)"; }, 10);
-    if(navigator.vibrate) navigator.vibrate(50);
-}
+            title.innerText = judul;
+            text.innerText = pesan;
+            overlay.style.display = 'flex';
+            setTimeout(() => { box.style.transform = "scale(1)"; }, 10);
+            if(navigator.vibrate) navigator.vibrate(50);
+        }
 
         // --- MESIN KALKULATOR GEPOKAN ---
-let targetDuit = 0, kurirAktifGepok = "", totalFisik = 0;
-const pecahan = [100000, 50000, 20000, 10000, 5000, 2000, 1000, 500];
+        let targetDuit = 0, kurirAktifGepok = "", totalFisik = 0;
+        const pecahan = [100000, 50000, 20000, 10000, 5000, 2000, 1000, 500];
 
-function bukaKalkulatorGepokan(nama, jumlah) {
-    kurirAktifGepok = nama; targetDuit = jumlah;
-    document.getElementById('calcTarget').innerHTML = `WAJIB SETOR <b>${nama.toUpperCase()}</b>:<br><b style="font-size:20px; color:var(--gold)">Rp ${jumlah.toLocaleString('id-ID')}</b>`;
-    
-    let htmlInput = "";
-    pecahan.forEach(p => {
-        htmlInput += `<label style="font-size:11px; align-self:center; font-weight:800; color:#aaa;">Rp ${p.toLocaleString('id-ID')}</label>
-                      <input type="number" class="input-lembar" data-val="${p}" placeholder="0 lembar" oninput="hitungTotalGepokan()" 
-                             style="padding:10px; text-align:center; background:black; border:1px solid #444;">`;
-    });
-    document.getElementById('inputGepokan').innerHTML = htmlInput;
-    document.getElementById('calcOverlay').style.display = 'flex';
-    hitungTotalGepokan();
-}
-
-function hitungTotalGepokan() {
-    totalFisik = 0;
-    document.querySelectorAll('.input-lembar').forEach(input => {
-        totalFisik += ((parseInt(input.value) || 0) * parseInt(input.getAttribute('data-val')));
-    });
-
-    const selisih = totalFisik - targetDuit;
-    document.getElementById('calcTotal').innerText = `Rp ${totalFisik.toLocaleString('id-ID')}`;
-    const elS = document.getElementById('calcSelisih');
-    
-    if (selisih === 0) { elS.innerText = "UANG PAS ✅"; elS.style.color = "var(--safe)"; }
-    else if (selisih > 0) { elS.innerText = `LEBIH: Rp ${selisih.toLocaleString('id-ID')} ⬆️`; elS.style.color = "var(--blue)"; }
-    else { elS.innerText = `KURANG: Rp ${Math.abs(selisih).toLocaleString('id-ID')} ⬇️`; elS.style.color = "var(--danger)"; }
-
-    document.getElementById('btnSimpanGepokan').onclick = () => {
-        if (selisih < 0) {
-            if (!confirm(`Uang kurang Rp ${Math.abs(selisih).toLocaleString('id-ID')}. Tetap terima?`)) return;
+        function bukaKalkulatorGepokan(nama, jumlah) {
+            kurirAktifGepok = nama; targetDuit = jumlah;
+            document.getElementById('calcTarget').innerHTML = `WAJIB SETOR <b>${nama.toUpperCase()}</b>:<br><b style="font-size:20px; color:var(--gold)">Rp ${jumlah.toLocaleString('id-ID')}</b>`;
+            
+            let htmlInput = "";
+            pecahan.forEach(p => {
+                htmlInput += `<label style="font-size:11px; align-self:center; font-weight:800; color:#aaa;">Rp ${p.toLocaleString('id-ID')}</label>
+                              <input type="number" class="input-lembar" data-val="${p}" placeholder="0 lembar" oninput="hitungTotalGepokan()" 
+                                     style="padding:10px; text-align:center; background:black; border:1px solid #444;">`;
+            });
+            document.getElementById('inputGepokan').innerHTML = htmlInput;
+            document.getElementById('calcOverlay').style.display = 'flex';
+            hitungTotalGepokan();
         }
-        // Eksekusi simpan ke Firebase (Gunakan fungsi setor yang sudah ada di kode Bos)
-        const keyTgl = document.getElementById('datePicker').value.split('-').reverse().join('-');
-        db.ref(`setoran_kurir/${keyTgl}/${kurirAktifGepok}`).transaction(cv => (Number(cv) || 0) + targetDuit).then(() => {
-            tutupKalkulator();
-            jarvisBicara(`Uang setoran ${kurirAktifGepok} telah diterima. Total fisik ${totalFisik.toLocaleString('id-ID')}.`);
-        });
-    };
-}
 
-function tutupKalkulator() { document.getElementById('calcOverlay').style.display = 'none'; }
+        function hitungTotalGepokan() {
+            totalFisik = 0;
+            document.querySelectorAll('.input-lembar').forEach(input => {
+                totalFisik += ((parseInt(input.value) || 0) * parseInt(input.getAttribute('data-val')));
+            });
 
-function tutupEjAlert() {
-    const box = document.getElementById('ejAlertBox');
-    box.style.transform = "scale(0.9)";
-    setTimeout(() => { document.getElementById('ejAlertOverlay').style.display = 'none'; }, 200);
-}
+            const selisih = totalFisik - targetDuit;
+            document.getElementById('calcTotal').innerText = `Rp ${totalFisik.toLocaleString('id-ID')}`;
+            const elS = document.getElementById('calcSelisih');
+            
+            if (selisih === 0) { elS.innerText = "UANG PAS ✅"; elS.style.color = "var(--safe)"; }
+            else if (selisih > 0) { elS.innerText = `LEBIH: Rp ${selisih.toLocaleString('id-ID')} ⬆️`; elS.style.color = "var(--blue)"; }
+            else { elS.innerText = `KURANG: Rp ${Math.abs(selisih).toLocaleString('id-ID')} ⬇️`; elS.style.color = "var(--danger)"; }
+
+            document.getElementById('btnSimpanGepokan').onclick = () => {
+                if (selisih < 0) {
+                    if (!confirm(`Uang kurang Rp ${Math.abs(selisih).toLocaleString('id-ID')}. Tetap terima?`)) return;
+                }
+                const keyTgl = document.getElementById('datePicker').value.split('-').reverse().join('-');
+                db.ref(`setoran_kurir/${keyTgl}/${kurirAktifGepok}`).transaction(cv => (Number(cv) || 0) + targetDuit).then(() => {
+                    tutupKalkulator();
+                    jarvisBicara(`Uang setoran ${kurirAktifGepok} telah diterima. Total fisik ${totalFisik.toLocaleString('id-ID')}.`);
+                });
+            };
+        }
+
+        function tutupKalkulator() { document.getElementById('calcOverlay').style.display = 'none'; }
+
+        function tutupEjAlert() {
+            const box = document.getElementById('ejAlertBox');
+            box.style.transform = "scale(0.9)";
+            setTimeout(() => { document.getElementById('ejAlertOverlay').style.display = 'none'; }, 200);
+        }
         
     </script>
-
-    <div id="calcOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000000; justify-content:center; align-items:center; backdrop-filter:blur(10px);">
-    <div class="glass-card" style="width:90%; max-width:400px; border-color:#ffcc00; padding:25px;">
-        <div class="sheet-pill" style="background:#ffcc00"></div>
-        <h3 style="text-align:center; color:#ffcc00; margin-bottom:15px;"><i class="fa-solid fa-calculator"></i> KALKULATOR GEPOKAN</h3>
-        <p id="calcTarget" style="text-align:center; font-size:12px; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:20px;"></p>
-        
-        <div id="inputGepokan" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:10px; max-height:300px; overflow-y:auto; padding-right:5px;">
-            </div>
-
-        <div style="margin-top:20px; padding-top:15px; border-top:1px solid #444;">
-            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:18px;">
-                <span>TOTAL FISIK:</span>
-                <span id="calcTotal" style="color:var(--safe);">Rp 0</span>
-            </div>
-            <div id="calcSelisih" style="text-align:right; font-size:11px; margin-top:5px; font-weight:800;"></div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1.5fr; gap:10px; margin-top:20px;">
-            <button onclick="tutupKalkulator()" class="btn-main" style="background:rgba(255,255,255,0.1); color:white;">BATAL</button>
-            <button id="btnSimpanGepokan" class="btn-main" style="background:#ffcc00; color:black;">TERIMA UANG</button>
-        </div>
-    </div>
-</div>
-
-    <div id="ejAlertOverlay" class="modal-overlay" style="justify-content:center; padding:20px; z-index:9999999;">
-    <div class="glass-card" style="width:100%; max-width:320px; text-align:center; border-color:var(--gold); transform:scale(0.9); transition:0.3s;" id="ejAlertBox">
-        <div id="ejAlertIcon" style="font-size:40px; margin-bottom:15px;"></div>
-        <h2 id="ejAlertTitle" style="font-size:16px; color:white; margin-bottom:10px;"></h2>
-        <p id="ejAlertText" style="font-size:12px; color:gray; margin-bottom:20px; line-height:1.5;"></p>
-        <button class="btn-main" onclick="tutupEjAlert()">MENGERTI</button>
-    </div>
-</div>
-    
 </body>
 </html>
