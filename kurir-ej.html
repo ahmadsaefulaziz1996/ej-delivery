@@ -458,10 +458,21 @@
         }, 500);
     }
 
-    db.ref('pesanan').limitToLast(200).on('value', snap => { allData = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).reverse() : []; if(myName) updateUI(); });
-    db.ref('pengeluaran').on('value', snap => { allPengeluaranData = snap.val() || {}; if(myName) updateUI(); });
-    db.ref('setoran_kurir').on('value', snap => { allSetoranData = snap.val() || {}; if(myName) updateUI(); });
-
+    // --- KTP SATPAM FIREBASE KURIR ---
+    firebase.auth().signInWithEmailAndPassword("tokoej2020@gmail.com", "ejtbk2020")
+    .then(() => {
+        console.log("KTP KURIR DITERIMA SATPAM!");
+        db.ref('pesanan').limitToLast(200).on('value', snap => { 
+            allData = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).reverse() : []; 
+            if(myName) updateUI(); 
+        });
+        db.ref('pengeluaran').on('value', snap => { allPengeluaranData = snap.val() || {}; if(myName) updateUI(); });
+        db.ref('setoran_kurir').on('value', snap => { allSetoranData = snap.val() || {}; if(myName) updateUI(); });
+    })
+    .catch((error) => {
+        alert("⚠️ GAGAL TERHUBUNG! Pastikan internet stabil.");
+    });
+        
     function updateUI() {
         const today = getTgl(); let gd=0, p=0, s=0, g=0, codK=0; const me = myName.toLowerCase();
         allData.forEach(o => {
@@ -703,27 +714,6 @@
         localStorage.removeItem('ejOfflineKurir');
         setTimeout(() => { updateStatusInternet(); }, 3000);
     }
-
-    function updateStatusInternet() {
-        const lampu = document.getElementById('lampuKoneksi');
-        const teks = document.getElementById('teksKoneksi');
-        let q = JSON.parse(localStorage.getItem('ejOfflineKurir') || '[]');
-        let teksAntri = q.length > 0 ? ` [${q.length} ANTRI]` : "";
-
-        if (navigator.onLine) {
-            document.body.classList.remove('is-offline');
-            db.goOnline();
-            if(lampu) { lampu.style.background = "var(--safe)"; lampu.style.boxShadow = "0 0 10px var(--safe)"; }
-            if(teks) { teks.innerText = "SISTEM ONLINE"; teks.style.color = "var(--safe)"; }
-            if(q.length > 0) prosesDataOffline(); // Tembak data kalau ada antrean
-        } else {
-            document.body.classList.add('is-offline');
-            db.goOffline();
-            if(lampu) { lampu.style.background = "var(--offline)"; lampu.style.boxShadow = "0 0 10px var(--offline)"; }
-            if(teks) { teks.innerText = "KONEKSI TERPUTUS" + teksAntri; teks.style.color = "var(--offline)"; }
-        }
-    }
-    
     window.addEventListener('online', updateStatusInternet); 
     window.addEventListener('offline', updateStatusInternet); 
     updateStatusInternet();
