@@ -439,27 +439,54 @@
         
         let allOrders = [], semuaPengeluaran = {}, semuaSetoranKurir = {}, currentFilter = "Semua", lastOrder = null, lastDateString = "";
         let mapDataFirebase = {}, memoriPIN = "";
-        const PIN_RAHASIA = "1234";
+        const PIN_ADMIN = "2020"; // PIN buat karyawan
+        const PIN_BOS = "0808";   // PIN khusus Jenderal EJ (Silakan diganti angkanya)
+        let hakAkses = "";        // Memori untuk nyatet siapa yang lagi login
 
         function pressPin(val) {
             const errEl = document.getElementById('pinError'); errEl.style.opacity = "0";
             if (val === 'C') { memoriPIN = ""; } 
             else if (val === 'OK') {
-                if (memoriPIN === PIN_RAHASIA) { 
+                
+                // CEK APAKAH PIN COCOK DENGAN ADMIN ATAU BOS
+                if (memoriPIN === PIN_ADMIN || memoriPIN === PIN_BOS) { 
                     document.getElementById('loginOverlay').style.display = 'none'; 
-                    memoriPIN = ""; 
                     
-                    // --- SUNTIKAN SUARA LOGIN (Sekaligus mancing izin suara Browser) ---
-                    if (jarvisAktif && 'speechSynthesis' in window) {
-                        let msg = new SpeechSynthesisUtterance("Akses diterima. Selamat datang Komandan E J.");
-                        msg.lang = 'id-ID'; window.speechSynthesis.speak(msg);
+                    // Cari tombol Laporan di layar
+                    const btnRekap = document.querySelector('div[onclick="bukaLaporan()"]');
+
+                    // ================= JIKA YANG LOGIN ADALAH BOS =================
+                    if (memoriPIN === PIN_BOS) {
+                        hakAkses = "BOS";
+                        if(btnRekap) { btnRekap.style.opacity = "1"; btnRekap.style.filter = "none"; } // Tombol Nyala Terang
+                        
+                        if (jarvisAktif && 'speechSynthesis' in window) {
+                            let msg = new SpeechSynthesisUtterance("Akses V I P diterima. Selamat datang kembali, Jenderal E J. Sistem kendali penuh telah dibuka.");
+                            msg.lang = 'id-ID'; msg.pitch = 1.1; window.speechSynthesis.speak(msg);
+                        }
+                    } 
+                    // ================ JIKA YANG LOGIN ADALAH ADMIN ================
+                    else if (memoriPIN === PIN_ADMIN) {
+                        hakAkses = "ADMIN";
+                        if(btnRekap) { btnRekap.style.opacity = "0.4"; btnRekap.style.filter = "grayscale(100%)"; } // Tombol Dibuat Buram Hitam Putih
+                        
+                        if (jarvisAktif && 'speechSynthesis' in window) {
+                            let msg = new SpeechSynthesisUtterance("Akses Admin diterima. Selamat bertugas, pasukan logistik siap menerima perintah.");
+                            msg.lang = 'id-ID'; msg.pitch = 1.1; window.speechSynthesis.speak(msg);
+                        }
                     }
-                    // -------------------------------------------------------------------
+                    
+                    memoriPIN = ""; 
                 } 
-                else { errEl.style.opacity = "1"; if(navigator.vibrate) navigator.vibrate([50, 50, 50]); memoriPIN = ""; }
+                else { 
+                    errEl.style.opacity = "1"; if(navigator.vibrate) navigator.vibrate([50, 50, 50]); 
+                    if(memoriPIN === "0000" || memoriPIN === "1111") { jarvisBicara("Akses ditolak. Harap berhenti menebak kata sandi rahasia."); } 
+                    else { jarvisBicara("Akses ditolak. Identitas tidak dikenali. Peringatan, penyusup terdeteksi."); }
+                    memoriPIN = ""; 
+                }
             } else { if (memoriPIN.length < 4) memoriPIN += val; }
             document.getElementById('pinDisplay').innerText = memoriPIN.length > 0 ? "*".repeat(memoriPIN.length) : "****";
-        } // <-- INI DIA SI KURUNG TUTUP YANG HILANG! WKWKWK
+        }
 
         // ---> MESIN ANIMASI RELOAD WUS WUS <---
         function wusWusReload(btn) {
@@ -747,7 +774,25 @@
             });
         }
 
-        function bukaLaporan() { document.getElementById('bulanLaporan').value = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`; document.getElementById('laporanOverlay').style.display = 'flex'; hitungLaporan(); }
+        function bukaLaporan() { 
+            // --- SUNTIKAN GEMBOK ANTI ADMIN ---
+            if (hakAkses !== "BOS") {
+                if(navigator.vibrate) navigator.vibrate([50, 50]);
+                alert("🔒 AKSES DITOLAK!\nMenu Laporan Omzet ini dikunci khusus untuk Jenderal EJ.");
+                jarvisBicara("Akses ditolak. Brankas laporan hanya bisa dibuka oleh Jenderal E J.");
+                return; // Mesin dihentikan di sini, laci gak akan terbuka!
+            }
+            // ----------------------------------
+
+            const now = new Date(); const y = now.getFullYear(); const m = String(now.getMonth() + 1).padStart(2, '0'); const d = String(now.getDate()).padStart(2, '0');
+            document.getElementById('lapMulai').value = `${y}-${m}-01`; document.getElementById('lapSelesai').value = `${y}-${m}-${d}`;
+            document.getElementById('laporanOverlay').style.display = 'flex'; hitungLaporan(); 
+            setTimeout(() => {
+                const topKurir = document.querySelector('.report-box b') ? document.querySelector('.report-box b').innerText : null;
+                if(topKurir) { jarvisBicara(`Membuka brankas data. Prajurit terbaik di periode ini jatuh kepada: ${topKurir}.`); } 
+                else { jarvisBicara(`Membuka brankas data. Intelijen omzet siap dianalisa.`); }
+            }, 500);
+        }
         function hitungLaporan() {
             const v = document.getElementById('bulanLaporan').value; if(!v) return;
             const t = `${v.split('-')[1]}/${v.split('-')[0]}`; 
