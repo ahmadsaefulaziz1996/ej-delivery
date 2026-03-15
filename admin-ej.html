@@ -775,22 +775,33 @@
         }
 
         function bukaLaporan() { 
-            // --- SUNTIKAN GEMBOK ANTI ADMIN ---
+            // 1. Cek Gembok Kasta
             if (hakAkses !== "BOS") {
                 if(navigator.vibrate) navigator.vibrate([50, 50]);
                 alert("🔒 AKSES DITOLAK!\nMenu Laporan Omzet ini dikunci khusus untuk Jenderal EJ.");
                 jarvisBicara("Akses ditolak. Brankas laporan hanya bisa dibuka oleh Jenderal E J.");
-                return; // Mesin dihentikan di sini, laci gak akan terbuka!
+                return; 
             }
-            // ----------------------------------
 
-            const now = new Date(); const y = now.getFullYear(); const m = String(now.getMonth() + 1).padStart(2, '0'); const d = String(now.getDate()).padStart(2, '0');
-            document.getElementById('lapMulai').value = `${y}-${m}-01`; document.getElementById('lapSelesai').value = `${y}-${m}-${d}`;
-            document.getElementById('laporanOverlay').style.display = 'flex'; hitungLaporan(); 
+            // 2. Setel bulan otomatis ke bulan sekarang (biar gak kosong)
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const inputBulan = document.getElementById('bulanLaporan');
+            
+            if (inputBulan) {
+                inputBulan.value = `${y}-${m}`; // Setel ke format 2024-03
+            }
+
+            // 3. Tampilkan Laci
+            document.getElementById('laporanOverlay').style.display = 'flex'; 
+            
+            // 4. Hitung data
+            hitungLaporan(); 
+            
+            // 5. Sambutan Jarvis
             setTimeout(() => {
-                const topKurir = document.querySelector('.report-box b') ? document.querySelector('.report-box b').innerText : null;
-                if(topKurir) { jarvisBicara(`Membuka brankas data. Prajurit terbaik di periode ini jatuh kepada: ${topKurir}.`); } 
-                else { jarvisBicara(`Membuka brankas data. Intelijen omzet siap dianalisa.`); }
+                jarvisBicara(`Membuka brankas data. Intelijen omzet bulan ini siap dianalisa, Komandan.`);
             }, 500);
         }
         function hitungLaporan() {
