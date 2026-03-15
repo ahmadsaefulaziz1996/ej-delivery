@@ -293,15 +293,25 @@
     // 1. PANGGIL MEMORI HP
     let myName = localStorage.getItem('namaKurir') || "";
 
-    // 2. MESIN AUTO-LOGIN (Langsung bypass layar PIN kalau memori ada)
+    // 2. MESIN AUTO-LOGIN FIREBASE
     window.onload = () => {
-        if (myName) {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('namaKurirHeader').innerText = myName.toUpperCase();
-            updateUI();
-            aktifkanRadar();
-        }
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user && myName) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('namaKurirHeader').innerText = myName.toUpperCase();
+                mulaiTarikDataKurir(); // Mulai sedot data
+            } else {
+                document.getElementById('loginOverlay').style.display = 'flex';
+            }
+        });
     };
+
+        function mulaiTarikDataKurir() {
+        db.ref('pesanan').limitToLast(200).on('value', snap => { allData = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).reverse() : []; if(myName) updateUI(); });
+        db.ref('pengeluaran').limitToLast(150).on('value', snap => { allPengeluaranData = snap.val() || {}; if(myName) updateUI(); });
+        db.ref('setoran_kurir').on('value', snap => { allSetoranData = snap.val() || {}; if(myName) updateUI(); });
+        aktifkanRadar();
+    }
     
     function getTgl() { const n = new Date(); return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`; }
     
@@ -335,22 +345,31 @@
             memoriPIN = ""; 
         } else if (val === 'OK') {
             const sel = document.getElementById('namaKurirInput').value;
-            if (memoriPIN === dataPIN[sel]) { 
+            document.getElementById('pinDisplay').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            
+            // RAKIT EMAIL DAN PASSWORD FIREBASE DARI PIN
+            const emailKurir = sel.toLowerCase() + "@ejtobacco.com";
+            const passKurir = memoriPIN + "ej";
+
+            // PROSES LOGIN KE FIREBASE
+            firebase.auth().signInWithEmailAndPassword(emailKurir, passKurir)
+            .then((userCredential) => {
                 myName = sel; 
-                localStorage.setItem('namaKurir', myName); // <-- SUNTIKAN KODE INI (Simpan ke Memori)
+                localStorage.setItem('namaKurir', myName); 
                 document.getElementById('loginOverlay').style.display='none'; 
                 document.getElementById('namaKurirHeader').innerText=myName.toUpperCase(); 
-                updateUI(); 
-                aktifkanRadar(); 
+                mulaiTarikDataKurir();
                 memoriPIN = ""; 
-            } else { 
-                alert("⚠️ PIN SALAH! Pastikan PIN sesuai dengan nama kurir."); 
+            })
+            .catch((error) => {
+                alert("⚠️ PIN SALAH! Atau akun belum dibuat oleh Bos."); 
                 memoriPIN = ""; 
-            }
+                document.getElementById('pinDisplay').innerText = "****";
+            });
         } else { 
             if (memoriPIN.length < 4) memoriPIN += val; 
         }
-        document.getElementById('pinDisplay').innerText = memoriPIN.length > 0 ? "*".repeat(memoriPIN.length) : "****";
+        if (val !== 'OK') document.getElementById('pinDisplay').innerText = memoriPIN.length > 0 ? "*".repeat(memoriPIN.length) : "****";
     }
 
     function tampilkanPopupLogout() {
@@ -358,13 +377,15 @@
     }
 
     function eksekusiLogout() {
-        myName = "";
-        localStorage.removeItem('namaKurir'); // <-- SUNTIKAN KODE INI (Hapus Memori)
-        document.getElementById('pinDisplay').innerText = "****";
-        memoriPIN = "";
-        document.getElementById('modalLogout').style.display = 'none';
-        document.getElementById('loginOverlay').style.display = 'flex';
-    }
+        firebase.auth().signOut().then(() => {
+            myName = "";
+            localStorage.removeItem('namaKurir'); 
+            document.getElementById('pinDisplay').innerText = "****";
+            memoriPIN = "";
+            document.getElementById('modalLogout').style.display = 'none';
+            document.getElementById('loginOverlay').style.display = 'flex';
+        });
+    }}
 
     function forceRefresh() {
         const icon = document.getElementById('iconRefresh');
@@ -375,21 +396,6 @@
             setTimeout(() => { icon.classList.remove('fa-spin'); }, 1000); 
         }, 500);
     }
-
-    // SUNTIKAN KTP DIGITAL UNTUK KURIR
-firebase.auth().signInWithEmailAndPassword("tokoej2020@gmail.com", "ejtbk2020")
-.then(() => {
-    console.log("Akses Kurir Diterima Firebase!");
-    
-    // Pindahkan 3 baris penarik data ke DALAM sini
-    db.ref('pesanan').limitToLast(200).on('value', snap => { allData = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).reverse() : []; if(myName) updateUI(); });
-    db.ref('pengeluaran').limitToLast(150).on('value', snap => { allPengeluaranData = snap.val() || {}; if(myName) updateUI(); });
-    db.ref('setoran_kurir').on('value', snap => { allSetoranData = snap.val() || {}; if(myName) updateUI(); });
-})
-.catch((error) => {
-    alert("⚠️ Kurir gagal konek ke database! Pastikan internet stabil.");
-    console.error(error);
-});
 
     function updateUI() {
         const today = getTgl(); let gd=0, p=0, s=0, g=0, codK=0; const me = myName.toLowerCase();
