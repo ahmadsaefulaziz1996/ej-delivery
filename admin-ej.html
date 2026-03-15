@@ -692,6 +692,23 @@
                 waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
             };
             if(!d.namaPembeli || !d.nohp) { ejAlert("DATA TIDAK LENGKAP", "Nama Pembeli dan Nomor WhatsApp wajib diisi!", "warning"); return; }
+
+// --- CEGATAN BLANK SPOT (INPUT BARU) ---
+            if (!navigator.onLine) {
+                let q = JSON.parse(localStorage.getItem('ejOffline') || '[]');
+                q.push({ type: 'tambah', data: d }); // Masukkan ke karung memori
+                localStorage.setItem('ejOffline', JSON.stringify(q));
+                
+                tutupModalInput();
+                ejAlert("MODE BLANK SPOT", "Sinyal terputus! Pesanan baru disimpan di HP dan akan dikirim otomatis saat sinyal kembali.", "warning");
+                updateStatusInternet(); // Update tulisan indikator di atas
+                
+                // Bersihkan form
+                ['noPesanan','pembeli','nohp','alamat','mapLink','total'].forEach(id => document.getElementById(id).value = "");
+                document.getElementById('isUrgent').checked = false;
+                return; // Berhenti di sini, jangan lanjut ke Firebase!
+            }
+            // ---------------------------------------
             
             db.ref('pesanan').push(d).then(() => { 
                 tutupModalInput();
@@ -768,6 +785,18 @@
                 waktuUpdate: new Date().toLocaleTimeString() 
             };
             if(stat==='Gudang'){du.kurir=''; du.alasanTunda=null;}
+            // --- CEGATAN BLANK SPOT (EDIT STATUS) ---
+            if (!navigator.onLine) {
+                let q = JSON.parse(localStorage.getItem('ejOffline') || '[]');
+                q.push({ type: 'edit', id: editId, data: du }); // Masukkan ke karung memori
+                localStorage.setItem('ejOffline', JSON.stringify(q));
+                
+                document.getElementById('modalEdit').style.display='none';
+                ejAlert("MODE BLANK SPOT", "Sinyal terputus! Perubahan status disimpan di HP dan akan diupdate otomatis saat sinyal kembali.", "warning");
+                updateStatusInternet(); // Update tulisan indikator di atas
+                return; // Berhenti di sini, jangan lanjut ke Firebase!
+            }
+            // ----------------------------------------
             db.ref('pesanan/'+editId).update(du).then(()=>{
                 document.getElementById('modalEdit').style.display='none';
                 if(navigator.vibrate) navigator.vibrate(100);
@@ -900,8 +929,49 @@
         function bersihkanDataLama() { const BATAS = 90 * 24 * 60 * 60 * 1000; const skr = new Date().getTime(); db.ref('pesanan').once('value', s => { const d = s.val(); if(!d) return; for(let id in d) { if(d[id].tanggal) { const p=d[id].tanggal.split('/'); if(skr - new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime() > BATAS) { db.ref('pesanan/'+id).remove(); db.ref('foto_bukti/'+id).remove(); } } } }); }
         setTimeout(bersihkanDataLama, 10000);
 
-        function updateStatusInternet() { const l=document.getElementById('lampuKoneksi'), t=document.getElementById('teksKoneksi'); if(navigator.onLine) { db.goOnline(); if(l)l.style.background="var(--safe)"; if(t)t.innerText="ONLINE"; } else { db.goOffline(); if(l)l.style.background="var(--danger)"; if(t)t.innerText="OFFLINE"; } }
-        window.addEventListener('online', updateStatusInternet); window.addEventListener('offline', updateStatusInternet); updateStatusInternet();
+        // ================= OTAK BLANK SPOT (OFFLINE SYNC) =================
+        function prosesDataOffline() {
+            let q = JSON.parse(localStorage.getItem('ejOffline') || '[]');
+            if (q.length === 0) return;
+
+            jarvisBicara(`Sinyal kembali terhubung. Memulai sinkronisasi ${q.length} data yang tertunda.`);
+            ejAlert("SINKRONISASI DATA", `Mengirim ${q.length} data ke markas pusat...`, "success");
+
+            // Tembakkan semua antrean ke Firebase
+            q.forEach(item => {
+                if (item.type === 'edit') db.ref('pesanan/'+item.id).update(item.data);
+                else if (item.type === 'tambah') db.ref('pesanan').push(item.data);
+            });
+
+            // Bersihkan memori HP setelah sukses dikirim
+            localStorage.removeItem('ejOffline');
+            setTimeout(() => { 
+                ejAlert("SINKRONISASI SUKSES", "Seluruh data Blank Spot telah masuk ke server!", "success"); 
+                updateStatusInternet(); // Refresh tulisan indikator
+            }, 2500);
+        }
+
+        function updateStatusInternet() { 
+            const l = document.getElementById('lampuKoneksi');
+            const t = document.getElementById('teksKoneksi'); 
+            let q = JSON.parse(localStorage.getItem('ejOffline') || '[]');
+            let teksAntri = q.length > 0 ? ` [${q.length} ANTRI]` : "";
+
+            if(navigator.onLine) { 
+                db.goOnline(); 
+                if(l) l.style.background = "var(--safe)"; 
+                if(t) t.innerText = "ONLINE"; 
+                if(q.length > 0) prosesDataOffline(); // Kalau nyambung dan ada antrean, langsung tembak!
+            } else { 
+                db.goOffline(); 
+                if(l) l.style.background = "var(--danger)"; 
+                if(t) t.innerText = "OFFLINE" + teksAntri; // Nampilin jumlah data yang nyangkut
+            } 
+        }
+        window.addEventListener('online', updateStatusInternet); 
+        window.addEventListener('offline', updateStatusInternet); 
+        updateStatusInternet();
+        // ===============================================================
 
         // ==========================================
         // MESIN MATA ELANG V2 (AUTO KAMERA BELAKANG)
